@@ -1,4 +1,54 @@
+const AWS = require("aws-sdk");
 const index = process.env.INDEX;
+const elasticsearchEndpoint = process.env.ELASTICSEARCH_ENDPOINT;
+const region = "us-east-1";
+
+async function makeRequest(id) {
+  return new Promise((resolve, _reject) => {
+    const endpoint = new AWS.Endpoint(elasticsearchEndpoint);
+    const request = new AWS.HttpRequest(endpoint, region);
+
+    request.method = "GET";
+    request.path += index + `/_doc/${id}`;
+    request.headers["host"] = elasticsearchEndpoint;
+    request.headers["Content-Type"] = "application/json";
+
+    let chain = new AWS.CredentialProviderChain();
+    chain.resolve((err, credentials) => {
+      if (err) {
+        console.error("Returning unsigned request: ", err);
+      } else {
+        var signer = new AWS.Signers.V4(request, "es");
+        signer.addAuthorization(credentials, new Date());
+      }
+      resolve(request);
+    });
+  });
+}
+
+async function awsFetch(request) {
+  console.log(`request`, request);
+
+  return new Promise((resolve, reject) => {
+    var client = new AWS.HttpClient();
+    client.handleRequest(
+      request,
+      null,
+      function (response) {
+        let responseBody = "";
+        response.on("data", function (chunk) {
+          responseBody += chunk;
+        });
+        response.on("end", function (chunk) {
+          resolve(responseBody);
+        });
+      },
+      function (error) {
+        console.error("Error: " + error);
+      }
+    );
+  });
+}
 
 /**
  * A simple function to get a work by id
@@ -17,9 +67,12 @@ exports.getByIdHandler = async (event) => {
 
   console.log("id", id);
 
+  let request = await makeRequest(id);
+  let esResponse = await awsFetch(request);
+
   const response = {
     statusCode: 200,
-    body: JSON.stringify({ id: id }),
+    body: esResponse,
   };
 
   console.info(

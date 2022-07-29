@@ -10,21 +10,13 @@ Globals:
   Function:
     Timeout: 3
 
+Parameters:
+  ElasticsearchEndpoint:
+    Type: String
+    Description: Elasticsearch url
+
 Resources:
-  # HelloWorldFunction:
-  #   Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
-  #   Properties:
-  #     Handler: src/handlers/hello.helloHandler
-  #     Runtime: nodejs16.x
-  #     Architectures:
-  #       - x86_64
-  #     Events:
-  #       Api:
-  #         Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-  #         Properties:
-  #           Path: /hello
-  #           Method: get
-  getByIdFunction:
+  getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: src/handlers/get-work-by-id.getByIdHandler
@@ -34,9 +26,17 @@ Resources:
       MemorySize: 128
       Timeout: 100
       Description: Gets a work by id.
+      Policies:
+        - Statement:
+            - Sid: ESHTTPPolicy
+              Effect: Allow
+              Action:
+                - es:ESHttp*
+              Resource: "*"
       Environment:
         Variables:
           INDEX: "dc-v2-work"
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
           Type: Api
