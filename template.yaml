@@ -19,7 +19,7 @@ Resources:
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-work-by-id.getByIdHandler
+      Handler: src/handlers/get-work-by-id.getWorkByIdHandler
       Runtime: nodejs16.x
       Architectures:
         - x86_64

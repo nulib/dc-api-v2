@@ -53,7 +53,7 @@ async function awsFetch(request) {
 /**
  * A simple function to get a work by id
  */
-exports.getByIdHandler = async (event) => {
+exports.getWorkByIdHandler = async (event) => {
   if (event.httpMethod !== "GET") {
     throw new Error(
       `getMethod only accept GET method, you tried: ${event.httpMethod}`
