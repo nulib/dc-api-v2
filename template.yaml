@@ -14,12 +14,30 @@ Parameters:
   ElasticsearchEndpoint:
     Type: String
     Description: Elasticsearch url
-
+  EnvironmentPrefix:
+    Type: String
+    Description: Index Prefix
+    Default: ""
 Resources:
+  helloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/hello.helloHandler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Description: Says hello.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: GET
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-work-by-id.getWorkByIdHandler
+      Handler: src/handlers/get-work-by-id.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -27,15 +45,16 @@ Resources:
       Timeout: 100
       Description: Gets a work by id.
       Policies:
-        - Statement:
-            - Sid: ESHTTPPolicy
-              Effect: Allow
-              Action:
-                - es:ESHttp*
-              Resource: "*"
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
       Environment:
         Variables:
-          INDEX: "dc-v2-work"
+          ENV_PREFIX: !Ref EnvironmentPrefix
           ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
@@ -43,7 +62,6 @@ Resources:
           Properties:
             Path: /works/{id}
             Method: GET
-
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
