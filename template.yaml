@@ -32,6 +32,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref dcApi
             Path: /hello
             Method: GET
   getWorkByIdFunction:
@@ -60,9 +61,12 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
-Outputs:
-  WebEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  dcApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      EndpointConfiguration:
+        Type: REGIONAL
+      StageName: v2
