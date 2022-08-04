@@ -1,9 +1,6 @@
-const AWS = require("aws-sdk");
+const { HttpRequest } = require("@aws-sdk/protocol-http");
 const { awsFetch } = require("../aws/fetch");
-const { prefix } = require("../aws/environment");
-
-const elasticsearchEndpoint = process.env.ELASTICSEARCH_ENDPOINT;
-const region = process.env.AWS_REGION || "us-east-1";
+const { elasticsearchEndpoint, prefix } = require("../aws/environment");
 
 async function getCollection(id) {
   return getDocument("dc-v2-collection", id);
@@ -18,14 +15,7 @@ async function getWork(id) {
 }
 
 async function getDocument(index, id) {
-  const endpoint = new AWS.Endpoint(elasticsearchEndpoint);
-  const request = new AWS.HttpRequest(endpoint, region);
-
-  request.method = "GET";
-  request.path += prefix(index) + `/_doc/${id}`;
-  request.headers["host"] = elasticsearchEndpoint;
-  request.headers["Content-Type"] = "application/json";
-
+  const request = initRequest(`/${prefix(index)}/_doc/${id}`);
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
@@ -54,15 +44,33 @@ function isVisible(doc) {
   }
 }
 
-async function search(targets, body) {
-  const endpoint = new AWS.Endpoint(elasticsearchEndpoint);
-  const request = new AWS.HttpRequest(endpoint, region);
+function initRequest(path) {
+  const endpoint = elasticsearchEndpoint();
 
-  request.method = "POST";
-  request.body = body;
-  request.path += `${targets}/_search`;
-  request.headers["host"] = elasticsearchEndpoint;
-  request.headers["Content-Type"] = "application/json";
+  return new HttpRequest({
+    method: "GET",
+    hostname: endpoint,
+    headers: {
+      Host: endpoint,
+      "Content-Type": "application/json",
+    },
+    path: path,
+  });
+}
+
+async function search(targets, body) {
+  const endpoint = elasticsearchEndpoint();
+
+  const request = new HttpRequest({
+    method: "POST",
+    hostname: endpoint,
+    headers: {
+      Host: endpoint,
+      "Content-Type": "application/json",
+    },
+    body: body,
+    path: `/${targets}/_search`,
+  });
 
   return await awsFetch(request);
 }

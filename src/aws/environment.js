@@ -1,7 +1,15 @@
-function prefix(value) {
-  return [process.env.ENV_PREFIX, value]
-    .filter((val) => { return (val !== "") && !!val })
-    .join("-");
-};
+function elasticsearchEndpoint() {
+  return process.env.ELASTICSEARCH_ENDPOINT;
+}
 
-module.exports = { prefix }
+function prefix(value) {
+  const envPrefix =
+    process.env.ENV_PREFIX === "" ? undefined : process.env.ENV_PREFIX;
+  return [envPrefix, value].filter((val) => !!val).join("-");
+}
+
+function region() {
+  return process.env.AWS_REGION || "us-east-1";
+}
+
+module.exports = { elasticsearchEndpoint, prefix, region };
