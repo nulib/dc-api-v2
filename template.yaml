@@ -32,7 +32,66 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref dcApi
             Path: /hello
+            Method: GET
+  getCollectionByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-collection-by-id.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Gets a Collection by id.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref dcApi
+            Path: /collections/{id}
+            Method: GET
+  getFileSetByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-file-set-by-id.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Gets a FileSet by id.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref dcApi
+            Path: /file-sets/{id}
             Method: GET
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
@@ -43,7 +102,7 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 100
-      Description: Gets a work by id.
+      Description: Gets a Work by id.
       Policies:
         Version: 2012-10-17
         Statement:
@@ -62,7 +121,9 @@ Resources:
           Properties:
             Path: /works/{id}
             Method: GET
-Outputs:
-  WebEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  dcApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      EndpointConfiguration:
+        Type: REGIONAL
+      StageName: v2
