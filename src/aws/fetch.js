@@ -1,33 +1,30 @@
 const AWS = require("aws-sdk");
 
 function awsFetch(request) {
-  console.log(`request`, request);
-
   return new Promise((resolve, reject) => {
-    signRequest(request)
-      .then((signedRequest) => {
-        var client = new AWS.HttpClient();
-        client.handleRequest(
-          signedRequest,
-          null,
-          function (response) {
-            let returnValue = {
-              statusCode: response.statusCode
-            }
-            let responseBody = "";
-            response.on("data", function (chunk) {
-              responseBody += chunk;
-            });
-            response.on("end", function (chunk) {
-              resolve({ ...returnValue, body: responseBody });
-            });
-          },
-          function (error) {
-            console.error("Error: " + error);
-            reject(error);
-          }
-        );
-      })
+    signRequest(request).then((signedRequest) => {
+      var client = new AWS.HttpClient();
+      client.handleRequest(
+        signedRequest,
+        null,
+        function (response) {
+          let returnValue = {
+            statusCode: response.statusCode,
+          };
+          let responseBody = "";
+          response.on("data", function (chunk) {
+            responseBody += chunk;
+          });
+          response.on("end", function (chunk) {
+            resolve({ ...returnValue, body: responseBody });
+          });
+        },
+        function (error) {
+          console.error("Error: " + error);
+          reject(error);
+        }
+      );
+    });
   });
 }
 
@@ -44,8 +41,7 @@ function signRequest(request) {
       }
       resolve(request);
     });
-
-  })
+  });
 }
 
 module.exports = { awsFetch };

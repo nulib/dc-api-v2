@@ -122,6 +122,35 @@ Resources:
             RestApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
+  searchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/search.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Handles OpenSearch search requests, Works only by default.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref dcApi
+            Path: /search
+            Method: POST
   dcApi:
     Type: AWS::Serverless::Api
     Properties:
