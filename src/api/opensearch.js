@@ -54,4 +54,17 @@ function isVisible(doc) {
   }
 }
 
-module.exports = { getCollection, getFileSet, getWork };
+async function search(body) {
+  const endpoint = new AWS.Endpoint(elasticsearchEndpoint);
+  const request = new AWS.HttpRequest(endpoint, region);
+
+  request.method = "POST";
+  request.body = body;
+  request.path += prefix("dc-v2-work") + `/_search`;
+  request.headers["host"] = elasticsearchEndpoint;
+  request.headers["Content-Type"] = "application/json";
+
+  return await awsFetch(request);
+}
+
+module.exports = { getCollection, getFileSet, getWork, search };
