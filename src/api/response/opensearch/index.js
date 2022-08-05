@@ -11,14 +11,14 @@ function transform(response) {
 function transformOne(responseBody) {
   return {
     statusCode: 200,
-    body: JSON.stringify({ data: responseBody._source }),
+    body: JSON.stringify({ data: responseBody._source, info: {} }),
   };
 }
 
 function transformMany(responseBody) {
   return {
     statusCode: 200,
-    body: JSON.stringify({ data: responseBody.hits, pagination: {} }),
+    body: JSON.stringify({ data: extractSource(responseBody.hits.hits), pagination: {total: responseBody.hits.total.value}, info: {}, aggregations: responseBody.aggregations }),
   };
 }
 
@@ -29,6 +29,14 @@ function transformError(response) {
     statusCode: response.statusCode,
     body: JSON.stringify(responseBody),
   };
+}
+
+function extractSource(hits) {
+  return hits.map(hit => extractSingle(hit))
+}
+
+function extractSingle(hit) {
+  return hit._source
 }
 
 module.exports = { transform };
