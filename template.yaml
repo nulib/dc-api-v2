@@ -145,11 +145,17 @@ Resources:
           ENV_PREFIX: !Ref EnvironmentPrefix
           ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
-        Api:
+        SearchApi:
           Type: Api
           Properties:
             RestApiId: !Ref dcApi
             Path: /search
+            Method: POST
+        SearchWithModelsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref dcApi
+            Path: /search/{models}
             Method: POST
   dcApi:
     Type: AWS::Serverless::Api
