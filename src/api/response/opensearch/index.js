@@ -18,7 +18,12 @@ function transformOne(responseBody) {
 function transformMany(responseBody) {
   return {
     statusCode: 200,
-    body: JSON.stringify({ data: extractSource(responseBody.hits.hits), pagination: {total: responseBody.hits.total.value}, info: {}, aggregations: responseBody.aggregations }),
+    body: JSON.stringify({
+      data: extractSource(responseBody.hits.hits),
+      pagination: { total: responseBody.hits.total.value },
+      info: {},
+      aggregations: responseBody.aggregations,
+    }),
   };
 }
 
@@ -32,11 +37,11 @@ function transformError(response) {
 }
 
 function extractSource(hits) {
-  return hits.map(hit => extractSingle(hit))
+  return hits.map((hit) => extractSingle(hit));
 }
 
 function extractSingle(hit) {
-  return hit._source
+  return hit._source;
 }
 
 module.exports = { transform };
