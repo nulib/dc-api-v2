@@ -62,3 +62,41 @@ describe("getCollection()", function () {
     expect(body._source.api_model).to.eq("Collection");
   });
 });
+
+describe("search()", function () {
+  helpers.saveEnvironment();
+  const mock = helpers.mockIndex();
+
+  it("performs searches", async function () {
+    mock
+      .post("/dc-v2-work/_search", "{ query: { match_all: {} } }")
+      .reply(200, helpers.testFixture("mocks/search.json"));
+
+    const result = await opensearch.search(
+      "dc-v2-work",
+      "{ query: { match_all: {} } }"
+    );
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).to.eq(200);
+    expect(body.hits.hits.length).to.eq(10);
+    expect(body.hits.total.value).to.eq(4199);
+  });
+
+  it("can search multiple targets", async function () {
+    mock
+      .post(
+        "/dc-v2-work,dc-v2-collection/_search",
+        "{ query: { match_all: {} } }"
+      )
+      .reply(200, helpers.testFixture("mocks/search-multiple-targets.json"));
+
+    const result = await opensearch.search(
+      "dc-v2-work,dc-v2-collection",
+      "{ query: { match_all: {} } }"
+    );
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).to.eq(200);
+    expect(body.hits.hits.length).to.eq(10);
+    expect(body.hits.total.value).to.eq(4331);
+  });
+});

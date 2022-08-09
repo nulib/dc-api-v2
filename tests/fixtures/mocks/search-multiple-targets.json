@@ -1,0 +1,249 @@
+{
+  "took": 3,
+  "timed_out": false,
+  "_shards": {
+    "total": 10,
+    "successful": 10,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 4331,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "5abdce5f-6168-4e73-8bf4-d89c2790ee4c",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Private",
+          "description": "This collection is a work in progress. The images are being cataloged and added to the Rob Linrothe Image Collection by Jen as of December 2021.",
+          "published": false,
+          "title": "Rob Linrothe Image Collection 2020",
+          "modified_date": "2021-12-03T16:55:40.945621Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.103197",
+          "api_model": "Collection",
+          "finding_aid_url": null,
+          "api_link": "[PLACEHOLDER]/5abdce5f-6168-4e73-8bf4-d89c2790ee4c",
+          "id": "5abdce5f-6168-4e73-8bf4-d89c2790ee4c",
+          "representative_image": {},
+          "create_date": "2021-04-01T21:58:56.333389Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "35c3a71a-ce83-4410-82ec-640e01da86eb",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Public",
+          "description": "Press cutting books from the Dublin Gate Theatre",
+          "published": false,
+          "title": "Dublin Gate Theatre Archive",
+          "modified_date": "2021-06-28T18:06:19.151525Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.103729",
+          "api_model": "Collection",
+          "finding_aid_url": "https://findingaids.library.northwestern.edu/repositories/7/resources/1410",
+          "api_link": "[PLACEHOLDER]/35c3a71a-ce83-4410-82ec-640e01da86eb",
+          "id": "35c3a71a-ce83-4410-82ec-640e01da86eb",
+          "representative_image": {},
+          "create_date": "2021-06-22T20:53:44.226666Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "267bed1b-f808-4c51-acb1-0288378819d2",
+        "_score": 1.0,
+        "_source": {
+          "featured": null,
+          "keywords": [],
+          "visibility": "Public",
+          "description": "Northwestern University Libraries’ Map & Atlas Collection allows access to an ever-growing selection of our cartographic resources in high resolution.",
+          "published": true,
+          "title": "Map and Atlas Collection",
+          "modified_date": "2021-03-17T20:18:35.644274Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.103987",
+          "api_model": "Collection",
+          "finding_aid_url": null,
+          "api_link": "[PLACEHOLDER]/267bed1b-f808-4c51-acb1-0288378819d2",
+          "id": "267bed1b-f808-4c51-acb1-0288378819d2",
+          "representative_image": {},
+          "create_date": "2021-03-12T02:11:32.386638Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "ba35820a-525a-4cfa-8f23-4891c9f798c4",
+        "_score": 1.0,
+        "_source": {
+          "featured": null,
+          "keywords": [],
+          "visibility": "Public",
+          "description": "Gift of the Deering Family. These sketches by Catalan artist Ramón Casas (1866-1932) document the work of an under-represented artist who was influential in modernist art circles in Barcelona and Paris along with his peers John Singer Sargent, Henri de Toulouse-Lautrec, and the young Pablo Picasso. Three bound hardcover volumes of sketches came to the Northwestern University Libraries in 1998 as part of a donation of books that had belonged to NU benefactor Charles Deering (1852-1927). Deering and Casas met in 1904 and established a lifelong friendship. At some point before the donation, a few hundred loose Casas drawings, postcards, and illustrated letters dating from 1891 to 1912 were bound into their current form. There were at least five volumes in the set; two remain in private collections.",
+          "published": true,
+          "title": "Ramón Casas Sketchbooks",
+          "modified_date": "2021-03-17T20:18:35.644274Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.104202",
+          "api_model": "Collection",
+          "finding_aid_url": null,
+          "api_link": "[PLACEHOLDER]/ba35820a-525a-4cfa-8f23-4891c9f798c4",
+          "id": "ba35820a-525a-4cfa-8f23-4891c9f798c4",
+          "representative_image": {},
+          "create_date": "2021-03-12T02:11:32.438228Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "8fdc5942-12a0-4abd-8f43-5d19b37ece75",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Public",
+          "description": "McCormick Library of Special Collections Audiovisual Collection",
+          "published": true,
+          "title": "McCormick Library of Special Collections Audiovisual Collection",
+          "modified_date": "2022-02-17T16:47:28.717491Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.104517",
+          "api_model": "Collection",
+          "finding_aid_url": null,
+          "api_link": "[PLACEHOLDER]/8fdc5942-12a0-4abd-8f43-5d19b37ece75",
+          "id": "8fdc5942-12a0-4abd-8f43-5d19b37ece75",
+          "representative_image": {},
+          "create_date": "2022-01-21T06:46:05.884163Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "5e782839-d76a-4ee7-8931-79baa88770a8",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Private",
+          "description": "Sculpture from the collections of Northwestern University Libraries.",
+          "published": false,
+          "title": "Sculpture",
+          "modified_date": "2022-02-18T13:19:05.233977Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.104553",
+          "api_model": "Collection",
+          "finding_aid_url": null,
+          "api_link": "[PLACEHOLDER]/5e782839-d76a-4ee7-8931-79baa88770a8",
+          "id": "5e782839-d76a-4ee7-8931-79baa88770a8",
+          "representative_image": {},
+          "create_date": "2021-04-22T16:46:43.668615Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "ec153e6d-a543-4b50-a7dc-ae5e98a27129",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Private",
+          "description": "Robert Greenfield Collection",
+          "published": true,
+          "title": "Robert Greenfield Collection",
+          "modified_date": "2022-02-07T19:24:30.395199Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.105084",
+          "api_model": "Collection",
+          "finding_aid_url": "https://findingaids.library.northwestern.edu/repositories/7/resources/1786",
+          "api_link": "[PLACEHOLDER]/ec153e6d-a543-4b50-a7dc-ae5e98a27129",
+          "id": "ec153e6d-a543-4b50-a7dc-ae5e98a27129",
+          "representative_image": {},
+          "create_date": "2022-01-21T06:46:05.957137Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "450b857e-2e74-491e-9ef1-2c73e49f0c16",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": ["photography"],
+          "visibility": "Public",
+          "description": "The photographs of George S. Duntley fill 8 boxes and cover the years from approximately 1899-1918. The collection consists of dry plate negatives and record Duntley’s years in Chicago and Evanston while he was attending Northwestern University Medical School. Also included are photographs taken in Bushnell, Illinois, his home town and surrounding areas.",
+          "published": true,
+          "title": "George Silas Duntley (1879-1957) Photographs, circa 1899-1918",
+          "modified_date": "2021-11-10T22:56:44.250402Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.105157",
+          "api_model": "Collection",
+          "finding_aid_url": "https://findingaids.library.northwestern.edu/repositories/6/resources/1245",
+          "api_link": "[PLACEHOLDER]/450b857e-2e74-491e-9ef1-2c73e49f0c16",
+          "id": "450b857e-2e74-491e-9ef1-2c73e49f0c16",
+          "representative_image": {},
+          "create_date": "2021-03-12T02:11:32.415488Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "3121f8ee-5265-4b19-bae3-59f96e9ac01a",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Private",
+          "description": "The Aldridge Collection consists of materials relating to 19th century African-American tragedian Ira Frederick Aldridge (1807-1967) and his children, mainly his daughter Amanda Christina Elizabeth Aldridge (known as Amanda Ira Aldridge, who composed under the pseudonym Montague Ring; 1866-1956).",
+          "published": true,
+          "title": "Aldridge Collection",
+          "modified_date": "2021-09-30T20:34:02.946609Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.141902",
+          "api_model": "Collection",
+          "finding_aid_url": "https://findingaids.library.northwestern.edu/repositories/7/resources/1207",
+          "api_link": "[PLACEHOLDER]/3121f8ee-5265-4b19-bae3-59f96e9ac01a",
+          "id": "3121f8ee-5265-4b19-bae3-59f96e9ac01a",
+          "representative_image": {},
+          "create_date": "2021-03-12T02:11:32.470273Z"
+        }
+      },
+      {
+        "_index": "dc-v2-collection-1658438321581379",
+        "_type": "_doc",
+        "_id": "dc70f756-8e30-4724-b50d-591843db2537",
+        "_score": 1.0,
+        "_source": {
+          "featured": false,
+          "keywords": [""],
+          "visibility": "Institution",
+          "description": "The posters within the collection relate to events held on campus, including music and dance performances, film screenings, talks, seminars, panels, book talks, auditions, career fairs, job opportunities, research studies and course openings, among others. Some events reoccur across time.",
+          "published": true,
+          "title": "Northwestern University Posters Collection",
+          "modified_date": "2021-10-13T21:04:45.100396Z",
+          "admin_email": null,
+          "indexed_at": "2022-07-28T15:43:05.142115",
+          "api_model": "Collection",
+          "finding_aid_url": "https://findingaids.library.northwestern.edu/repositories/6/resources/1412",
+          "api_link": "[PLACEHOLDER]/dc70f756-8e30-4724-b50d-591843db2537",
+          "id": "dc70f756-8e30-4724-b50d-591843db2537",
+          "representative_image": {},
+          "create_date": "2021-03-25T14:31:56.858368Z"
+        }
+      }
+    ]
+  }
+}
