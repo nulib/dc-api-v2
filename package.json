@@ -17,7 +17,7 @@
     "prettier": "prettier -c src tests",
     "prettier:fix": "prettier -cw src tests",
     "test": "mocha --require tests/test-helpers --recursive tests/unit",
-    "test:coverage": "nyc --check-coverage true npm test"
+    "test:coverage": "nyc --check-coverage=true npm test"
   },
   "devDependencies": {
     "chai": "^4.2.0",

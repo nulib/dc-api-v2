@@ -22,7 +22,18 @@ describe("getWork()", function () {
   it("returns 404 Not Found for unpublished works", async function () {
     mock
       .get("/dc-v2-work/_doc/1234")
-      .reply(200, helpers.testFixture("mocks/missing-work-1234.json"));
+      .reply(200, helpers.testFixture("mocks/unpublished-work-1234.json"));
+
+    const result = await opensearch.getWork("1234");
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).to.eq(404);
+    expect(body.found).to.eq(false);
+  });
+
+  it("returns 404 Not Found for missing documents", async function () {
+    mock
+      .get("/dc-v2-work/_doc/1234")
+      .reply(404, helpers.testFixture("mocks/missing-work-1234.json"));
 
     const result = await opensearch.getWork("1234");
     const body = JSON.parse(result.body);
