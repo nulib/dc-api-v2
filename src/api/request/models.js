@@ -6,7 +6,14 @@ const mapTargets = {
   collections: "dc-v2-collection",
 };
 
-function validModels(models) {
+function extractRequestedModels(requestedModels) {
+  return requestedModels == null ? ["works"] : requestedModels.split(",");
+}
+
+function validModels(models, format) {
+  if (format === "iiif") {
+    return models.length == 1 && models.every((model) => model === "works");
+  }
   return models.every(isAllowed);
 }
 
@@ -18,4 +25,4 @@ function modelsToTargets(models) {
   return String(models.map((model) => prefix(mapTargets[model])));
 }
 
-module.exports = { modelsToTargets, validModels };
+module.exports = { extractRequestedModels, modelsToTargets, validModels };

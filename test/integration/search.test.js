@@ -75,19 +75,30 @@ describe("Search routes", () => {
     const searchToken =
       "N4IgRg9gJgniBcoCOBXApgJzokBbAhgC4DGAFgPr4A2VCwAvvQDQgDOAlgF5oICMADMzzQ0VVggDaIAO4QMAa3EBdekA";
 
-    it("requires a searchToken", async () => {
+    it("Does not require a searchToken", async () => {
+      const originalQuery = {
+        query: { query_string: { query: "*" } },
+      };
+      const authQuery = new RequestPipeline(originalQuery)
+        .authFilter()
+        .toJson();
+
+      mock
+        .post("/dc-v2-work/_search", authQuery)
+        .reply(200, helpers.testFixture("mocks/search.json"));
       const event = helpers
         .mockEvent("GET", "/search")
         .pathPrefix("/api/v2")
+        .queryParams()
         .render();
-
       const result = await handler(event);
-      expect(result.statusCode).to.eq(400);
+      expect(result.statusCode).to.eq(200);
       const resultBody = JSON.parse(result.body);
-      expect(resultBody.message).to.eq("searchToken parameter is required");
+      expect(resultBody.pagination.next_url).not.null;
+      expect(resultBody.pagination.current_page).to.eq(1);
     });
 
-    it("requires a valid searchToken", async () => {
+    it("Errors on invalid searchToken", async () => {
       const event = helpers
         .mockEvent("GET", "/search")
         .pathPrefix("/api/v2")
@@ -125,6 +136,29 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+    });
+
+    it("will return a IIIF collection", async () => {
+      const originalQuery = {
+        query: { query_string: { query: "*" } },
+      };
+      const authQuery = new RequestPipeline(originalQuery)
+        .authFilter()
+        .toJson();
+
+      mock
+        .post("/dc-v2-work/_search", authQuery)
+        .reply(200, helpers.testFixture("mocks/search.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .pathPrefix("/api/v2")
+        .queryParams({ as: "iiif" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.type).to.eq("Collection");
     });
   });
 });
