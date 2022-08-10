@@ -45,7 +45,7 @@ Resources:
         Api:
           Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /collections/{id}
             Method: GET
   getFileSetByIdFunction:
@@ -74,7 +74,7 @@ Resources:
         Api:
           Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /file-sets/{id}
             Method: GET
   getWorkByIdFunction:
@@ -103,7 +103,7 @@ Resources:
         Api:
           Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
   searchFunction:
@@ -132,13 +132,13 @@ Resources:
         SearchApi:
           Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /search
             Method: POST
         SearchWithModelsApi:
           Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /search/{models}
             Method: POST
   dcApi:
