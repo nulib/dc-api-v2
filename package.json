@@ -11,7 +11,8 @@
     "@aws-sdk/node-http-handler": "^3.127.0",
     "@aws-sdk/protocol-http": "^3.127.0",
     "@aws-sdk/signature-v4": "^3.130.0",
-    "axios": ">=0.21.1"
+    "axios": ">=0.21.1",
+    "lz-string": "^1.4.4"
   },
   "scripts": {
     "prettier": "prettier -c src tests",

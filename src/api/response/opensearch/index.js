@@ -1,26 +1,26 @@
-function transform(response) {
+async function transform(response, pager) {
   if (response.statusCode === 200) {
     const responseBody = JSON.parse(response.body);
-    return responseBody?.hits?.hits
-      ? transformMany(responseBody)
-      : transformOne(responseBody);
+    return await (responseBody?.hits?.hits
+      ? transformMany(responseBody, pager)
+      : transformOne(responseBody));
   }
   return transformError(response);
 }
 
-function transformOne(responseBody) {
+async function transformOne(responseBody) {
   return {
     statusCode: 200,
     body: JSON.stringify({ data: responseBody._source, info: {} }),
   };
 }
 
-function transformMany(responseBody) {
+async function transformMany(responseBody, pager) {
   return {
     statusCode: 200,
     body: JSON.stringify({
       data: extractSource(responseBody.hits.hits),
-      pagination: { total: responseBody.hits.total.value },
+      pagination: await pager.pageInfo(responseBody.hits.total.value),
       info: {},
       aggregations: responseBody.aggregations,
     }),
@@ -28,7 +28,10 @@ function transformMany(responseBody) {
 }
 
 function transformError(response) {
-  const responseBody = { status: response.statusCode, error: "TODO" };
+  const responseBody = {
+    status: response.statusCode,
+    error: "TODO",
+  };
 
   return {
     statusCode: response.statusCode,
