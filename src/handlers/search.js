@@ -1,4 +1,4 @@
-const { prefix } = require("../aws/environment");
+const { modelsToTargets, validModels } = require("../api/request/models");
 const { search } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
 const RequestPipeline = require("../api/request/pipeline.js");
