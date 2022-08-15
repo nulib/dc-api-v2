@@ -9,9 +9,9 @@ describe("environment", function () {
   helpers.saveEnvironment();
 
   it("returns the index endpoint", function () {
-    process.env.ELASTICSEARCH_ENDPOINT = "index.library.northwestern.edu";
+    process.env.ELASTICSEARCH_ENDPOINT = "index.test.library.northwestern.edu";
     expect(environment.elasticsearchEndpoint()).to.eq(
-      "index.library.northwestern.edu"
+      "index.test.library.northwestern.edu"
     );
   });
 

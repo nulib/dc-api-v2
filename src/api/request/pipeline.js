@@ -1,28 +1,31 @@
 module.exports = class RequestPipeline {
-  constructor(body) {
-    this.body = JSON.parse(body);
+  constructor(searchContext) {
+    this.searchContext = { ...searchContext };
+    this.searchContext.query ||= { match_all: {} };
   }
 
   // Things tranformer needs to do:
   // - not allow unpuplished or restricted items
   // - Reading room/IP (not in first iteration)
-  // - Add `track_total_hits` to body of search (so we can get accurate hits.total.value)
+  // - Add `track_total_hits` to search context (so we can get accurate hits.total.value)
 
   authFilter() {
-    const matchTheQuery = this.body.query || { match_all: {} };
+    const matchTheQuery = this.searchContext.query;
     const beUnpublished = { term: { published: false } };
     const beRestricted = { term: { visibility: "Private" } };
 
-    this.body.query = {
+    this.searchContext.query = {
       bool: {
         must: [matchTheQuery],
         must_not: [beUnpublished, beRestricted],
       },
     };
+    this.searchContext.track_total_hits = true;
+
     return this;
   }
 
   toJson() {
-    return JSON.stringify(this.body);
+    return JSON.stringify(this.searchContext);
   }
 };

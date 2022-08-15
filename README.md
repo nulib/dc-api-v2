@@ -1,5 +1,7 @@
 # dc-api-v2
 
+![Build Status](https://github.com/nulib/dc-api-v2/actions/workflows/build.yml/badge.svg)
+
 ## Directory structure
 
 ```

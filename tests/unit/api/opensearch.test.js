@@ -27,7 +27,7 @@ describe("getWork()", function () {
     const result = await opensearch.getWork("1234");
     const body = JSON.parse(result.body);
     expect(result.statusCode).to.eq(404);
-    expect(body.found).to.eq(false);
+    expect(body.found).to.be.false;
   });
 
   it("returns 404 Not Found for missing documents", async function () {
@@ -38,7 +38,7 @@ describe("getWork()", function () {
     const result = await opensearch.getWork("1234");
     const body = JSON.parse(result.body);
     expect(result.statusCode).to.eq(404);
-    expect(body.found).to.eq(false);
+    expect(body.found).to.be.false;
   });
 });
 

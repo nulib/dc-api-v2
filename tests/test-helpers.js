@@ -12,10 +12,11 @@ global.helpers = {
   },
 
   mockIndex: () => {
-    const mock = nock("https://index.library.northwestern.edu");
+    const mock = nock("https://index.test.library.northwestern.edu");
 
     beforeEach(function () {
-      process.env.ELASTICSEARCH_ENDPOINT = "index.library.northwestern.edu";
+      process.env.ELASTICSEARCH_ENDPOINT =
+        "index.test.library.northwestern.edu";
     });
 
     afterEach(function () {
