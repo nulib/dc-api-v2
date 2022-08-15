@@ -106,10 +106,10 @@ Resources:
             ApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
-  searchFunction:
+  searchPostFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/search.handler
+      Handler: src/handlers/search.postSearch
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -141,6 +141,35 @@ Resources:
             ApiId: !Ref dcApi
             Path: /search/{models}
             Method: POST
+  searchGetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/search.getSearch
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Handles paging requests
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        SearchApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /search
+            Method: GET
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
