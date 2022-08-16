@@ -37,6 +37,9 @@ async function getDocument(index, id) {
 }
 
 function isVisible(doc) {
+  if (!doc?.found) {
+    return false;
+  }
   if (doc?._source.api_model == "FileSet") {
     return doc?._source?.visibility !== "Private";
   } else {

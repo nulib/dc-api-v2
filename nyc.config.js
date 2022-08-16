@@ -1,7 +1,7 @@
 'use strict';
  
 const defaultExclude = require('@istanbuljs/schema/default-exclude');
-const localExclude = ["src/handlers/**"];
+const localExclude = [".aws-sam/**/*"];
 module.exports = {
   all: true,
   "check-coverage": true,

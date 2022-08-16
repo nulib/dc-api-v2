@@ -1,6 +1,6 @@
 "use strict";
 
-const { baseUrl } = require("../../../src/helpers");
+const { baseUrl, getHeader } = require("../../../src/helpers");
 const chai = require("chai");
 const expect = chai.expect;
 
@@ -95,6 +95,26 @@ describe("helpers", () => {
       expect(baseUrl(event)).to.eq(
         "http://api.test.library.northwestern.edu:3000/"
       );
+    });
+  });
+
+  describe("getHeader()", () => {
+    it("extracts event headers regardless of case", () => {
+      const event = {
+        headers: {
+          Host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
+          "X-Forwarded-Proto": "https",
+          "x-forwarded-port": "443",
+        },
+        requestContext: {
+          domainName: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
+          domainPrefix: "abcdefghijz",
+          stage: "v2",
+        },
+      };
+
+      expect(getHeader(event, "X-Forwarded-Proto")).to.eq("https");
+      expect(getHeader(event, "X-Forwarded-Port")).to.eq("443");
     });
   });
 });
