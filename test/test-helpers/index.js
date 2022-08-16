@@ -1,6 +1,7 @@
 const fs = require("fs");
 const nock = require("nock");
 const path = require("path");
+const EventBuilder = require("./event-builder.js");
 
 global.helpers = {
   saveEnvironment: () => {
@@ -9,6 +10,10 @@ global.helpers = {
     afterEach(function () {
       process.env = env;
     });
+  },
+
+  mockEvent: (method, route) => {
+    return new EventBuilder(method, route);
   },
 
   mockIndex: () => {
@@ -27,7 +32,7 @@ global.helpers = {
   },
 
   testFixture: (file) => {
-    const fixtureFile = path.join("tests/fixtures", file);
+    const fixtureFile = path.join("test/fixtures", file);
     return eval(fs.readFileSync(fixtureFile));
   },
 };

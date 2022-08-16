@@ -1,3 +1,4 @@
+const { decodeEventBody } = require("./middleware");
 const { baseUrl } = require("../helpers");
 const { modelsToTargets, validModels } = require("../api/request/models");
 const { search } = require("../api/opensearch");
@@ -25,6 +26,7 @@ const getSearch = async (event) => {
 };
 
 const postSearch = async (event) => {
+  event = decodeEventBody(event);
   const eventBody = JSON.parse(event.body);
 
   const requestedModels =
