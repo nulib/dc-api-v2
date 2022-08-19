@@ -15,9 +15,11 @@ describe("Doc retrieval routes", () => {
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/work-1234.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathParams({ id: 1234 });
+        .pathPrefix("/api/v2")
+        .pathParams({ id: 1234 })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
 
@@ -31,9 +33,11 @@ describe("Doc retrieval routes", () => {
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/missing-work-1234.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathParams({ id: 1234 });
+        .pathPrefix("/api/v2")
+        .pathParams({ id: 1234 })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(404);
     });
@@ -43,9 +47,11 @@ describe("Doc retrieval routes", () => {
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/unpublished-work-1234.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathParams({ id: 1234 });
+        .pathPrefix("/api/v2")
+        .pathParams({ id: 1234 })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(404);
     });
@@ -59,9 +65,11 @@ describe("Doc retrieval routes", () => {
         .get("/dc-v2-collection/_doc/1234")
         .reply(200, helpers.testFixture("mocks/collection-1234.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/collections/{id}")
-        .pathParams({ id: 1234 });
+        .pathPrefix("/api/v2")
+        .pathParams({ id: 1234 })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
 
@@ -79,9 +87,11 @@ describe("Doc retrieval routes", () => {
         .get("/dc-v2-file-set/_doc/1234")
         .reply(200, helpers.testFixture("mocks/fileset-1234.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/file-sets/{id}")
-        .pathParams({ id: 1234 });
+        .pathPrefix("/api/v2")
+        .pathParams({ id: 1234 })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
 

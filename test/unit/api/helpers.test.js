@@ -8,6 +8,8 @@ describe("helpers", () => {
   describe("baseUrl()", () => {
     it("extracts the base URL from a local event", () => {
       const event = {
+        routeKey: "GET /route/{param}",
+        rawPath: "/route/value",
         headers: {
           Host: "localhost",
           "X-Forwarded-Proto": "http",
@@ -25,6 +27,8 @@ describe("helpers", () => {
 
     it("extracts the base URL from an API Gateway event", () => {
       const event = {
+        routeKey: "GET /route/{param}",
+        rawPath: "/v2/route/value",
         headers: {
           Host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
           "X-Forwarded-Proto": "https",
@@ -44,6 +48,8 @@ describe("helpers", () => {
 
     it("extracts the base URL from a CloudWatch event", () => {
       const event = {
+        routeKey: "GET /route/{param}",
+        rawPath: "/route/value",
         headers: {
           Host: "abcdefghijz.cloudfront.net",
           "X-Forwarded-Proto": "https",
@@ -61,6 +67,8 @@ describe("helpers", () => {
 
     it("extracts the base URL from an event with a custom domain", () => {
       const event = {
+        routeKey: "GET /route/{param}",
+        rawPath: "/route/value",
         headers: {
           Host: "api.test.library.northwestern.edu",
           "X-Forwarded-Proto": "https",
@@ -80,6 +88,8 @@ describe("helpers", () => {
 
     it("prefers a custom domain over localhost", () => {
       const event = {
+        routeKey: "GET /route/{param}",
+        rawPath: "/route/value",
         headers: {
           Host: "localhost",
           "X-Forwarded-Proto": "http",
@@ -96,11 +106,26 @@ describe("helpers", () => {
         "http://api.test.library.northwestern.edu:3000/"
       );
     });
+
+    it("properly handles a base path mapping", () => {
+      const event = helpers
+        .mockEvent("GET", "/works/{id}")
+        .pathPrefix("/api/v2")
+        .pathParams({ id: 1234 })
+        .stageVariables({ basePath: "api/v2" })
+        .render();
+
+      expect(baseUrl(event)).to.eq(
+        "https://api.test.library.northwestern.edu/api/v2/"
+      );
+    });
   });
 
   describe("getHeader()", () => {
     it("extracts event headers regardless of case", () => {
       const event = {
+        routeKey: "GET /route/{param}",
+        rawPath: "/route/value",
         headers: {
           Host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
           "X-Forwarded-Proto": "https",

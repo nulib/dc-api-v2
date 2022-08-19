@@ -3,9 +3,11 @@ const base64 = require("base64-js");
 module.exports = class {
   constructor(method, route) {
     const now = new Date();
-    this.event = {
+    this._method = method;
+    this._route = route;
+    this._event = {
       version: "2.0",
-      routeKey: route,
+      routeKey: `${method} ${route}`,
       rawPath: route,
       rawQueryString: "",
       cookies: [],
@@ -29,7 +31,7 @@ module.exports = class {
           userAgent: "Mocha Test",
         },
         requestId: "id",
-        routeKey: route,
+        routeKey: `${method} ${route}`,
         stage: "v2",
         time: now.toISOString(),
         timeEpoch: Number(now),
@@ -41,43 +43,69 @@ module.exports = class {
     };
   }
 
+  pathPrefix(prefix) {
+    this._pathPrefix = prefix;
+    return this;
+  }
+
   body(body) {
     switch (typeof body) {
       case "undefined":
-        this.event.body = {};
+        this._event.body = {};
       case "object":
-        this.event.body = JSON.stringify(body);
+        this._event.body = JSON.stringify(body);
     }
     return this;
   }
 
   headers(headers) {
-    Object.assign(this.event.headers, headers);
+    Object.assign(this._event.headers, headers);
     return this;
   }
 
   pathParams(params) {
-    this.event.pathParameters = params;
-    this.event.rawPath = this.event.routeKey;
-    for (const param in params) {
-      this.event.rawPath = this.event.rawPath.replace(
-        `{${param}}`,
-        params[param]
-      );
-    }
+    this._pathParams = params;
     return this;
   }
 
   queryParams(params) {
-    this.event.queryStringParameters = params;
-    this.event.rawQueryString = new URLSearchParams(params).toString();
+    this._queryParams = params;
+    return this;
+  }
+
+  stageVariables(vars) {
+    this._event.stageVariables = vars;
     return this;
   }
 
   base64Encode() {
-    if (this.event.isBase64Encoded) return this;
-    this.event.isBase64Encoded = true;
-    this.event.body = base64.fromByteArray(new Buffer.from(this.event.body));
+    this._base64Encode = true;
     return this;
+  }
+
+  render() {
+    const result = { ...this._event };
+
+    if (this._base64Encode) {
+      result.isBase64Encoded = true;
+      result.body = base64.fromByteArray(new Buffer.from(result.body));
+    }
+
+    result.pathParameters = { ...this._pathParams };
+    result.rawPath = this._pathPrefix + this._route;
+    for (const param in result.pathParameters) {
+      result.rawPath = result.rawPath.replace(
+        `{${param}}`,
+        result.pathParameters[param]
+      );
+    }
+    result.requestContext.http.path = result.rawPath;
+
+    result.queryStringParameters = { ...this._queryParams };
+    result.rawQueryString = new URLSearchParams(
+      result.queryStringParameters
+    ).toString();
+
+    return result;
   }
 };
