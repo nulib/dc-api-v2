@@ -57,6 +57,7 @@ describe("Search routes", () => {
         .pathParams({ models: "works,collections,blargh" })
         .body(originalQuery)
         .render();
+
       const result = await handler(event);
       expect(result.statusCode).to.eq(400);
 

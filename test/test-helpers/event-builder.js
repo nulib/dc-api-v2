@@ -4,6 +4,7 @@ module.exports = class {
   constructor(method, route) {
     const now = new Date();
     this._method = method;
+    this._pathPrefix = "";
     this._route = route;
     this._event = {
       version: "2.0",
@@ -50,10 +51,15 @@ module.exports = class {
 
   body(body) {
     switch (typeof body) {
+      case "string":
+        this._event.body = body;
+        break;
       case "undefined":
-        this._event.body = {};
+        this._event.body = "";
+        break;
       case "object":
         this._event.body = JSON.stringify(body);
+        break;
     }
     return this;
   }

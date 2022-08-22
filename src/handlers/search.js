@@ -1,4 +1,4 @@
-const { decodeEventBody } = require("./middleware");
+const middleware = require("./middleware");
 const { baseUrl } = require("../helpers");
 const { modelsToTargets, validModels } = require("../api/request/models");
 const { search } = require("../api/opensearch");
@@ -7,6 +7,7 @@ const { decodeSearchToken, Paginator } = require("../api/pagination");
 const RequestPipeline = require("../api/request/pipeline");
 
 const getSearch = async (event) => {
+  event = middleware(event);
   let token = event.queryStringParameters.searchToken;
   if (token === undefined || token === "") {
     return invalidRequest("searchToken parameter is required");
@@ -26,7 +27,7 @@ const getSearch = async (event) => {
 };
 
 const postSearch = async (event) => {
-  event = decodeEventBody(event);
+  event = middleware(event);
   const eventBody = JSON.parse(event.body);
 
   const requestedModels =
