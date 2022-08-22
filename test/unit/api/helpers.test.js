@@ -1,6 +1,10 @@
 "use strict";
 
-const { baseUrl, getHeader } = require("../../../src/helpers");
+const {
+  baseUrl,
+  decodeEventBody,
+  normalizeHeaders,
+} = require("../../../src/helpers");
 const chai = require("chai");
 const expect = chai.expect;
 
@@ -11,9 +15,9 @@ describe("helpers", () => {
         routeKey: "GET /route/{param}",
         rawPath: "/route/value",
         headers: {
-          Host: "localhost",
-          "X-Forwarded-Proto": "http",
-          "X-Forwarded-Port": "3000",
+          host: "localhost",
+          "x-forwarded-proto": "http",
+          "x-forwarded-port": "3000",
         },
         requestContext: {
           domainName: "localhost",
@@ -30,9 +34,9 @@ describe("helpers", () => {
         routeKey: "GET /route/{param}",
         rawPath: "/v2/route/value",
         headers: {
-          Host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
-          "X-Forwarded-Proto": "https",
-          "X-Forwarded-Port": "443",
+          host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
+          "x-forwarded-proto": "https",
+          "x-forwarded-port": "443",
         },
         requestContext: {
           domainName: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
@@ -51,9 +55,9 @@ describe("helpers", () => {
         routeKey: "GET /route/{param}",
         rawPath: "/route/value",
         headers: {
-          Host: "abcdefghijz.cloudfront.net",
-          "X-Forwarded-Proto": "https",
-          "X-Forwarded-Port": "443",
+          host: "abcdefghijz.cloudfront.net",
+          "x-forwarded-proto": "https",
+          "x-forwarded-port": "443",
         },
         requestContext: {
           domainName: "abcdefghijz.cloudfront.net",
@@ -70,9 +74,9 @@ describe("helpers", () => {
         routeKey: "GET /route/{param}",
         rawPath: "/route/value",
         headers: {
-          Host: "api.test.library.northwestern.edu",
-          "X-Forwarded-Proto": "https",
-          "X-Forwarded-Port": "443",
+          host: "api.test.library.northwestern.edu",
+          "x-forwarded-proto": "https",
+          "x-forwarded-port": "443",
         },
         requestContext: {
           domainName: "api.test.library.northwestern.edu",
@@ -91,9 +95,9 @@ describe("helpers", () => {
         routeKey: "GET /route/{param}",
         rawPath: "/route/value",
         headers: {
-          Host: "localhost",
-          "X-Forwarded-Proto": "http",
-          "X-Forwarded-Port": "3000",
+          host: "localhost",
+          "x-forwarded-proto": "http",
+          "x-forwarded-port": "3000",
         },
         requestContext: {
           domainName: "api.test.library.northwestern.edu",
@@ -121,25 +125,44 @@ describe("helpers", () => {
     });
   });
 
-  describe("getHeader()", () => {
-    it("extracts event headers regardless of case", () => {
-      const event = {
-        routeKey: "GET /route/{param}",
-        rawPath: "/route/value",
-        headers: {
-          Host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
-          "X-Forwarded-Proto": "https",
-          "x-forwarded-port": "443",
-        },
-        requestContext: {
-          domainName: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
-          domainPrefix: "abcdefghijz",
-          stage: "v2",
-        },
-      };
+  describe("decodeEventBody()", () => {
+    it("passes plain text body through unaltered", () => {
+      const event = helpers
+        .mockEvent("POST", "/search")
+        .body("plain body")
+        .render();
+      const result = decodeEventBody(event);
+      expect(result.isBase64Encoded).to.be.false;
+      expect(result.body).to.eq("plain body");
+    });
 
-      expect(getHeader(event, "X-Forwarded-Proto")).to.eq("https");
-      expect(getHeader(event, "X-Forwarded-Port")).to.eq("443");
+    it("decodes base64 encoded body", () => {
+      const event = helpers
+        .mockEvent("POST", "/search")
+        .body("encoded body")
+        .base64Encode()
+        .render();
+      expect(event.isBase64Encoded).to.be.true;
+      expect(event.body).not.to.eq("encoded body");
+
+      const result = decodeEventBody(event);
+      expect(result.isBase64Encoded).to.be.false;
+      expect(result.body).to.eq("encoded body");
+    });
+  });
+
+  describe("normalizeHeaders()", () => {
+    it("converts all headers to lowercase", () => {
+      const upperHeaders = ["Host", "X-Forwarded-For", "X-Forwarded-Proto"];
+      const lowerHeaders = ["host", "x-forwarded-for", "x-forwarded-proto"];
+
+      const event = helpers.mockEvent("GET", "/search").render();
+      expect(event.headers).not.to.include.keys(lowerHeaders);
+      expect(event.headers).to.include.keys(upperHeaders);
+
+      const result = normalizeHeaders(event);
+      expect(result.headers).to.include.keys(lowerHeaders);
+      expect(result.headers).not.to.include.keys(upperHeaders);
     });
   });
 });

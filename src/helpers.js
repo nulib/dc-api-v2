@@ -1,4 +1,12 @@
+const base64 = require("base64-js");
 const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
+
+function decodeEventBody(event) {
+  if (!event.isBase64Encoded) return event;
+  event.body = new Buffer.from(base64.toByteArray(event.body)).toString();
+  event.isBase64Encoded = false;
+  return event;
+}
 
 function isApiGateway(event) {
   return gatewayRe.test(event.requestContext.domainName);
@@ -12,19 +20,35 @@ function isLocal(event) {
   return event.requestContext.domainName === "localhost";
 }
 
-function getHeader(event, name) {
-  return event.headers[name] || event.headers[name.toLowerCase()];
+function normalizeHeaders(event) {
+  if (event.normalizedHeaders) return event;
+
+  const headers = { ...event.headers };
+
+  for (header in headers) {
+    const lowerHeader = header.toLowerCase();
+    if (header != lowerHeader) {
+      const value = headers[header];
+      delete headers[header];
+      headers[lowerHeader] = value;
+    }
+  }
+
+  event.headers = headers;
+  event.normalizedHeaders = true;
+  return event;
 }
 
 function baseUrl(event) {
-  const scheme = getHeader(event, "X-Forwarded-Proto");
+  event = normalizeHeaders(event);
+  const scheme = event.headers["x-forwarded-proto"];
 
   // The localhost check only matters in dev mode, but it's
   // really inconvenient not to have it
   const host = isLocal(event)
-    ? getHeader(event, "Host").split(/:/)[0]
+    ? event.headers["host"].split(/:/)[0]
     : event.requestContext.domainName;
-  const port = getHeader(event, "X-Forwarded-Port");
+  const port = event.headers["x-forwarded-port"];
 
   let result = new URL(`${scheme}://${host}:${port}`);
 
@@ -45,4 +69,4 @@ function baseUrl(event) {
   return result.toString();
 }
 
-module.exports = { baseUrl, getHeader };
+module.exports = { baseUrl, decodeEventBody, normalizeHeaders };
