@@ -11,6 +11,15 @@ Globals:
     Timeout: 3
 
 Parameters:
+  CustomDomainCertificateArn:
+    Type: String
+    Description: SSL Certificate for the Custom Domain Name
+  CustomDomainZone:
+    Type: String
+    Description: Hosted Zone Name for Custom Domain
+  CustomDomainHost:
+    Type: String
+    Description: Hostname within ApiDomainName for Custom Domain
   ElasticsearchEndpoint:
     Type: String
     Description: Elasticsearch url
@@ -18,6 +27,13 @@ Parameters:
     Type: String
     Description: Index Prefix
     Default: ""
+  V1ApiId:
+    Type: String
+    Description: ID of the v1 API to mount on /api/v1
+  V1ApiStage:
+    Type: String
+    Description: Stage name of the v1 API to mount on /api/v1
+    Default: latest
 Resources:
   getCollectionByIdFunction:
     Type: AWS::Serverless::Function
@@ -184,3 +200,29 @@ Resources:
           - OPTIONS
         MaxAge: 600
       StageName: v2
+      StageVariables:
+        basePath: api/v2
+      Domain:
+        DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+        BasePath: api/v2
+        CertificateArn: !Ref CustomDomainCertificateArn
+        Route53:
+          HostedZoneName: !Sub "${CustomDomainZone}."
+  v1Mapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiMappingKey: api/v1
+      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+      ApiId: !Ref V1ApiId
+      Stage: !Ref V1ApiStage
+#  v1Mapping:
+#    Type: AWS::ApiGateway::BasePathMapping
+#    Properties: 
+#      BasePath: api/v1
+#      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+#      RestApiId: !Ref V1ApiId
+#      Stage: !Ref V1ApiStage
+# Outputs:
+#   V2ApiEndpoint:
+#     Description: URL to access the v2 API
+#     Value: !GetAtt dcApiapiv2ApiMapping

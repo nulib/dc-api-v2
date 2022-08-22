@@ -18,9 +18,11 @@ describe("Search routes", () => {
       mock
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
-      const { event } = helpers
+      const event = helpers
         .mockEvent("POST", "/search")
-        .body(originalQuery);
+        .pathPrefix("/api/v2")
+        .body(originalQuery)
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
 
@@ -33,11 +35,13 @@ describe("Search routes", () => {
       mock
         .post("/dc-v2-work,dc-v2-collection/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search-multiple-targets.json"));
-      const { event } = helpers
+      const event = helpers
         .mockEvent("POST", "/search/{models}")
+        .pathPrefix("/api/v2")
         .pathParams({ models: "works,collections" })
         .body(originalQuery)
-        .base64Encode();
+        .base64Encode()
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
 
@@ -47,10 +51,12 @@ describe("Search routes", () => {
     });
 
     it("errors if invalid models specified", async () => {
-      const { event } = helpers
+      const event = helpers
         .mockEvent("POST", "/search/{models}")
+        .pathPrefix("/api/v2")
         .pathParams({ models: "works,collections,blargh" })
-        .body(originalQuery);
+        .body(originalQuery)
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(400);
 
@@ -69,7 +75,11 @@ describe("Search routes", () => {
       "N4IgRg9gJgniBcoCOBXApgJzokBbAhgC4DGAFgPr4A2VCwAvvQDQgDOAlgF5oICMADMzzQ0VVggDaIAO4QMAa3EBdekA";
 
     it("requires a searchToken", async () => {
-      const { event } = helpers.mockEvent("GET", "/search");
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .pathPrefix("/api/v2")
+        .render();
+
       const result = await handler(event);
       expect(result.statusCode).to.eq(400);
       const resultBody = JSON.parse(result.body);
@@ -77,9 +87,11 @@ describe("Search routes", () => {
     });
 
     it("requires a valid searchToken", async () => {
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/search")
-        .queryParams({ searchToken: "Ceci n'est pas une searchToken" });
+        .pathPrefix("/api/v2")
+        .queryParams({ searchToken: "Ceci n'est pas une searchToken" })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(400);
       const resultBody = JSON.parse(result.body);
@@ -91,9 +103,11 @@ describe("Search routes", () => {
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/search")
-        .queryParams({ searchToken, page: 1 });
+        .pathPrefix("/api/v2")
+        .queryParams({ searchToken, page: 1 })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
     });
@@ -103,9 +117,11 @@ describe("Search routes", () => {
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
 
-      const { event } = helpers
+      const event = helpers
         .mockEvent("GET", "/search")
-        .queryParams({ searchToken });
+        .pathPrefix("/api/v2")
+        .queryParams({ searchToken })
+        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
     });
