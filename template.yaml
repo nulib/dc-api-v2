@@ -11,6 +11,9 @@ Globals:
     Timeout: 3
 
 Parameters:
+  ApiSecret:
+    Type: String
+    Description: Secret Key for Encrypting JWTs (must match IIIF server)
   CustomDomainCertificateArn:
     Type: String
     Description: SSL Certificate for the Custom Domain Name
@@ -122,6 +125,36 @@ Resources:
             ApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
+  getWorkThumbnailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-work-thumbnail.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Gets a Work's representative thumbnail.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiSecret
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/thumbnail
+            Method: GET
   searchPostFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -215,14 +248,3 @@ Resources:
       DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
       ApiId: !Ref V1ApiId
       Stage: !Ref V1ApiStage
-#  v1Mapping:
-#    Type: AWS::ApiGateway::BasePathMapping
-#    Properties: 
-#      BasePath: api/v1
-#      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-#      RestApiId: !Ref V1ApiId
-#      Stage: !Ref V1ApiStage
-# Outputs:
-#   V2ApiEndpoint:
-#     Description: URL to access the v2 API
-#     Value: !GetAtt dcApiapiv2ApiMapping

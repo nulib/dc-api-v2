@@ -8,7 +8,6 @@
     "id": "1234",
     "api_model": "Work",
     "published": true,
-    "thumbnail": "https://index.test.library.northwestern.edu/iiif/2/thumbnail/test",
     "visibility": "Public"
   }
 }
