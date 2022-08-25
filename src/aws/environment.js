@@ -1,3 +1,14 @@
+const jwt = require("jsonwebtoken");
+
+function apiToken() {
+  const token = {
+    displayName: ["Digital Collection API v2"],
+    iat: Math.floor(Number(new Date()) / 1000),
+  };
+
+  return jwt.sign(token, process.env.API_TOKEN_SECRET);
+}
+
 function elasticsearchEndpoint() {
   return process.env.ELASTICSEARCH_ENDPOINT;
 }
@@ -12,4 +23,4 @@ function region() {
   return process.env.AWS_REGION || "us-east-1";
 }
 
-module.exports = { elasticsearchEndpoint, prefix, region };
+module.exports = { apiToken, elasticsearchEndpoint, prefix, region };
