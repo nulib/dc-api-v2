@@ -15,8 +15,8 @@ function getAxiosResponse(url, config) {
 
 function validateRequest(event) {
   const id = event.pathParameters.id;
-  const aspect = event.queryStringParameters.aspect || "square";
-  const sizeParam = event.queryStringParameters.size || 300;
+  const aspect = event?.queryStringParameters?.aspect || "square";
+  const sizeParam = event?.queryStringParameters?.size || 300;
   const size = Number(sizeParam);
 
   if (!["full", "square"].includes(aspect))
