@@ -8,7 +8,11 @@
     "id": "1234",
     "api_model": "Work",
     "published": true,
-    "thumbnail": "https://index.test.library.northwestern.edu/iiif/2/thumbnail/test",
+    "representative_file_set": {
+      "fileSetId": "5678",
+      "url": "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678"
+    },
+    "thumbnail": "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/square/!300,300/0/default.jpg",
     "visibility": "Public"
   }
 }
