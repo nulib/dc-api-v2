@@ -13,46 +13,71 @@ function getAxiosResponse(url, config) {
   });
 }
 
+function validateRequest(event) {
+  const id = event.pathParameters.id;
+  const aspect = event.queryStringParameters.aspect || "square";
+  const sizeParam = event.queryStringParameters.size || 300;
+  const size = Number(sizeParam);
+
+  if (!["full", "square"].includes(aspect))
+    throw new Error(`Unknown aspect ratio: ${aspect}`);
+  if (isNaN(size)) throw new Error(`${sizeParam} is not a valid size`);
+  if (size > 300)
+    throw new Error(`Requested size of ${size}px exceeds maximum of 300px`);
+
+  return { id, aspect, size };
+}
+
 /**
  * A simple function to proxy a Work's thumbnail from the IIIF server
  */
 exports.handler = async (event) => {
-  event = middleware(event);
-  const id = event.pathParameters.id;
-  const esResponse = await getWork(id);
-  if (esResponse.statusCode != 200) {
-    return opensearchResponse.transform(esResponse);
-  }
+  try {
+    const { id, aspect, size } = validateRequest(middleware(event));
+    const esResponse = await getWork(id);
+    if (esResponse.statusCode != 200) {
+      return opensearchResponse.transform(esResponse);
+    }
 
-  const body = JSON.parse(esResponse.body);
-  const thumbnail = body?._source?.thumbnail;
+    const body = JSON.parse(esResponse.body);
+    const iiif_base = body?._source?.representative_file_set?.url;
 
-  if (thumbnail === undefined) {
-    return {
-      statusCode: 404,
-      body: "Not Found",
-    };
-  }
+    if (!iiif_base) {
+      return {
+        statusCode: 404,
+        headers: { "content-type": "text/plain" },
+        body: "Not Found",
+      };
+    }
 
-  const { status, headers, data } = await getAxiosResponse(thumbnail, {
-    headers: { Authorization: `Bearer ${apiToken()}` },
-    responseType: "arraybuffer",
-  });
+    const thumbnail = `${iiif_base}/${aspect}/!${size},${size}/0/default.jpg`;
 
-  if (status != 200) {
+    const { status, headers, data } = await getAxiosResponse(thumbnail, {
+      headers: { Authorization: `Bearer ${apiToken()}` },
+      responseType: "arraybuffer",
+    });
+
+    if (status != 200) {
+      return {
+        statusCode: status,
+        body: data.toString(),
+        headers: headers,
+      };
+    }
+
     return {
       statusCode: status,
-      body: data.toString(),
-      headers: headers,
+      isBase64Encoded: true,
+      body: data.toString("base64"),
+      headers: {
+        "content-type": headers["content-type"],
+      },
+    };
+  } catch (err) {
+    return {
+      statusCode: 400,
+      headers: { "content-type": "text/plain" },
+      body: err.message,
     };
   }
-
-  return {
-    statusCode: status,
-    isBase64Encoded: true,
-    body: data.toString("base64"),
-    headers: {
-      "content-type": headers["content-type"],
-    },
-  };
 };
