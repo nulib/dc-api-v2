@@ -205,6 +205,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+/docs/docs/spec/.openapi-*
+/docs/docs/spec/openapi.json
+/docs/site
+
+.vscode
 samconfig.toml
 env.json
 

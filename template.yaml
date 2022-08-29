@@ -38,6 +38,7 @@ Parameters:
     Description: Stage name of the v1 API to mount on /api/v1
     Default: latest
 Resources:
+  # V2 API
   getCollectionsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -270,6 +271,8 @@ Resources:
         CertificateArn: !Ref CustomDomainCertificateArn
         Route53:
           HostedZoneName: !Sub "${CustomDomainZone}."
+
+  # v1 API Mapping
   v1Mapping:
     Type: AWS::ApiGatewayV2::ApiMapping
     Properties:
@@ -277,3 +280,52 @@ Resources:
       DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
       ApiId: !Ref V1ApiId
       Stage: !Ref V1ApiStage
+
+  # Documentation
+  docsApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: v2
+  docsMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiMappingKey: docs/v2
+      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+      ApiId: !Ref docsApi
+      Stage: !Ref docsApiv2Stage
+  docsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "dcapi-docs.${CustomDomainZone}"
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+  docsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: 's3:GetObject'
+            Resource: !Sub "arn:aws:s3:::${docsBucket}/*" 
+      Bucket: !Ref docsBucket
+  docsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref docsApi
+      IntegrationMethod: GET
+      IntegrationType: HTTP_PROXY
+      IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
+      PayloadFormatVersion: "1.0"
+  docsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref docsApi
+      AuthorizationType: NONE
+      RouteKey: GET /{proxy+}
+      Target: !Sub "integrations/${docsIntegration}"
