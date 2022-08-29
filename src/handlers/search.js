@@ -46,7 +46,7 @@ const executeSearch = async (event, models, body) => {
     return invalidRequest(`Invalid models requested: ${models}`);
   }
 
-  const pager = new Paginator(baseUrl(event), models, body);
+  const pager = new Paginator(baseUrl(event), "search", models, body);
   const filteredBody = new RequestPipeline(body).authFilter().toJson();
   let esResponse = await search(modelsToTargets(models), filteredBody);
   let transformedResponse = await opensearchResponse.transform(

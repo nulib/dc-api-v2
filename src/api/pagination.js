@@ -44,14 +44,15 @@ function thisPage(body) {
 }
 
 class Paginator {
-  constructor(baseUrl, models, body) {
+  constructor(baseUrl, route, models, body) {
     this.baseUrl = baseUrl;
+    this.route = route;
     this.models = models;
     this.body = { ...body };
   }
 
   async pageInfo(count) {
-    let url = new URL("search", this.baseUrl);
+    let url = new URL(this.route, this.baseUrl);
     url.searchParams.set(
       "searchToken",
       await encodeSearchToken(this.models, this.body)

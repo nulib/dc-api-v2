@@ -38,6 +38,35 @@ Parameters:
     Description: Stage name of the v1 API to mount on /api/v1
     Default: latest
 Resources:
+  getCollectionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-collections.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Gets Collections.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections
+            Method: GET
   getCollectionByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
