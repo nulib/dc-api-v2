@@ -10,6 +10,7 @@ describe("OpenSearch response transformer", () => {
   beforeEach(() => {
     pager = new Paginator(
       "http://dcapi.library.northwestern.edu/v2/",
+      "search",
       ["works"],
       { query: { match_all: {} } }
     );

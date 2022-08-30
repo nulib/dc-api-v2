@@ -18,6 +18,7 @@ describe("Paginator", function () {
   this.beforeEach(() => {
     pager = new Paginator(
       "http://dcapi.library.northwestern.edu/v2/",
+      "search",
       ["works"],
       requestBody
     );
