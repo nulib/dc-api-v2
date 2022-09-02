@@ -1,0 +1,157 @@
+openapi: 3.0.1
+info:
+  title: Northwestern University Libraries Digital Collections API
+  description: >
+    This is full Markdown intro text. This API drives the [Northwestern University Libraries Digital 
+    Collections](https://dc.library.northwestern.edu) site.
+
+    I can even put line breaks in it. I can also link back to the [main documentation](..).
+  version: 2.0.0
+  contact:
+    name: NUL Repository Team
+    email: repository@northwestern.edu
+servers:
+- url: https://dcapi.rdc.library.northwestern.edu/api/v2
+tags:
+  - name: Models
+    description: >
+      Endpoints for listing and retrieving Collections, FileSets, and Works.
+  - name: Search
+    description: >
+      Endpoints for searching the index.
+paths:
+  /collections:
+    get:
+      operationId: getCollections
+      tags:
+      - Collection
+      parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number of results to retrieve
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+  /collections/{id}:
+    get:
+      tags:
+      - Collection
+      operationId: getCollectionById
+      parameters:
+      - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /file-sets/{id}:
+    get:
+      operationId: getFileSetById
+      tags:
+      - FileSet
+      parameters:
+      - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /works/{id}:
+    get:
+      operationId: getWorkById
+      tags:
+      - Work
+      parameters:
+      - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /works/{id}/thumbnail:
+    get:
+      operationId: getWorkThumbnail
+      tags:
+      - Work
+      parameters: 
+      - $ref: "./types.yaml#/components/parameters/id"
+      - name: aspect
+        in: query
+        required: false
+        description: Desired aspect ratio
+        schema:
+          type: string
+          enum: 
+            - full
+            - square
+      - name: size
+        in: query
+        required: false
+        description: Size of largest dimension
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 300
+      responses:
+        200:
+          description: A thumbnail image for the given work
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+  /search:
+    get:
+      operationId: getSearch
+      tags:
+      - Search
+      parameters:
+      - name: searchToken
+        in: query
+        required: true
+        description: Search token from previous search response
+        schema:
+          type: string
+      - name: page
+        in: query
+        required: false
+        description: Page number of results to retrieve
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+    post:
+      operationId: postSearch
+      tags:
+      - Search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+  /search/{models}:
+    post:
+      operationId: postSearchWithModels
+      tags:
+      - Search
+      parameters:
+      - name: models
+        in: path
+        description: Comma-delimited list of models to search
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+              - collections
+              - file-sets
+              - Works
+        style: simple
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"

@@ -1,0 +1,28 @@
+site_name: "NUL Digital Collections API"
+site_url: https://dcapi.rdc.library.northwestern.edu/api/v2/
+use_directory_urls: true 
+theme:
+  name: material
+extra_css:
+- css/fonts.css
+- css/overrides.css
+repo_name: "nulib/dc-api-v2"
+repo_url: "https://github.com/nulib/dc-api-v2"
+edit_uri: blob/main/docs/docs/
+plugins:
+  - macros
+  - search
+markdown_extensions:
+  - admonition #adds ability to have custom highlight boxes with !!!
+  - codehilite:
+      guess_lang: false
+  - def_list
+  - footnotes
+  - smarty
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.mark
+  - pymdownx.superfences
+  - pymdownx.tilde
+  - toc:
+      permalink: true

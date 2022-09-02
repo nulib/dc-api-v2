@@ -1,0 +1,69 @@
+openapi: 3.0.1
+components:
+  parameters:
+    id:
+      name: id
+      in: path
+      required: true
+      description: Collection, FileSet, or Work ID
+      schema:
+        type: string
+        format: uuid
+  responses:
+    DocumentResponse:
+      description: A single document response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/IndexDocument"
+              info:
+                type: object
+    SearchResponse:
+      description: A page of search results
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IndexDocument"
+                description: An array of response documents
+              pagination:
+                $ref: "#/components/schemas/PaginationInfo"
+  schemas:
+    IndexDocument:
+      type: object
+      description: A single index document
+    PaginationInfo:
+      type: object
+      description: Pagination info for the current response
+      properties:
+        next_url:
+          type: string
+          description: Full URL to the next page of results
+        prev_url:
+          type: string
+          description: Full URL to the previous page of results
+        query_url:
+          type: string
+          description: Base URL to repeat this query for a given page
+        current_page:
+          type: integer
+          description: Index of current page of results
+        limit:
+          type: integer
+          description: Number of results per page
+        offset:
+          type: integer
+          description: Starting index of first result on the current page
+        total_hits:
+          type: integer
+          description: Total number of results
+        total_pages:
+          type: integer
+          description: Total number of result pages

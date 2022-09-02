@@ -1,8 +1,8 @@
-name: Digital Collections API
+name: Run Tests
 on:
   - push
 jobs:
-  build:
+  test:
     env:
       AWS_ACCESS_KEY_ID: ci
       AWS_SECRET_ACCESS_KEY: ci
