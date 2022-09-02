@@ -205,12 +205,12 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# End of https://www.toptal.com/developers/gitignore/api/osx,node,linux,windows,sam
+
 /docs/docs/spec/.openapi-*
 /docs/docs/spec/openapi.json
 /docs/site
 
 .vscode
-samconfig.toml
-env.json
-
-# End of https://www.toptal.com/developers/gitignore/api/osx,node,linux,windows,sam
+/samconfig.toml
+/env.json
