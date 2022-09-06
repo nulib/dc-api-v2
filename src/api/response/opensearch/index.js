@@ -20,11 +20,19 @@ async function transformMany(responseBody, pager) {
     statusCode: 200,
     body: JSON.stringify({
       data: extractSource(responseBody.hits.hits),
-      pagination: await pager.pageInfo(responseBody.hits.total.value),
+      pagination: await paginationInfo(responseBody, pager),
       info: {},
       aggregations: responseBody.aggregations,
     }),
   };
+}
+
+async function paginationInfo(responseBody, pager) {
+  let { format, options, ...pageInfo } = await pager.pageInfo(
+    responseBody.hits.total.value
+  );
+
+  return pageInfo;
 }
 
 function transformError(response) {

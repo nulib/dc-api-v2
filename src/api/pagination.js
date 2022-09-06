@@ -9,8 +9,8 @@ async function decodeSearchToken(token) {
   return JSON.parse(await decompress(token));
 }
 
-async function encodeSearchToken(models, body) {
-  let token = { body: { size: 10 }, models };
+async function encodeSearchToken(models, body, format, options) {
+  let token = { body: { size: 10 }, models, format, options };
   for (const field in body) {
     if (encodeFields.includes(field)) {
       token.body[field] = body[field];
@@ -44,18 +44,20 @@ function thisPage(body) {
 }
 
 class Paginator {
-  constructor(baseUrl, route, models, body) {
+  constructor(baseUrl, route, models, body, format, options) {
     this.baseUrl = baseUrl;
     this.route = route;
     this.models = models;
     this.body = { ...body };
+    this.format = format;
+    this.options = options;
   }
 
   async pageInfo(count) {
     let url = new URL(this.route, this.baseUrl);
     url.searchParams.set(
       "searchToken",
-      await encodeSearchToken(this.models, this.body)
+      await encodeSearchToken(this.models, this.body, this.format, this.options)
     );
 
     const prev = prevPage(this.body, count);
@@ -68,6 +70,8 @@ class Paginator {
       offset: from(this.body),
       total_hits: count,
       total_pages: maxPage(this.body, count),
+      options: this.options,
+      format: this.format,
     };
     if (prev) {
       url.searchParams.set("page", prev);
