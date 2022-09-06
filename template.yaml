@@ -30,14 +30,78 @@ Parameters:
     Type: String
     Description: Index Prefix
     Default: ""
-  V1ApiId:
+  V1ApiEndpoint:
     Type: String
-    Description: ID of the v1 API to mount on /api/v1
-  V1ApiStage:
-    Type: String
-    Description: Stage name of the v1 API to mount on /api/v1
-    Default: latest
+    Description: Base URL of the v1 API to mount on /api/v1
 Resources:
+  # CloudFront Distribution
+  domain:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Aliases:
+          - !Sub "${CustomDomainHost}.${CustomDomainZone}"
+        ViewerCertificate: 
+          AcmCertificateArn: !Ref CustomDomainCertificateArn
+          CloudFrontDefaultCertificate: false
+          MinimumProtocolVersion: TLSv1
+          SslSupportMethod: sni-only
+        CacheBehaviors:
+          - PathPattern: /api/v1
+            TargetOriginId: v1Api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - PATCH
+              - POST
+              - DELETE
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          - PathPattern: /api/v2
+            TargetOriginId: v2Api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - PATCH
+              - POST
+              - DELETE
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          - PathPattern: /docs/v2
+            TargetOriginId: v2Docs
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachePolicyId: b2884449-e4de-46a7-ac36-70bc7f1ddd6d
+        DefaultCacheBehavior:
+          TargetOriginId: v2Docs
+          ViewerProtocolPolicy: https-only
+          AllowedMethods:
+            - GET
+            - HEAD
+        Origins:
+          - Id: v1Api
+            DomainName: !Ref V1ApiEndpoint
+          - Id: v2Api
+            DomainName: !Sub "${dcApi}.execute-api.${AWS::Region}.amazonaws.com/${dcApiv2Stage}"
+          - Id: v2Docs
+            DomainName: !Sub "dcapi-docs.${CustomDomainZone}"
+  dns:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Sub "${CustomDomainZone}."
+      RecordSets:
+        - Name: !Ref CustomDomainHost
+          Type: CNAME
+          ResourceRecords:
+            - !GetAtt domain.DomainName
+
   # V2 API
   getCollectionsFunction:
     Type: AWS::Serverless::Function
@@ -263,36 +327,8 @@ Resources:
           - OPTIONS
         MaxAge: 600
       StageName: v2
-      StageVariables:
-        basePath: api/v2
-      Domain:
-        DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-        BasePath: api/v2
-        CertificateArn: !Ref CustomDomainCertificateArn
-        Route53:
-          HostedZoneName: !Sub "${CustomDomainZone}."
 
-  # v1 API Mapping
-  v1Mapping:
-    Type: AWS::ApiGatewayV2::ApiMapping
-    Properties:
-      ApiMappingKey: api/v1
-      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-      ApiId: !Ref V1ApiId
-      Stage: !Ref V1ApiStage
-
-  # Documentation
-  docsApi:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      StageName: v2
-  docsMapping:
-    Type: AWS::ApiGatewayV2::ApiMapping
-    Properties:
-      ApiMappingKey: docs/v2
-      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-      ApiId: !Ref docsApi
-      Stage: !Ref docsApiv2Stage
+  # Docs
   docsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -314,18 +350,3 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub "arn:aws:s3:::${docsBucket}/*" 
       Bucket: !Ref docsBucket
-  docsIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref docsApi
-      IntegrationMethod: GET
-      IntegrationType: HTTP_PROXY
-      IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
-      PayloadFormatVersion: "1.0"
-  docsRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref docsApi
-      AuthorizationType: NONE
-      RouteKey: GET /{proxy+}
-      Target: !Sub "integrations/${docsIntegration}"
