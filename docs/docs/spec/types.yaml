@@ -26,19 +26,26 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              data:
-                type: array
-                items:
-                  $ref: "#/components/schemas/IndexDocument"
-                description: An array of response documents
-              pagination:
-                $ref: "#/components/schemas/PaginationInfo"
+            oneOf:
+            - $ref: "#/components/schemas/OpenSearchResponse"
+            - $ref: "#/components/schemas/IiifPresentationManifest"
   schemas:
+    IiifPresentationManifest:
+      type: object
+      description: A [IIIF Presentation v3.x](https://iiif.io/api/presentation/3.0/) Manifest
     IndexDocument:
       type: object
       description: A single index document
+    OpenSearchResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/IndexDocument"
+          description: An array of response documents
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
     PaginationInfo:
       type: object
       description: Pagination info for the current response

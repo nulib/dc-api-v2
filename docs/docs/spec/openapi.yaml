@@ -104,9 +104,15 @@ paths:
       tags:
       - Search
       parameters:
+      - name: query
+        in: query
+        required: false
+        description: Keyword query
+        schema:
+          type: string
       - name: searchToken
         in: query
-        required: true
+        required: false
         description: Search token from previous search response
         schema:
           type: string
@@ -117,6 +123,15 @@ paths:
         schema:
           type: integer
           minimum: 1
+      - name: as
+        in: query
+        required: false
+        description: Desired output format
+        schema:
+          type: string
+          enum:
+            - iiif
+            - opensearch
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
