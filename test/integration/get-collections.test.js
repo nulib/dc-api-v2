@@ -41,6 +41,7 @@ describe("Collections route", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
     });
   });
 });

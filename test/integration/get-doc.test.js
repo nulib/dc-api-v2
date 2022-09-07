@@ -22,6 +22,7 @@ describe("Doc retrieval routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("Work");
@@ -72,6 +73,7 @@ describe("Doc retrieval routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("Collection");
@@ -94,6 +96,7 @@ describe("Doc retrieval routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("FileSet");

@@ -11,6 +11,9 @@ async function transform(response, pager) {
 async function transformOne(responseBody) {
   return {
     statusCode: 200,
+    headers: {
+      "content-type": "application/json",
+    },
     body: JSON.stringify({ data: responseBody._source, info: {} }),
   };
 }
@@ -18,6 +21,9 @@ async function transformOne(responseBody) {
 async function transformMany(responseBody, pager) {
   return {
     statusCode: 200,
+    headers: {
+      "content-type": "application/json",
+    },
     body: JSON.stringify({
       data: extractSource(responseBody.hits.hits),
       pagination: await paginationInfo(responseBody, pager),

@@ -7,6 +7,9 @@ async function transform(response, pager) {
 
     return {
       statusCode: 200,
+      headers: {
+        "content-type": "application/json",
+      },
       body: JSON.stringify(await buildCollection(responseBody, pageInfo)),
     };
   }
