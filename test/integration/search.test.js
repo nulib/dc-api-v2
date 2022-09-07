@@ -25,6 +25,7 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody).to.include.keys(["data", "pagination"]);
@@ -44,6 +45,7 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody).to.include.keys(["data", "pagination"]);
@@ -93,6 +95,7 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
       const resultBody = JSON.parse(result.body);
       expect(resultBody.pagination.next_url).not.null;
       expect(resultBody.pagination.current_page).to.eq(1);
@@ -122,6 +125,7 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
     });
 
     it("defaults to page 1", async () => {
@@ -136,6 +140,7 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
     });
 
     it("will return a IIIF collection", async () => {
@@ -157,6 +162,7 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
       const resultBody = JSON.parse(result.body);
       expect(resultBody.type).to.eq("Collection");
     });
