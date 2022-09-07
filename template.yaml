@@ -45,7 +45,8 @@ Resources:
   getCollectionsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-collections.handler
+      CodeUri: ./src
+      Handler: handlers/get-collections.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -75,7 +76,8 @@ Resources:
   getCollectionByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-collection-by-id.handler
+      CodeUri: ./src
+      Handler: handlers/get-collection-by-id.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -105,7 +107,8 @@ Resources:
   getFileSetByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-file-set-by-id.handler
+      CodeUri: ./src
+      Handler: handlers/get-file-set-by-id.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -135,7 +138,8 @@ Resources:
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-work-by-id.handler
+      CodeUri: ./src
+      Handler: handlers/get-work-by-id.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -165,7 +169,8 @@ Resources:
   getWorkThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-work-thumbnail.handler
+      CodeUri: ./src
+      Handler: handlers/get-work-thumbnail.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -195,7 +200,8 @@ Resources:
   searchPostFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/search.postSearch
+      CodeUri: ./src
+      Handler: handlers/search.postSearch
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -230,7 +236,8 @@ Resources:
   searchGetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/search.getSearch
+      CodeUri: ./src
+      Handler: handlers/search.getSearch
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -289,18 +296,40 @@ Resources:
       ApiId: !Ref V1ApiId
       Stage: !Ref V1ApiStage
 
-  # Documentation
-  docsApi:
+  # root API
+  rootApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName: v2
+      StageName: latest
+  rootRedirect:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./redirect
+      Handler: index.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 1
+      Description: Redirects to latest version of docs
+      Environment:
+        Variables:
+          REDIRECT_TO: /docs/v2/index.html
+      Events:
+        RedirectApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref rootApi
+            Path: /
+            Method: GET
+
+  # Documentation
   docsMapping:
     Type: AWS::ApiGatewayV2::ApiMapping
     Properties:
-      ApiMappingKey: docs/v2
       DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-      ApiId: !Ref docsApi
-      Stage: !Ref docsApiv2Stage
+      ApiId: !Ref rootApi
+      Stage: !Ref rootApilatestStage
   docsBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -325,7 +354,7 @@ Resources:
   docsIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
-      ApiId: !Ref docsApi
+      ApiId: !Ref rootApi
       IntegrationMethod: GET
       IntegrationType: HTTP_PROXY
       IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
@@ -333,7 +362,7 @@ Resources:
   docsRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
-      ApiId: !Ref docsApi
+      ApiId: !Ref rootApi
       AuthorizationType: NONE
-      RouteKey: GET /{proxy+}
+      RouteKey: GET /docs/v2/{proxy+}
       Target: !Sub "integrations/${docsIntegration}"
