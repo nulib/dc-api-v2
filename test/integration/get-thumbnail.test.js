@@ -21,8 +21,8 @@ describe("Work thumbnail", () => {
       .get("/dc-v2-work/_doc/1234")
       .reply(200, helpers.testFixture("mocks/work-1234.json"));
     mock
-      .get("/iiif/2/mbk-dev/5678/square/!300,300/0/default.jpg")
-      .reply(200, helpers.testFixture("mocks/thumbnail_square.jpg"), {
+      .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
+      .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
         "Content-Type": "image/jpeg",
       });
 
@@ -36,7 +36,7 @@ describe("Work thumbnail", () => {
       .get("/dc-v2-work/_doc/1234")
       .reply(200, helpers.testFixture("mocks/work-1234.json"));
     mock
-      .get("/iiif/2/mbk-dev/5678/square/!300,300/0/default.jpg")
+      .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
       .reply(403, "Forbidden", { "Content-Type": "text/plain" });
 
     const result = await handler(event.render());
@@ -67,8 +67,8 @@ describe("Work thumbnail", () => {
       .get("/dc-v2-work/_doc/1234")
       .reply(200, helpers.testFixture("mocks/work-1234.json"));
     mock
-      .get("/iiif/2/mbk-dev/5678/square/!200,200/0/default.jpg")
-      .reply(200, helpers.testFixture("mocks/thumbnail_square.jpg"), {
+      .get("/iiif/2/mbk-dev/5678/full/!200,200/0/default.jpg")
+      .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
         "Content-Type": "image/jpeg",
       });
 
