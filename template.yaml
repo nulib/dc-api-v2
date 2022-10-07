@@ -166,11 +166,11 @@ Resources:
             ApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
-  getWorkThumbnailFunction:
+  getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Handler: handlers/get-work-thumbnail.handler
+      Handler: handlers/get-thumbnail.handler
       Runtime: nodejs16.x
       Architectures:
         - x86_64
@@ -191,7 +191,13 @@ Resources:
           ENV_PREFIX: !Ref EnvironmentPrefix
           ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
-        Api:
+        CollectionApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections/{id}/thumbnail
+            Method: GET
+        WorkApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi

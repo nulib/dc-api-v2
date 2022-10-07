@@ -16,8 +16,6 @@ const getSearch = async (event) => {
   const models = extractRequestedModels(event.pathParameters?.models);
   const format = await responseFormat(event);
 
-  console.log("format", format);
-
   let searchContext;
 
   try {

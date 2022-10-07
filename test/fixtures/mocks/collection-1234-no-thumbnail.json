@@ -8,8 +8,6 @@
     "id": "1234",
     "api_model": "Collection",
     "published": true,
-    "representative_image": {
-      "work_id": "1234"
-    }
+    "representative_image": {}
   }
 }

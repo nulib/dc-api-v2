@@ -46,6 +46,38 @@ paths:
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /collections/{id}/thumbnail:
+    get:
+      operationId: getCollectionThumbnail
+      tags:
+      - Collection
+      parameters: 
+      - $ref: "./types.yaml#/components/parameters/id"
+      - name: aspect
+        in: query
+        required: false
+        description: Desired aspect ratio
+        schema:
+          type: string
+          enum: 
+            - full
+            - square
+      - name: size
+        in: query
+        required: false
+        description: Size of largest dimension
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 300
+      responses:
+        200:
+          description: A thumbnail image for the given collection
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
   /file-sets/{id}:
     get:
       operationId: getFileSetById
