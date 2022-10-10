@@ -1,9 +1,22 @@
-const base64 = require("base64-js");
 const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
+
+function addCorsHeaders(event, response) {
+  const allowOrigin = event?.headers?.origin || "*";
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Max-Age": "600",
+  };
+  if (!response.headers) response.headers = {};
+  Object.assign(response.headers, corsHeaders);
+  return response;
+}
 
 function decodeEventBody(event) {
   if (!event.isBase64Encoded) return event;
-  event.body = new Buffer.from(base64.toByteArray(event.body)).toString();
+  event.body = Buffer.from(event.body, "base64").toString("utf8");
   event.isBase64Encoded = false;
   return event;
 }
@@ -69,4 +82,24 @@ function baseUrl(event) {
   return result.toString();
 }
 
-module.exports = { baseUrl, decodeEventBody, normalizeHeaders };
+function objectifyCookies(event) {
+  event.cookieObject = {};
+  if (!event.cookies) return event;
+  const cookieRe = /^(?<name>.+?)=(?<value>.+)$/;
+  for (const cookie of event.cookies) {
+    const match = cookieRe.exec(cookie);
+    if (match) {
+      const { name, value } = match.groups;
+      event.cookieObject[name] = value;
+    }
+  }
+  return event;
+}
+
+module.exports = {
+  addCorsHeaders,
+  baseUrl,
+  decodeEventBody,
+  normalizeHeaders,
+  objectifyCookies,
+};

@@ -1,8 +1,8 @@
 const { apiToken } = require("../aws/environment");
 const axios = require("axios").default;
-const middleware = require("./middleware");
 const { getCollection, getWork } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
+const { processRequest } = require("./middleware");
 
 function getAxiosResponse(url, config) {
   return new Promise((resolve) => {
@@ -71,7 +71,7 @@ const getWorkThumbnail = async (id, aspect, size) => {
 };
 
 const getParameters = async (event) => {
-  const { id, aspect, size } = validateRequest(middleware(event));
+  const { id, aspect, size } = validateRequest(processRequest(event));
   if (event.rawPath.match(/\/collections\//)) {
     const esResponse = await getCollection(id);
     if (esResponse.statusCode != 200) {

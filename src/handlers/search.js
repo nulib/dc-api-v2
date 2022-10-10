@@ -1,4 +1,4 @@
-const middleware = require("./middleware");
+const { processRequest, processResponse } = require("./middleware");
 const { baseUrl } = require("../helpers");
 const {
   extractRequestedModels,
@@ -11,7 +11,7 @@ const { decodeSearchToken, Paginator } = require("../api/pagination");
 const RequestPipeline = require("../api/request/pipeline");
 
 const getSearch = async (event) => {
-  event = middleware(event);
+  event = processRequest(event);
 
   const models = extractRequestedModels(event.pathParameters?.models);
   const format = await responseFormat(event);
@@ -24,22 +24,24 @@ const getSearch = async (event) => {
     return invalidRequest(error.message);
   }
 
-  return await executeSearch(
+  const response = await executeSearch(
     event,
     models,
     searchContext,
     format,
     getOptions(event.queryStringParameters, format)
   );
+  return processResponse(event, response);
 };
 
 const postSearch = async (event) => {
-  event = middleware(event);
+  event = processRequest(event);
 
   const searchContext = JSON.parse(event.body);
   const models = extractRequestedModels(event.pathParameters?.models);
 
-  return await executeSearch(event, models, searchContext);
+  const response = await executeSearch(event, models, searchContext);
+  return processResponse(event, response);
 };
 
 /**

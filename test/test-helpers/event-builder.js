@@ -1,5 +1,3 @@
-const base64 = require("base64-js");
-
 module.exports = class {
   constructor(method, route) {
     const now = new Date();
@@ -94,7 +92,12 @@ module.exports = class {
 
     if (this._base64Encode) {
       result.isBase64Encoded = true;
-      result.body = base64.fromByteArray(new Buffer.from(result.body));
+      result.body = Buffer.from(result.body, "utf8").toString("base64");
+    }
+
+    const cookies = result.headers.cookie || result.headers.Cookie;
+    if (cookies) {
+      result.cookies = cookies.split(/;\s*/);
     }
 
     result.pathParameters = { ...this._pathParams };

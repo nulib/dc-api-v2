@@ -1,16 +1,18 @@
 const axios = require("axios").default;
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
+const { processRequest, processResponse } = require("./middleware");
 
 /**
  * NUSSO auth callback
  */
 exports.handler = async (event) => {
-  const returnPath = cookie.parse(event.headers.Cookie, {
-    decode: function (token) {
-      return Buffer.from(token, "base64").toString("utf8");
-    },
-  })?.redirectUrl;
+  event = processRequest(event);
+
+  const returnPath = Buffer.from(
+    decodeURIComponent(event.cookieObject.redirectUrl),
+    "base64"
+  ).toString("utf8");
 
   const user = await redeemSsoToken(event);
   let response;
@@ -18,31 +20,31 @@ exports.handler = async (event) => {
     const token = jwt.sign(user, process.env.API_TOKEN_SECRET);
     response = {
       statusCode: 302,
-      headers: {
-        location: returnPath,
-        "set-cookie": cookie.serialize("dcApiV2Token", token, {
+      cookies: [
+        cookie.serialize("dcApiV2Token", token, {
           domain: "library.northwestern.edu",
           path: "/",
           secure: true,
         }),
+      ],
+      headers: {
+        location: returnPath,
       },
     };
   }
 
-  return response;
+  return processResponse(event, response);
 };
 
 async function redeemSsoToken(event) {
-  const cookies = cookie.parse(event.headers.Cookie);
-
-  if (cookies.nusso) {
+  if (event.cookieObject.nusso) {
     try {
       const response = await axios.get(
         `${process.env.NUSSO_BASE_URL}validate-with-directory-search-response`,
         {
           headers: {
             apikey: process.env.NUSSO_API_KEY,
-            webssotoken: cookies.nusso,
+            webssotoken: event.cookieObject.nusso,
           },
         }
       );

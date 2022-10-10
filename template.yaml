@@ -353,19 +353,27 @@ Resources:
             ApiId: !Ref dcApi
             Path: /search
             Method: GET
+  optionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src
+      Handler: handlers/options-request.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 3
+      Description: Handles all OPTIONS requests
+      Events:
+        Everything:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /{proxy+}
+            Method: OPTIONS
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
-      CorsConfiguration:
-        AllowOrigins:
-          - "*"
-        AllowHeaders:
-          - "*"
-        AllowMethods:
-          - GET
-          - POST
-          - OPTIONS
-        MaxAge: 600
       StageName: v2
       StageVariables:
         basePath: api/v2

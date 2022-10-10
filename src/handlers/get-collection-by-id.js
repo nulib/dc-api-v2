@@ -1,4 +1,4 @@
-const middleware = require("./middleware");
+const { processRequest, processResponse } = require("./middleware");
 const { getCollection } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
 
@@ -6,8 +6,9 @@ const opensearchResponse = require("../api/response/opensearch");
  * A simple function to get a Collection by id
  */
 exports.handler = async (event) => {
-  event = middleware(event);
+  event = processRequest(event);
   const id = event.pathParameters.id;
-  let esResponse = await getCollection(id);
-  return opensearchResponse.transform(esResponse);
+  const esResponse = await getCollection(id);
+  const response = opensearchResponse.transform(esResponse);
+  return processResponse(event, response);
 };

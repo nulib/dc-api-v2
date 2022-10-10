@@ -2,7 +2,6 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const nock = require("nock");
 const getAuthWhoamiHandler = require("../../src/handlers/get-auth-whoami");
 
 describe("auth whoami", function () {
@@ -36,7 +35,7 @@ describe("auth whoami", function () {
     const result = await getAuthWhoamiHandler.handler(event);
     expect(result.statusCode).to.eq(401);
     expect(result.body).to.eq(
-      "Error verifying API token: argument str must be a string"
+      "Error verifying API token: jwt must be provided"
     );
   });
 });

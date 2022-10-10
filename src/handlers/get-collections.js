@@ -1,4 +1,4 @@
-const middleware = require("./middleware");
+const { processRequest, processResponse } = require("./middleware");
 const { baseUrl } = require("../helpers");
 const { modelsToTargets } = require("../api/request/models");
 const { search } = require("../api/opensearch");
@@ -18,7 +18,7 @@ const numberParam = (value, defaultValue) => {
  * A simple function to get Collections
  */
 exports.handler = async (event) => {
-  event = middleware(event);
+  event = processRequest(event);
 
   const page = numberParam(event.queryStringParameters?.page, 1);
   if (page < 1) return invalidRequest("page must be >= 1");
@@ -43,7 +43,7 @@ exports.handler = async (event) => {
     esResponse,
     pager
   );
-  return transformedResponse;
+  return processResponse(event, transformedResponse);
 };
 
 const invalidRequest = (message) => {

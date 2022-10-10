@@ -1,15 +1,18 @@
 const { dcApiEndpoint } = require("../aws/environment");
 const axios = require("axios").default;
 const cookie = require("cookie");
+const { processRequest, processResponse } = require("./middleware");
 
 /**
  * Performs NUSSO login
  */
 exports.handler = async (event) => {
+  event = processRequest(event);
+
   const callbackUrl = `${dcApiEndpoint()}/auth/callback`;
   const url = `${process.env.NUSSO_BASE_URL}get-ldap-redirect-url`;
   const returnPath =
-    event.queryStringParameters?.goto || event.headers?.Referer;
+    event.queryStringParameters?.goto || event.headers?.referer;
 
   if (!returnPath) {
     return {
@@ -29,13 +32,14 @@ exports.handler = async (event) => {
     .then((response) => {
       resp = {
         statusCode: 302,
+        cookies: [
+          cookie.serialize(
+            "redirectUrl",
+            Buffer.from(returnPath, "utf8").toString("base64")
+          ),
+        ],
         headers: {
           location: response.data.redirecturl,
-          "set-cookie": cookie.serialize("redirectUrl", returnPath, {
-            encode: function (token) {
-              return Buffer.from(token, "utf8").toString("base64");
-            },
-          }),
         },
       };
     })
@@ -46,5 +50,5 @@ exports.handler = async (event) => {
       };
     });
 
-  return resp;
+  return processResponse(event, resp);
 };
