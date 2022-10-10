@@ -72,4 +72,18 @@ describe("Paginator", function () {
     const result = await pager.pageInfo(1275);
     expect(result.limit).to.eq(10);
   });
+
+  it("excludes searchToken when required", async () => {
+    pager.options = { includeToken: false };
+    const result = await pager.pageInfo(1275);
+    const url = new URL(result.query_url);
+    expect(url.searchParams.has("searchToken")).to.be.false;
+  });
+
+  it("includes extra parameters", async () => {
+    pager.options = { extraParams: { size: 5 } };
+    const result = await pager.pageInfo(1275);
+    const url = new URL(result.query_url);
+    expect(url.searchParams.get("size")).to.eq("5");
+  });
 });

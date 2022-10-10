@@ -11,11 +11,11 @@ describe("Collections route", () => {
 
   describe("GET /collections", () => {
     const handler = getCollectionsHandler.handler;
-    const originalQuery = { size: 10, from: 0 };
-    const authQuery = new RequestPipeline(originalQuery).authFilter().toJson();
     const baseEvent = helpers
       .mockEvent("GET", "/collections")
       .pathPrefix("/api/v2");
+    const makeQuery = (params) =>
+      new RequestPipeline(params).authFilter().toJson();
 
     describe("validates parameters", () => {
       it("page", async () => {
@@ -35,14 +35,36 @@ describe("Collections route", () => {
       });
     });
 
-    it("paginates results using a searchToken and page number", async () => {
+    it("paginates results using default size and page number", async () => {
       mock
-        .post("/dc-v2-collection/_search", authQuery)
+        .post("/dc-v2-collection/_search", makeQuery({ size: 10, from: 0 }))
         .reply(200, helpers.testFixture("mocks/collections.json"));
-      const event = baseEvent.queryParams({ page: 1 }).render();
+      const event = baseEvent.render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       expect(result.headers).to.include({ "content-type": "application/json" });
+      const {
+        pagination: { query_url },
+      } = JSON.parse(result.body);
+      const url = new URL(query_url);
+      expect(url.searchParams.has("searchToken")).to.be.false;
+      expect(url.searchParams.has("size")).to.be.false;
+    });
+
+    it("paginates results using provided size and page number", async () => {
+      mock
+        .post("/dc-v2-collection/_search", makeQuery({ size: 5, from: 10 }))
+        .reply(200, helpers.testFixture("mocks/collections.json"));
+      const event = baseEvent.queryParams({ page: 3, size: 5 }).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result.headers).to.include({ "content-type": "application/json" });
+      const {
+        pagination: { query_url },
+      } = JSON.parse(result.body);
+      const url = new URL(query_url);
+      expect(url.searchParams.has("searchToken")).to.be.false;
+      expect(url.searchParams.get("size")).to.eq("5");
     });
   });
 });
