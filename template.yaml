@@ -113,7 +113,7 @@ Resources:
       Description: Exchanges valid JWT token for user information.
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiTokenSecret
+          API_TOKEN_SECRET: !Ref ApiSecret
           DC_API_ENDPOINT: !Ref DcApiEndpoint
           DC_URL: !Ref DcUrl
           NUSSO_API_KEY: !Ref NussoApiKey
