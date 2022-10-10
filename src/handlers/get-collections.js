@@ -3,8 +3,13 @@ const { baseUrl } = require("../helpers");
 const { modelsToTargets } = require("../api/request/models");
 const { search } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
-const { decodeSearchToken, Paginator } = require("../api/pagination");
+const { Paginator } = require("../api/pagination");
 const RequestPipeline = require("../api/request/pipeline");
+
+const numberParam = (value, defaultValue) => {
+  if (value === undefined) return defaultValue;
+  return Number(value);
+};
 
 /**
  * A simple function to get Collections
@@ -12,24 +17,22 @@ const RequestPipeline = require("../api/request/pipeline");
 exports.handler = async (event) => {
   event = middleware(event);
 
-  let token = event?.queryStringParameters?.searchToken;
+  const page = numberParam(event.queryStringParameters?.page, 1);
+  if (isNaN(page) || page < 1) return invalidRequest("page must be >= 1");
+  const size = numberParam(event.queryStringParameters?.size, 10);
+  if (isNaN(size) || size < 1) return invalidRequest("size must be >= 1");
 
+  let body = { size: size, from: size * (page - 1) };
   let models = ["collections"];
-  let body = "";
 
-  if (token) {
-    try {
-      const request = await decodeSearchToken(token);
-      const page = Number(event.queryStringParameters.page || 1);
-      request.body.from = request.body.size * (page - 1);
-      models = request.models;
-      body = request.body;
-    } catch (err) {
-      return invalidRequest("searchToken is invalid");
-    }
-  }
-
-  const pager = new Paginator(baseUrl(event), "collections", models, body);
+  const pager = new Paginator(
+    baseUrl(event),
+    "collections",
+    models,
+    body,
+    null,
+    { includeToken: false }
+  );
   const filteredBody = new RequestPipeline(body).authFilter().toJson();
   let esResponse = await search(modelsToTargets(models), filteredBody);
   let transformedResponse = await opensearchResponse.transform(

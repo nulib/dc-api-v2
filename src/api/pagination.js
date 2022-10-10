@@ -22,6 +22,7 @@ async function encodeSearchToken(models, body, format, options) {
 function from(body) {
   return body?.from || 0;
 }
+
 function size(body) {
   return body?.size || 10;
 }
@@ -55,10 +56,18 @@ class Paginator {
 
   async pageInfo(count) {
     let url = new URL(this.route, this.baseUrl);
-    url.searchParams.set(
-      "searchToken",
-      await encodeSearchToken(this.models, this.body, this.format, this.options)
-    );
+
+    if (this.options?.includeToken != false) {
+      url.searchParams.set(
+        "searchToken",
+        await encodeSearchToken(
+          this.models,
+          this.body,
+          this.format,
+          this.options
+        )
+      );
+    }
 
     const prev = prevPage(this.body, count);
     const next = nextPage(this.body, count);
