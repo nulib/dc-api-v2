@@ -371,6 +371,36 @@ Resources:
             ApiId: !Ref dcApi
             Path: /{proxy+}
             Method: OPTIONS
+  getSharedLinkByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src
+      Handler: handlers/get-shared-link-by-id.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Gets a shared link document by id.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /resolve/{id}
+            Method: GET
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:

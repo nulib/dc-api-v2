@@ -14,12 +14,16 @@ async function getWork(id) {
   return getDocument("dc-v2-work", id);
 }
 
+async function getSharedLink(id) {
+  return getDocument("shared_links", id);
+}
+
 async function getDocument(index, id) {
   const request = initRequest(`/${prefix(index)}/_doc/${id}`);
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
-    if (!isVisible(body)) {
+    if (index != "shared_links" && !isVisible(body)) {
       let responseBody = {
         _index: prefix(index),
         _type: "_doc",
@@ -78,4 +82,4 @@ async function search(targets, body) {
   return await awsFetch(request);
 }
 
-module.exports = { getCollection, getFileSet, getWork, search };
+module.exports = { getCollection, getFileSet, getSharedLink, getWork, search };
