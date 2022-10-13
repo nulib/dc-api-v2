@@ -1,10 +1,35 @@
-name: Generate Docs
+name: Deploy
 on:
   push:
     branches:
       - deploy/staging
       - main
+env:
+  CONFIG_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: "nulib/tfvars"
+          ref: main
+          path: ".tfvars"
+          token: ${{ secrets.NULIB_ACCESS_TOKEN }}
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
+          aws-region: us-east-1
+      - run: ln -s .tfvars/dc-api/samconfig.toml .
+      - run: sam build
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env $CONFIG_ENV
   docs-changed:
     runs-on: ubuntu-latest
     outputs:
@@ -27,8 +52,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
