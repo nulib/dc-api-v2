@@ -6,6 +6,7 @@
   "found": true,
   "_source": {
     "id": "1234",
+    "title": "Collection Title",
     "api_model": "Collection",
     "published": true,
     "representative_image": {
