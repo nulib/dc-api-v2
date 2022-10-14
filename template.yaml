@@ -223,6 +223,37 @@ Resources:
             ApiId: !Ref dcApi
             Path: /works/{id}/thumbnail
             Method: GET
+  getSimilarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src
+      Handler: handlers/get-similar.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Gets works similar to a specific work.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiSecret
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+      Events:
+        WorkApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/similar
+            Method: GET
   searchPostFunction:
     Type: AWS::Serverless::Function
     Properties:
