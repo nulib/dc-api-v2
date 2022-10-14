@@ -9,7 +9,6 @@ module.exports = class {
       routeKey: `${method} ${route}`,
       rawPath: route,
       rawQueryString: "",
-      cookies: [],
       headers: {
         Host: "api.test.library.northwestern.edu",
         "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
@@ -84,6 +83,12 @@ module.exports = class {
 
   base64Encode() {
     this._base64Encode = true;
+    return this;
+  }
+
+  cookie(name, value) {
+    if (!this._event.cookies) this._event.cookies = [];
+    this._event.cookies.push(`${name}=${encodeURIComponent(value)}`);
     return this;
   }
 

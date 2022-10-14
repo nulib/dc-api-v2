@@ -2,28 +2,28 @@ const { HttpRequest } = require("@aws-sdk/protocol-http");
 const { awsFetch } = require("../aws/fetch");
 const { elasticsearchEndpoint, prefix } = require("../aws/environment");
 
-async function getCollection(id) {
-  return getDocument("dc-v2-collection", id);
+async function getCollection(id, opts) {
+  return getDocument("dc-v2-collection", id, opts);
 }
 
-async function getFileSet(id) {
-  return getDocument("dc-v2-file-set", id);
+async function getFileSet(id, opts) {
+  return getDocument("dc-v2-file-set", id, opts);
 }
 
-async function getWork(id) {
-  return getDocument("dc-v2-work", id);
+async function getWork(id, opts) {
+  return getDocument("dc-v2-work", id, opts);
 }
 
-async function getSharedLink(id) {
-  return getDocument("shared_links", id);
+async function getSharedLink(id, opts) {
+  return getDocument("shared_links", id, opts);
 }
 
-async function getDocument(index, id) {
+async function getDocument(index, id, opts) {
   const request = initRequest(`/${prefix(index)}/_doc/${id}`);
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
-    if (index != "shared_links" && !isVisible(body)) {
+    if (index != "shared_links" && !isVisible(body, opts?.allowPrivate)) {
       let responseBody = {
         _index: prefix(index),
         _type: "_doc",
@@ -40,14 +40,13 @@ async function getDocument(index, id) {
   return response;
 }
 
-function isVisible(doc) {
-  if (!doc?.found) {
-    return false;
-  }
+function isVisible(doc, allowPrivate) {
+  if (!doc?.found) return false;
+  const isAllowed = allowPrivate || doc?._source?.visibility !== "Private";
   if (doc?._source.api_model == "FileSet") {
-    return doc?._source?.visibility !== "Private";
+    return isAllowed;
   } else {
-    return doc?._source?.published && doc?._source?.visibility !== "Private";
+    return doc?._source?.published && isAllowed;
   }
 }
 
