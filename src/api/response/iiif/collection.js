@@ -17,26 +17,28 @@ async function transform(response, pager) {
 }
 
 async function buildCollection(responseBody, pageInfo) {
-  const collectionLabel = pageInfo.options.collectionLabel;
-  const collectionSummary = pageInfo.options.collectionSummary;
+  const {
+    options: {
+      queryStringParameters: {
+        collectionLabel = "IIIF Collection",
+        collectionSummary = "",
+      },
+    },
+  } = pageInfo;
 
   return {
     "@context": ["http://iiif.io/api/presentation/3/context.json"],
     id: collectionId(pageInfo),
     type: "Collection",
-    label: {
-      none: [`${collectionLabel}`],
-    },
-    summary: {
-      none: [`${collectionSummary}`],
-    },
+    label: { none: [collectionLabel] },
+    summary: { none: [collectionSummary] },
     homepage: [
       {
         id: homepageUrl(pageInfo),
         type: "Text",
         format: "text/html",
         label: {
-          none: [`Results for ${collectionLabel} of ${collectionSummary}`],
+          none: [collectionLabel],
         },
       },
     ],
@@ -69,8 +71,22 @@ function collectionId(pageInfo) {
 }
 
 function homepageUrl(pageInfo) {
-  const result = new URL("/search", dcUrl);
-  result.searchParams.set("q", pageInfo.options.queryString);
+  let result;
+
+  if (pageInfo.options?.parameterOverrides) {
+    const collectionId = new URL(pageInfo.query_url).pathname
+      .split("/")
+      .reverse()[0];
+    result = new URL(`/collections/${collectionId}`, dcUrl);
+  } else {
+    result = new URL("/search", dcUrl);
+    if (pageInfo.options?.queryStringParameters?.query)
+      result.searchParams.set(
+        "q",
+        pageInfo.options.queryStringParameters.query
+      );
+  }
+
   return result;
 }
 

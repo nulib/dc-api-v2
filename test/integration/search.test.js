@@ -72,7 +72,7 @@ describe("Search routes", () => {
 
   describe("GET /search", () => {
     const handler = searchHandlers.getSearch;
-    const originalQuery = { query: { match_all: {} }, size: 10, from: 0 };
+    const originalQuery = { query: { match_all: {} } };
     const authQuery = new RequestPipeline(originalQuery).authFilter().toJson();
     const searchToken =
       "N4IgRg9gJgniBcoCOBXApgJzokBbAhgC4DGAFgPr4A2VCwAvvQDQgDOAlgF5oICMADMzzQ0VVggDaIAO4QMAa3EBdekA";

@@ -15,31 +15,11 @@ describe("Similar routes", () => {
   const makeQuery = (params) =>
     new RequestPipeline(params).authFilter().toJson();
 
-  describe("validates parameters", () => {
-    it("page", async () => {
-      const event = baseEvent.queryParams({ page: 0 }).render();
-      const result = await handler(event);
-      expect(result.statusCode).to.eq(400);
-      const resultBody = JSON.parse(result.body);
-      expect(resultBody.message).to.eq("page must be >= 1");
-    });
-
-    it("size", async () => {
-      const event = baseEvent.queryParams({ size: 0 }).render();
-      const result = await handler(event);
-      expect(result.statusCode).to.eq(400);
-      const resultBody = JSON.parse(result.body);
-      expect(resultBody.message).to.eq("size must be >= 1");
-    });
-  });
-
   it("paginates results using default size and page number", async () => {
     mock
       .post(
         "/dc-v2-work/_search",
         makeQuery({
-          size: 5,
-          from: 0,
           query: {
             more_like_this: {
               fields: [
@@ -81,8 +61,6 @@ describe("Similar routes", () => {
       .post(
         "/dc-v2-work/_search",
         makeQuery({
-          size: 3,
-          from: 6,
           query: {
             more_like_this: {
               fields: [
@@ -104,6 +82,8 @@ describe("Similar routes", () => {
               min_term_freq: 1,
             },
           },
+          size: 3,
+          from: 6,
         })
       )
       .reply(200, helpers.testFixture("mocks/similar.json"));
