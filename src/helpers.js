@@ -96,10 +96,17 @@ function objectifyCookies(event) {
   return event;
 }
 
+function isFromReadingRoom(event) {
+  const AllowedIPs = (process.env.READING_ROOM_IPS || "").split(/\s*,\s*/);
+  const sourceIp = event?.requestContext?.http?.sourceIp;
+  return AllowedIPs.includes(sourceIp);
+}
+
 module.exports = {
   addCorsHeaders,
   baseUrl,
   decodeEventBody,
+  isFromReadingRoom,
   normalizeHeaders,
   objectifyCookies,
 };

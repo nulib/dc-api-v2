@@ -4,12 +4,22 @@ Description: >
   dc-api-v2
 
   Sample SAM Template for dc-api-v2
-
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
+    CodeUri: ./src
+    Runtime: nodejs16.x
+    Architectures:
+    - x86_64
+    MemorySize: 128
     Timeout: 3
-
+    Environment:
+      Variables:
+        DC_API_ENDPOINT: !Ref DcApiEndpoint
+        DC_URL: !Ref DcUrl
+        ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+        ENV_PREFIX: !Ref EnvironmentPrefix
+        READING_ROOM_IPS: !Ref ReadingRoomIPs
 Parameters:
   ApiSecret:
     Type: String
@@ -42,6 +52,9 @@ Parameters:
   NussoBaseUrl:
     Type: String
     Description: Auth server URL
+  ReadingRoomIPs:
+    Type: String
+    Description: Comma-delimited list of IP addresses to serve private resources to
   V1ApiId:
     Type: String
     Description: ID of the v1 API to mount on /api/v1
@@ -54,19 +67,11 @@ Resources:
   getAuthCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-auth-callback.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: NUSSO callback function.
       Environment:
         Variables:
           API_TOKEN_SECRET: !Ref ApiSecret
-          DC_API_ENDPOINT: !Ref DcApiEndpoint
-          DC_URL: !Ref DcUrl
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
@@ -79,18 +84,10 @@ Resources:
   getAuthLoginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-auth-login.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Performs NUSSO login.
       Environment:
         Variables:
-          DC_API_ENDPOINT: !Ref DcApiEndpoint
-          DC_URL: !Ref DcUrl
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
@@ -103,19 +100,11 @@ Resources:
   getAuthWhoAmIFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-auth-whoami.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Exchanges valid JWT token for user information.
       Environment:
         Variables:
           API_TOKEN_SECRET: !Ref ApiSecret
-          DC_API_ENDPOINT: !Ref DcApiEndpoint
-          DC_URL: !Ref DcUrl
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
@@ -128,13 +117,7 @@ Resources:
   getCollectionsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-collections.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Gets Collections.
       Policies:
         Version: 2012-10-17
@@ -144,11 +127,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          DC_URL: !Ref DcUrl
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
           Type: HttpApi
@@ -159,13 +137,7 @@ Resources:
   getCollectionByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-collection-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Gets a Collection by id.
       Policies:
         Version: 2012-10-17
@@ -175,11 +147,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          DC_URL: !Ref DcUrl
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
           Type: HttpApi
@@ -190,13 +157,7 @@ Resources:
   getFileSetByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-file-set-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Gets a FileSet by id.
       Policies:
         Version: 2012-10-17
@@ -206,11 +167,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          DC_URL: !Ref DcUrl
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
           Type: HttpApi
@@ -221,13 +177,7 @@ Resources:
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-work-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Gets a Work by id.
       Policies:
         Version: 2012-10-17
@@ -237,11 +187,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          DC_URL: !Ref DcUrl
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
           Type: HttpApi
@@ -252,13 +197,7 @@ Resources:
   getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-thumbnail.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Gets a Work's representative thumbnail.
       Policies:
         Version: 2012-10-17
@@ -271,8 +210,6 @@ Resources:
       Environment:
         Variables:
           API_TOKEN_SECRET: !Ref ApiSecret
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         CollectionApi:
           Type: HttpApi
@@ -289,13 +226,7 @@ Resources:
   searchPostFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/search.postSearch
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Handles OpenSearch search requests, Works only by default.
       Policies:
         Version: 2012-10-17
@@ -305,10 +236,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         SearchApi:
           Type: HttpApi
@@ -325,13 +252,7 @@ Resources:
   searchGetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/search.getSearch
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Handles paging requests
       Policies:
         Version: 2012-10-17
@@ -341,11 +262,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          DC_URL: !Ref DcUrl
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         SearchApi:
           Type: HttpApi
@@ -356,12 +272,7 @@ Resources:
   optionsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/options-request.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
       Timeout: 3
       Description: Handles all OPTIONS requests
       Events:
@@ -374,13 +285,7 @@ Resources:
   getSharedLinkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
       Handler: handlers/get-shared-link-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
       Description: Gets a shared link document by id.
       Policies:
         Version: 2012-10-17
@@ -390,10 +295,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
           Type: HttpApi
@@ -433,10 +334,6 @@ Resources:
     Properties:
       CodeUri: ./redirect
       Handler: index.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
       Timeout: 1
       Description: Redirects to latest version of docs
       Environment:

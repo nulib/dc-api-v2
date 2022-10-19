@@ -37,7 +37,7 @@ exports.handler = async (event) => {
     null,
     { extraParams, includeToken: false }
   );
-  const filteredBody = new RequestPipeline(body).authFilter().toJson();
+  const filteredBody = new RequestPipeline(body).authFilter(event).toJson();
   let esResponse = await search(modelsToTargets(models), filteredBody);
   let transformedResponse = await opensearchResponse.transform(
     esResponse,

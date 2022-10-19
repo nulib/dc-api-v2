@@ -14,12 +14,13 @@ describe("Collections route", () => {
     const baseEvent = helpers
       .mockEvent("GET", "/collections")
       .pathPrefix("/api/v2");
+    let event;
     const makeQuery = (params) =>
       new RequestPipeline(params).authFilter().toJson();
 
     describe("validates parameters", () => {
       it("page", async () => {
-        const event = baseEvent.queryParams({ page: 0 }).render();
+        event = baseEvent.queryParams({ page: 0 }).render();
         const result = await handler(event);
         expect(result.statusCode).to.eq(400);
         const resultBody = JSON.parse(result.body);
@@ -27,7 +28,7 @@ describe("Collections route", () => {
       });
 
       it("size", async () => {
-        const event = baseEvent.queryParams({ size: 0 }).render();
+        event = baseEvent.queryParams({ size: 0 }).render();
         const result = await handler(event);
         expect(result.statusCode).to.eq(400);
         const resultBody = JSON.parse(result.body);
@@ -39,7 +40,7 @@ describe("Collections route", () => {
       mock
         .post("/dc-v2-collection/_search", makeQuery({ size: 10, from: 0 }))
         .reply(200, helpers.testFixture("mocks/collections.json"));
-      const event = baseEvent.render();
+      event = baseEvent.render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       expect(result.headers).to.include({ "content-type": "application/json" });
@@ -55,7 +56,7 @@ describe("Collections route", () => {
       mock
         .post("/dc-v2-collection/_search", makeQuery({ size: 5, from: 10 }))
         .reply(200, helpers.testFixture("mocks/collections.json"));
-      const event = baseEvent.queryParams({ page: 3, size: 5 }).render();
+      event = baseEvent.queryParams({ page: 3, size: 5 }).render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       expect(result.headers).to.include({ "content-type": "application/json" });

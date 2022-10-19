@@ -12,7 +12,6 @@ const RequestPipeline = require("../api/request/pipeline");
 
 const getSearch = async (event) => {
   event = processRequest(event);
-
   const models = extractRequestedModels(event.pathParameters?.models);
   const format = await responseFormat(event);
 
@@ -67,7 +66,7 @@ const executeSearch = async (
     options
   );
   const filteredSearchContext = new RequestPipeline(searchContext)
-    .authFilter()
+    .authFilter(event)
     .toJson();
   const esResponse = await search(
     modelsToTargets(models),

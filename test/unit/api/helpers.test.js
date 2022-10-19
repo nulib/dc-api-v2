@@ -3,7 +3,9 @@
 const {
   baseUrl,
   decodeEventBody,
+  isFromReadingRoom,
   normalizeHeaders,
+  objectifyCookies,
 } = require("../../../src/helpers");
 const chai = require("chai");
 const expect = chai.expect;
@@ -151,6 +153,17 @@ describe("helpers", () => {
     });
   });
 
+  describe("isFromReadingRoom()", () => {
+    helpers.saveEnvironment();
+
+    it("knows when a request is coming from a reading room IP", () => {
+      const event = helpers.mockEvent("GET", "/search").render();
+      expect(isFromReadingRoom(event)).to.be.false;
+      process.env.READING_ROOM_IPS = event.requestContext.http.sourceIp;
+      expect(isFromReadingRoom(event)).to.be.true;
+    });
+  });
+
   describe("normalizeHeaders()", () => {
     it("converts all headers to lowercase", () => {
       const upperHeaders = ["Host", "X-Forwarded-For", "X-Forwarded-Proto"];
@@ -163,6 +176,28 @@ describe("helpers", () => {
       const result = normalizeHeaders(event);
       expect(result.headers).to.include.keys(lowerHeaders);
       expect(result.headers).not.to.include.keys(upperHeaders);
+    });
+  });
+
+  describe("objectifyCookies", () => {
+    it("works when there are no cookies", () => {
+      const event = helpers.mockEvent("GET", "/search").render();
+      const result = objectifyCookies(event);
+      expect(result.cookies).to.be.undefined;
+      expect(result.cookieObject).to.be.empty;
+    });
+
+    it("works when there are cookies", () => {
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .cookie("testName", "works when there are cookies")
+        .cookie("cookieType", "snickerdoodle")
+        .render();
+      const result = objectifyCookies(event);
+      expect(result.cookieObject).to.include({
+        testName: "works%20when%20there%20are%20cookies",
+        cookieType: "snickerdoodle",
+      });
     });
   });
 });
