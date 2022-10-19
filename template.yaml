@@ -298,7 +298,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
-            Path: /search
+            Path: /search/{models}
             Method: GET
   optionsFunction:
     Type: AWS::Serverless::Function
