@@ -102,6 +102,15 @@ function isFromReadingRoom(event) {
   return AllowedIPs.includes(sourceIp);
 }
 
+function stubEventMembers(event) {
+  event.headers ||= {};
+  event.pathParameters ||= {};
+  event.queryStringParameters ||= {};
+  event.stageVariables ||= {};
+  event.cookies ||= [];
+  return event;
+}
+
 module.exports = {
   addCorsHeaders,
   baseUrl,
@@ -109,4 +118,5 @@ module.exports = {
   isFromReadingRoom,
   normalizeHeaders,
   objectifyCookies,
+  stubEventMembers,
 };

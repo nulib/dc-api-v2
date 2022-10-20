@@ -3,10 +3,12 @@ const {
   decodeEventBody,
   normalizeHeaders,
   objectifyCookies,
+  stubEventMembers,
 } = require("../helpers");
 
 const processRequest = function (event) {
-  let result = normalizeHeaders(event);
+  let result = stubEventMembers(event);
+  result = normalizeHeaders(event);
   result = objectifyCookies(result);
   result = decodeEventBody(result);
   return result;

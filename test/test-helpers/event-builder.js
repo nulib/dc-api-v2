@@ -15,7 +15,6 @@ module.exports = class {
         "X-Forwarded-Port": "443",
         "X-Forwarded-Proto": "https",
       },
-      queryStringParameters: {},
       requestContext: {
         accountId: "123456789012",
         apiId: "pewpew",
@@ -35,9 +34,7 @@ module.exports = class {
         timeEpoch: Number(now),
       },
       body: "",
-      pathParameters: {},
       isBase64Encoded: false,
-      stageVariables: {},
     };
   }
 

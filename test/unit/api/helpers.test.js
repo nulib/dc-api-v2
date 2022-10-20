@@ -6,6 +6,7 @@ const {
   isFromReadingRoom,
   normalizeHeaders,
   objectifyCookies,
+  stubEventMembers,
 } = require("../../../src/helpers");
 const chai = require("chai");
 const expect = chai.expect;
@@ -198,6 +199,15 @@ describe("helpers", () => {
         testName: "works%20when%20there%20are%20cookies",
         cookieType: "snickerdoodle",
       });
+    });
+  });
+
+  describe("stubEventMembers", () => {
+    it("makes sure the event has all expected members", () => {
+      const result = stubEventMembers({});
+      expect(result.cookies).to.eql([]);
+      expect(result.pathParameters).to.eql({});
+      expect(result.queryStringParameters).to.eql({});
     });
   });
 });
