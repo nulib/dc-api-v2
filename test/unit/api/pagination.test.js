@@ -81,7 +81,7 @@ describe("Paginator", function () {
   });
 
   it("includes extra parameters", async () => {
-    pager.options = { extraParams: { size: 5 } };
+    pager.options = { queryStringParameters: { size: 5 } };
     const result = await pager.pageInfo(1275);
     const url = new URL(result.query_url);
     expect(url.searchParams.get("size")).to.eq("5");

@@ -15,7 +15,8 @@ function filterFor(query, event) {
 module.exports = class RequestPipeline {
   constructor(searchContext) {
     this.searchContext = { ...searchContext };
-    this.searchContext.query ||= { match_all: {} };
+    if (!this.searchContext.size) this.searchContext.size = 10;
+    if (!this.searchContext.from) this.searchContext.from = 0;
   }
 
   // Things tranformer needs to do:

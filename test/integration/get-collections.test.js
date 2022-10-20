@@ -16,25 +16,9 @@ describe("Collections route", () => {
       .pathPrefix("/api/v2");
     let event;
     const makeQuery = (params) =>
-      new RequestPipeline(params).authFilter().toJson();
-
-    describe("validates parameters", () => {
-      it("page", async () => {
-        event = baseEvent.queryParams({ page: 0 }).render();
-        const result = await handler(event);
-        expect(result.statusCode).to.eq(400);
-        const resultBody = JSON.parse(result.body);
-        expect(resultBody.message).to.eq("page must be >= 1");
-      });
-
-      it("size", async () => {
-        event = baseEvent.queryParams({ size: 0 }).render();
-        const result = await handler(event);
-        expect(result.statusCode).to.eq(400);
-        const resultBody = JSON.parse(result.body);
-        expect(resultBody.message).to.eq("size must be >= 1");
-      });
-    });
+      new RequestPipeline({ query: { match_all: {} }, ...params })
+        .authFilter()
+        .toJson();
 
     it("paginates results using default size and page number", async () => {
       mock

@@ -69,15 +69,17 @@ class Paginator {
       );
     }
 
-    const extraParams = this?.options?.extraParams;
-    if (typeof extraParams === "object") {
-      for (const param in extraParams) {
-        url.searchParams.set(param, extraParams[param]);
+    const queryStringParameters =
+      this.options?.parameterOverrides || this.options?.queryStringParameters;
+    if (typeof queryStringParameters === "object") {
+      for (const param in queryStringParameters) {
+        url.searchParams.set(param, queryStringParameters[param]);
       }
     }
 
     const prev = prevPage(this.body, count);
     const next = nextPage(this.body, count);
+    url.searchParams.delete("from");
 
     let result = {
       query_url: url.toString(),

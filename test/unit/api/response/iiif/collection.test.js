@@ -15,9 +15,12 @@ describe("IIIF Collection response transformer", () => {
       { query: { query_string: { query: "genre.label:architecture" } } },
       "iiif",
       {
-        collectionLabel: "The collection label",
-        collectionSummary: "The collection Summary",
-        queryString: "genre.label:architecture",
+        includeToken: false,
+        queryStringParameters: {
+          collectionLabel: "The collection label",
+          collectionSummary: "The collection Summary",
+          query: "genre.label:architecture",
+        },
       }
     );
   });
