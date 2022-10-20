@@ -26,13 +26,8 @@ paths:
       tags:
       - Collection
       parameters:
-      - name: page
-        in: query
-        required: false
-        description: Page number of results to retrieve
-        schema:
-          type: integer
-          minimum: 1
+      - $ref: "./types.yaml#/components/parameters/page"
+      - $ref: "./types.yaml#/components/parameters/size"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -43,6 +38,7 @@ paths:
       operationId: getCollectionById
       parameters:
       - $ref: "./types.yaml#/components/parameters/id"
+      - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
@@ -53,23 +49,9 @@ paths:
       - Collection
       parameters: 
       - $ref: "./types.yaml#/components/parameters/id"
-      - name: aspect
-        in: query
-        required: false
-        description: Desired aspect ratio
-        schema:
-          type: string
-          enum: 
-            - full
-            - square
-      - name: size
-        in: query
-        required: false
-        description: Size of largest dimension
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 300
+      - $ref: "./types.yaml#/components/parameters/id"
+      - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
+      - $ref: "./types.yaml#/components/parameters/thumbnailSize"
       responses:
         200:
           description: A thumbnail image for the given collection
@@ -98,6 +80,16 @@ paths:
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /works/{id}/similar:
+    get:
+      operationId: getSimilarWorks
+      tags:
+      - Work
+      parameters:
+      - $ref: "./types.yaml#/components/parameters/id"
+      - $ref: "./types.yaml#/components/parameters/page"
+      - $ref: "./types.yaml#/components/parameters/size"
+      - $ref: "./types.yaml#/components/parameters/as"
   /works/{id}/thumbnail:
     get:
       operationId: getWorkThumbnail
@@ -105,23 +97,8 @@ paths:
       - Work
       parameters: 
       - $ref: "./types.yaml#/components/parameters/id"
-      - name: aspect
-        in: query
-        required: false
-        description: Desired aspect ratio
-        schema:
-          type: string
-          enum: 
-            - full
-            - square
-      - name: size
-        in: query
-        required: false
-        description: Size of largest dimension
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 300
+      - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
+      - $ref: "./types.yaml#/components/parameters/thumbnailSize"
       responses:
         200:
           description: A thumbnail image for the given work
@@ -136,34 +113,11 @@ paths:
       tags:
       - Search
       parameters:
-      - name: query
-        in: query
-        required: false
-        description: Keyword query
-        schema:
-          type: string
-      - name: searchToken
-        in: query
-        required: false
-        description: Search token from previous search response
-        schema:
-          type: string
-      - name: page
-        in: query
-        required: false
-        description: Page number of results to retrieve
-        schema:
-          type: integer
-          minimum: 1
-      - name: as
-        in: query
-        required: false
-        description: Desired output format
-        schema:
-          type: string
-          enum:
-            - iiif
-            - opensearch
+        - $ref: "./types.yaml#/components/parameters/query"
+        - $ref: "./types.yaml#/components/parameters/searchToken"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -181,6 +135,19 @@ paths:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
   /search/{models}:
+    get:
+      operationId: getSearch
+      tags:
+      - Search
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/query"
+        - $ref: "./types.yaml#/components/parameters/searchToken"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
     post:
       operationId: postSearchWithModels
       tags:
