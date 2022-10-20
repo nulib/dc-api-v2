@@ -1,5 +1,5 @@
 const { processRequest, processResponse } = require("./middleware");
-const { getSharedLink } = require("../api/opensearch");
+const { getSharedLink, getWork } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
 
 /**
@@ -8,22 +8,32 @@ const opensearchResponse = require("../api/response/opensearch");
 exports.handler = async (event) => {
   event = processRequest(event);
   const id = event.pathParameters.id;
-  const esResponse = await getSharedLink(id);
-  if (linkExpired(esResponse)) {
-    return {
-      statusCode: 404,
-      headers: { "content-type": "text/plain" },
-      body: "Not Found",
-    };
-  } else {
-    const response = await opensearchResponse.transform(esResponse);
-    return processResponse(event, response);
-  }
+  const sharedLinkResponse = await getSharedLink(id);
+  const sharedLinkResponseBody = JSON.parse(sharedLinkResponse.body);
+  const expirationDate = new Date(sharedLinkResponseBody?._source?.expires);
+  const workId = sharedLinkResponseBody?._source?.target_id;
+
+  if (linkExpired(expirationDate) || !workId)
+    return invalidRequest("Not Found");
+
+  const workResponse = await getWork(workId, { allowPrivate: true });
+  if (workResponse.statusCode !== 200) return invalidRequest("Not Found");
+  const response = opensearchResponse.transform(workResponse);
+  return processResponse(event, response);
 };
 
-const linkExpired = (response) => {
-  const body = JSON.parse(response.body);
-  const expires = new Date(body?._source?.expires);
+const invalidRequest = (message) => {
+  return {
+    statusCode: 404,
+    headers: { "content-type": "text/plain" },
+    body: JSON.stringify({ message: message }),
+  };
+};
 
-  return expires <= new Date();
+const linkExpired = (expirationDate) => {
+  return !isValid(expirationDate) || expirationDate <= new Date();
+};
+
+const isValid = (date) => {
+  return date instanceof Date && !isNaN(date.getTime());
 };

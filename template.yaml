@@ -10,7 +10,7 @@ Globals:
     CodeUri: ./src
     Runtime: nodejs16.x
     Architectures:
-    - x86_64
+      - x86_64
     MemorySize: 128
     Timeout: 3
     Environment:
@@ -327,7 +327,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
-            Path: /resolve/{id}
+            Path: /shared-links/{id}
             Method: GET
   dcApi:
     Type: AWS::Serverless::HttpApi
