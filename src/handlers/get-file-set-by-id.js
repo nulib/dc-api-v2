@@ -11,6 +11,6 @@ exports.handler = async (event) => {
   const id = event.pathParameters.id;
   const allowPrivate = isFromReadingRoom(event);
   const esResponse = await getFileSet(id, { allowPrivate });
-  const response = opensearchResponse.transform(esResponse);
+  const response = await opensearchResponse.transform(esResponse);
   return processResponse(event, response);
 };

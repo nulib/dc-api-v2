@@ -1,6 +1,7 @@
 const {
   addCorsHeaders,
   decodeEventBody,
+  ensureCharacterEncoding,
   normalizeHeaders,
   objectifyCookies,
   stubEventMembers,
@@ -17,7 +18,9 @@ const processRequest = function (event) {
 };
 
 const processResponse = function (event, response) {
-  return addCorsHeaders(event, response);
+  let result = addCorsHeaders(event, response);
+  result = ensureCharacterEncoding(result, "UTF-8");
+  return result;
 };
 
 module.exports = { processRequest, processResponse };

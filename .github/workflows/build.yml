@@ -23,7 +23,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    environment: staging
+    environment: test
     steps:
       - uses: aws-actions/setup-sam@v1
       - uses: aws-actions/configure-aws-credentials@master

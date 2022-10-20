@@ -1,3 +1,4 @@
+const parseHeader = require("parse-http-header");
 const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
 
 function addCorsHeaders(event, response) {
@@ -11,6 +12,18 @@ function addCorsHeaders(event, response) {
   };
   if (!response.headers) response.headers = {};
   Object.assign(response.headers, corsHeaders);
+  return response;
+}
+
+function ensureCharacterEncoding(response, defaultEncoding = "UTF-8") {
+  response.headers ||= {};
+  response.headers["Content-Type"] ||= "application/json; charset=UTF-8";
+  const contentTypeHeader = Object.keys(response.headers).find(
+    (name) => name.toLocaleLowerCase() == "content-type"
+  );
+  if (!parseHeader(response.headers[contentTypeHeader]).charset) {
+    response.headers[contentTypeHeader] += `; charset=${defaultEncoding}`;
+  }
   return response;
 }
 
@@ -115,6 +128,7 @@ module.exports = {
   addCorsHeaders,
   baseUrl,
   decodeEventBody,
+  ensureCharacterEncoding,
   isFromReadingRoom,
   normalizeHeaders,
   objectifyCookies,

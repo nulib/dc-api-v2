@@ -2,6 +2,7 @@
 
 const chai = require("chai");
 const expect = chai.expect;
+chai.use(require("chai-http"));
 
 describe("Doc retrieval routes", () => {
   helpers.saveEnvironment();
@@ -22,7 +23,10 @@ describe("Doc retrieval routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("Work");
@@ -102,7 +106,10 @@ describe("Doc retrieval routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("Collection");
@@ -125,7 +132,10 @@ describe("Doc retrieval routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("FileSet");

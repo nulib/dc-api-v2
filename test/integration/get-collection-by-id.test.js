@@ -3,6 +3,7 @@
 const chai = require("chai");
 const expect = chai.expect;
 const RequestPipeline = require("../../src/api/request/pipeline");
+chai.use(require("chai-http"));
 
 describe("Retrieve collection by id", () => {
   helpers.saveEnvironment();
@@ -23,7 +24,10 @@ describe("Retrieve collection by id", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.id).to.eq("1234");
@@ -66,7 +70,10 @@ describe("Retrieve collection by id", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
       const resultBody = JSON.parse(result.body);
       expect(resultBody.type).to.eq("Collection");
       expect(resultBody.label.none[0]).to.eq("Collection Title");

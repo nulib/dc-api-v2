@@ -7,7 +7,7 @@ const getCollectionById = async (event) => {
   event = processRequest(event);
   const id = event.pathParameters.id;
   const esResponse = await getCollection(id);
-  const response = opensearchResponse.transform(esResponse);
+  const response = await opensearchResponse.transform(esResponse);
   return processResponse(event, response);
 };
 

@@ -4,6 +4,7 @@ const chai = require("chai");
 const expect = chai.expect;
 const searchHandlers = require("../../src/handlers/search");
 const RequestPipeline = require("../../src/api/request/pipeline");
+chai.use(require("chai-http"));
 
 describe("Search routes", () => {
   helpers.saveEnvironment();
@@ -25,7 +26,10 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody).to.include.keys(["data", "pagination"]);
@@ -45,7 +49,10 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody).to.include.keys(["data", "pagination"]);
@@ -95,7 +102,10 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
       const resultBody = JSON.parse(result.body);
       expect(resultBody.pagination.next_url).not.null;
       expect(resultBody.pagination.current_page).to.eq(1);
@@ -125,7 +135,10 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
     });
 
     it("defaults to page 1", async () => {
@@ -140,7 +153,10 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
     });
 
     it("will return a IIIF collection", async () => {
@@ -162,7 +178,10 @@ describe("Search routes", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
       const resultBody = JSON.parse(result.body);
       expect(resultBody.type).to.eq("Collection");
     });
