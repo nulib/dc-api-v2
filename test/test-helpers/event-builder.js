@@ -102,20 +102,25 @@ module.exports = class {
       result.cookies = cookies.split(/;\s*/);
     }
 
-    result.pathParameters = { ...this._pathParams };
     result.rawPath = this._pathPrefix + this._route;
-    for (const param in result.pathParameters) {
-      result.rawPath = result.rawPath.replace(
-        `{${param}}`,
-        result.pathParameters[param]
-      );
-    }
     result.requestContext.http.path = result.rawPath;
 
-    result.queryStringParameters = { ...this._queryParams };
-    result.rawQueryString = new URLSearchParams(
-      result.queryStringParameters
-    ).toString();
+    if (this._pathParams) {
+      result.pathParameters = { ...this._pathParams };
+      for (const param in result.pathParameters) {
+        result.rawPath = result.rawPath.replace(
+          `{${param}}`,
+          result.pathParameters[param]
+        );
+      }
+    }
+
+    if (this._queryParams) {
+      result.queryStringParameters = { ...this._queryParams };
+      result.rawQueryString = new URLSearchParams(
+        result.queryStringParameters
+      ).toString();
+    }
 
     return result;
   }
