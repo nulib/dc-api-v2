@@ -3,11 +3,17 @@ on:
   - push
 jobs:
   test:
-    env:
-      AWS_ACCESS_KEY_ID: ci
-      AWS_SECRET_ACCESS_KEY: ci
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: staging
     steps:
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
+          aws-region: us-east-1
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
@@ -18,3 +24,5 @@ jobs:
         run: npm run prettier
       - name: Run tests
         run: npm run test:coverage
+      - name: Validate template
+        run: sam build && sam validate
