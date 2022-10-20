@@ -2,6 +2,7 @@
 
 const chai = require("chai");
 const expect = chai.expect;
+chai.use(require("chai-http"));
 
 describe("Retrieve shared link by id", () => {
   helpers.saveEnvironment();
@@ -22,7 +23,10 @@ describe("Retrieve shared link by id", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
 
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.target_id).to.eq(

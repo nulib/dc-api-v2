@@ -4,6 +4,7 @@ const chai = require("chai");
 const expect = chai.expect;
 const { handler } = require("../../src/handlers/get-similar");
 const RequestPipeline = require("../../src/api/request/pipeline");
+chai.use(require("chai-http"));
 
 describe("Similar routes", () => {
   helpers.saveEnvironment();
@@ -47,7 +48,10 @@ describe("Similar routes", () => {
     const event = baseEvent.render();
     const result = await handler(event);
     expect(result.statusCode).to.eq(200);
-    expect(result.headers).to.include({ "content-type": "application/json" });
+    expect(result).to.have.header(
+      "content-type",
+      /application\/json;.*charset=UTF-8/
+    );
     const {
       pagination: { query_url },
     } = JSON.parse(result.body);
@@ -90,7 +94,10 @@ describe("Similar routes", () => {
     const event = baseEvent.queryParams({ page: 3, size: 3 }).render();
     const result = await handler(event);
     expect(result.statusCode).to.eq(200);
-    expect(result.headers).to.include({ "content-type": "application/json" });
+    expect(result).to.have.header(
+      "content-type",
+      /application\/json;.*charset=UTF-8/
+    );
     const resultBody = JSON.parse(result.body);
     expect(resultBody.pagination.current_page).to.eq(3);
     expect(resultBody.pagination.limit).to.eq(3);

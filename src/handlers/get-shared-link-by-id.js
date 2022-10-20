@@ -16,7 +16,7 @@ exports.handler = async (event) => {
       body: "Not Found",
     };
   } else {
-    const response = opensearchResponse.transform(esResponse);
+    const response = await opensearchResponse.transform(esResponse);
     return processResponse(event, response);
   }
 };

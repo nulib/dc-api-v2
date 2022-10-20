@@ -4,6 +4,7 @@ const chai = require("chai");
 const expect = chai.expect;
 const getCollectionsHandler = require("../../src/handlers/get-collections");
 const RequestPipeline = require("../../src/api/request/pipeline");
+chai.use(require("chai-http"));
 
 describe("Collections route", () => {
   helpers.saveEnvironment();
@@ -27,7 +28,10 @@ describe("Collections route", () => {
       event = baseEvent.render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
       const {
         pagination: { query_url },
       } = JSON.parse(result.body);
@@ -43,7 +47,10 @@ describe("Collections route", () => {
       event = baseEvent.queryParams({ page: 3, size: 5 }).render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result.headers).to.include({ "content-type": "application/json" });
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
       const {
         pagination: { query_url },
       } = JSON.parse(result.body);
