@@ -90,6 +90,9 @@ paths:
       - $ref: "./types.yaml#/components/parameters/page"
       - $ref: "./types.yaml#/components/parameters/size"
       - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
   /works/{id}/thumbnail:
     get:
       operationId: getWorkThumbnail
@@ -136,7 +139,7 @@ paths:
           $ref: "./types.yaml#/components/responses/SearchResponse"
   /search/{models}:
     get:
-      operationId: getSearch
+      operationId: getSearchWithModels
       tags:
       - Search
       parameters:
