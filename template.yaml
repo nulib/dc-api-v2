@@ -288,6 +288,12 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
+            Path: /search
+            Method: GET
+        SearchWithModelsApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
             Path: /search/{models}
             Method: GET
   optionsFunction:
