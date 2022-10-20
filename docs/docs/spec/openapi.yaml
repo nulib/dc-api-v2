@@ -143,6 +143,7 @@ paths:
       tags:
       - Search
       parameters:
+        - $ref: "./types.yaml#/components/parameters/models"
         - $ref: "./types.yaml#/components/parameters/query"
         - $ref: "./types.yaml#/components/parameters/searchToken"
         - $ref: "./types.yaml#/components/parameters/page"
@@ -156,19 +157,10 @@ paths:
       tags:
       - Search
       parameters:
-      - name: models
-        in: path
-        description: Comma-delimited list of models to search
-        required: true
-        schema:
-          type: array
-          items:
-            type: string
-            enum:
-              - collections
-              - file-sets
-              - Works
-        style: simple
+        - $ref: "./types.yaml#/components/parameters/models"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
