@@ -8,7 +8,7 @@ describe("Retrieve shared link by id", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
-  describe("GET /resolve/{id}", () => {
+  describe("GET /shared-links/{id}", () => {
     const { handler } = require("../../src/handlers/get-shared-link-by-id");
 
     it("retrieves a single shared link document", async () => {
@@ -16,21 +16,19 @@ describe("Retrieve shared link by id", () => {
         .get("/shared_links/_doc/1234")
         .reply(200, helpers.testFixture("mocks/shared-link-1234.json"));
 
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
+
       const event = helpers
-        .mockEvent("GET", "/resolve/{id}")
+        .mockEvent("GET", "/shared-links/{id}")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
-      expect(result).to.have.header(
-        "content-type",
-        /application\/json;.*charset=UTF-8/
-      );
-
       const resultBody = JSON.parse(result.body);
-      expect(resultBody.data.target_id).to.eq(
-        "23255308-53f4-4c96-a268-aefa596d9d21"
-      );
+      expect(resultBody.data.api_model).to.eq("Work");
+      expect(resultBody.data.visibility).to.eq("Private");
     });
 
     it("404s a missing shared link", async () => {
