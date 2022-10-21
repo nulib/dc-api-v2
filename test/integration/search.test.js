@@ -21,7 +21,6 @@ describe("Search routes", () => {
         .reply(200, helpers.testFixture("mocks/search.json"));
       const event = helpers
         .mockEvent("POST", "/search")
-        .pathPrefix("/api/v2")
         .body(originalQuery)
         .render();
       const result = await handler(event);
@@ -42,7 +41,6 @@ describe("Search routes", () => {
         .reply(200, helpers.testFixture("mocks/search-multiple-targets.json"));
       const event = helpers
         .mockEvent("POST", "/search/{models}")
-        .pathPrefix("/api/v2")
         .pathParams({ models: "works,collections" })
         .body(originalQuery)
         .base64Encode()
@@ -62,7 +60,6 @@ describe("Search routes", () => {
     it("errors if invalid models specified", async () => {
       const event = helpers
         .mockEvent("POST", "/search/{models}")
-        .pathPrefix("/api/v2")
         .pathParams({ models: "works,collections,blargh" })
         .body(originalQuery)
         .render();
@@ -95,11 +92,7 @@ describe("Search routes", () => {
       mock
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
-      const event = helpers
-        .mockEvent("GET", "/search")
-        .pathPrefix("/api/v2")
-        .queryParams()
-        .render();
+      const event = helpers.mockEvent("GET", "/search").queryParams().render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header(
@@ -114,7 +107,6 @@ describe("Search routes", () => {
     it("Errors on invalid searchToken", async () => {
       const event = helpers
         .mockEvent("GET", "/search")
-        .pathPrefix("/api/v2")
         .queryParams({ searchToken: "Ceci n'est pas une searchToken" })
         .render();
       const result = await handler(event);
@@ -130,7 +122,6 @@ describe("Search routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/search")
-        .pathPrefix("/api/v2")
         .queryParams({ searchToken, page: 1 })
         .render();
       const result = await handler(event);
@@ -148,7 +139,6 @@ describe("Search routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/search")
-        .pathPrefix("/api/v2")
         .queryParams({ searchToken })
         .render();
       const result = await handler(event);
@@ -173,7 +163,6 @@ describe("Search routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/search")
-        .pathPrefix("/api/v2")
         .queryParams({ as: "iiif" })
         .render();
       const result = await handler(event);

@@ -52,7 +52,7 @@ describe("RequestPipeline", () => {
     });
 
     it("includes private results from allowed IP addresses", () => {
-      process.env.READING_ROOM_IPS = "127.0.0.1,192.168.0.1";
+      process.env.READING_ROOM_IPS = "10.9.8.7,192.168.0.1";
       const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
       expect(result.searchContext.query.bool.must).to.include(

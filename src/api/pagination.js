@@ -56,7 +56,6 @@ class Paginator {
 
   async pageInfo(count) {
     let url = new URL(this.route, this.baseUrl);
-
     if (this.options?.includeToken != false) {
       url.searchParams.set(
         "searchToken",

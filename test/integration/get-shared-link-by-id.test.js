@@ -18,7 +18,6 @@ describe("Retrieve shared link by id", () => {
 
       const event = helpers
         .mockEvent("GET", "/resolve/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -41,7 +40,6 @@ describe("Retrieve shared link by id", () => {
 
       const event = helpers
         .mockEvent("GET", "/shared_links/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 5678 })
         .render();
       const result = await handler(event);
@@ -58,7 +56,6 @@ describe("Retrieve shared link by id", () => {
 
       const event = helpers
         .mockEvent("GET", "/shared_links/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 9101112 })
         .render();
       const result = await handler(event);

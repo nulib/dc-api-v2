@@ -19,7 +19,6 @@ describe("Retrieve collection by id", () => {
 
       const event = helpers
         .mockEvent("GET", "/collections/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -40,7 +39,6 @@ describe("Retrieve collection by id", () => {
 
       const event = helpers
         .mockEvent("GET", "/collections/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -64,7 +62,6 @@ describe("Retrieve collection by id", () => {
 
       const event = helpers
         .mockEvent("GET", "/collections/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .queryParams({ as: "iiif" })
         .render();

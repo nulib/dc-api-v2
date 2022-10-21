@@ -11,7 +11,6 @@ describe("Similar routes", () => {
   const mock = helpers.mockIndex();
   let baseEvent = helpers
     .mockEvent("GET", "/works/{id}/similar")
-    .pathPrefix("/api/v2")
     .pathParams({ id: 1234 });
   const makeQuery = (params) =>
     new RequestPipeline(params).authFilter().toJson();

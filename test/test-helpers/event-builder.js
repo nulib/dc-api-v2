@@ -2,16 +2,15 @@ module.exports = class {
   constructor(method, route) {
     const now = new Date();
     this._method = method;
-    this._pathPrefix = "";
     this._route = route;
     this._event = {
       version: "2.0",
       routeKey: `${method} ${route}`,
-      rawPath: route,
+      rawPath: `/v2/${route}`,
       rawQueryString: "",
       headers: {
         Host: "api.test.library.northwestern.edu",
-        "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
+        "X-Forwarded-For": "10.9.8.7, 10.6.5.4",
         "X-Forwarded-Port": "443",
         "X-Forwarded-Proto": "https",
       },
@@ -22,9 +21,9 @@ module.exports = class {
         domainPrefix: "api",
         http: {
           method: method,
-          path: route,
+          path: `/v2/${route}`,
           protocol: "HTTP/1.1",
-          sourceIp: "127.0.0.1",
+          sourceIp: "10.9.8.7",
           userAgent: "Mocha Test",
         },
         requestId: "id",
@@ -34,13 +33,9 @@ module.exports = class {
         timeEpoch: Number(now),
       },
       body: "",
+      stageVariables: { basePath: "api/v2" },
       isBase64Encoded: false,
     };
-  }
-
-  pathPrefix(prefix) {
-    this._pathPrefix = prefix;
-    return this;
   }
 
   body(body) {
@@ -102,7 +97,6 @@ module.exports = class {
       result.cookies = cookies.split(/;\s*/);
     }
 
-    result.rawPath = this._pathPrefix + this._route;
     result.requestContext.http.path = result.rawPath;
 
     if (this._pathParams) {

@@ -35,7 +35,7 @@ describe("helpers", () => {
     it("extracts the base URL from an API Gateway event", () => {
       const event = {
         routeKey: "GET /route/{param}",
-        rawPath: "/v2/route/value",
+        rawPath: "/api/v2/route/value",
         headers: {
           host: "abcdefghijz.execute-api.us-east-1.amazonaws.com",
           "x-forwarded-proto": "https",
@@ -46,10 +46,11 @@ describe("helpers", () => {
           domainPrefix: "abcdefghijz",
           stage: "v2",
         },
+        stageVariables: "api/v2",
       };
 
       expect(baseUrl(event)).to.eq(
-        "https://abcdefghijz.execute-api.us-east-1.amazonaws.com/v2/"
+        "https://abcdefghijz.execute-api.us-east-1.amazonaws.com/api/v2/"
       );
     });
 
@@ -117,7 +118,6 @@ describe("helpers", () => {
     it("properly handles a base path mapping", () => {
       const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .stageVariables({ basePath: "api/v2" })
         .render();

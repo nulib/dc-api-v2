@@ -1,4 +1,5 @@
 const parseHeader = require("parse-http-header");
+const path = require("path");
 const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
 
 function addCorsHeaders(event, response) {
@@ -51,7 +52,7 @@ function normalizeHeaders(event) {
 
   const headers = { ...event.headers };
 
-  for (header in headers) {
+  for (const header in headers) {
     const lowerHeader = header.toLowerCase();
     if (header != lowerHeader) {
       const value = headers[header];
@@ -95,6 +96,12 @@ function baseUrl(event) {
   return result.toString();
 }
 
+function effectivePath(event) {
+  const root = path.join("/", event.requestContext.stage);
+  const absolute = event.requestContext.http.path;
+  return path.relative(root, absolute);
+}
+
 function objectifyCookies(event) {
   event.cookieObject = {};
   if (!event.cookies) return event;
@@ -128,6 +135,7 @@ module.exports = {
   addCorsHeaders,
   baseUrl,
   decodeEventBody,
+  effectivePath,
   ensureCharacterEncoding,
   isFromReadingRoom,
   normalizeHeaders,

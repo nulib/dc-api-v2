@@ -21,7 +21,6 @@ describe("auth callback", function () {
 
     const event = helpers
       .mockEvent("GET", "/auth/callback")
-      .pathPrefix("/api/v2")
       .headers({
         Cookie: "nusso=bnVzc28=;redirectUrl=aHR0cHM6Ly9leGFtcGxlLmNvbQ==;",
       })

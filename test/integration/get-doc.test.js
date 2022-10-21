@@ -18,7 +18,6 @@ describe("Doc retrieval routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -40,7 +39,6 @@ describe("Doc retrieval routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -54,7 +52,6 @@ describe("Doc retrieval routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -68,7 +65,6 @@ describe("Doc retrieval routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -76,14 +72,13 @@ describe("Doc retrieval routes", () => {
     });
 
     it("returns a private work to allowed IPs", async () => {
-      process.env.READING_ROOM_IPS = "127.0.0.1";
+      process.env.READING_ROOM_IPS = "10.9.8.7";
       mock
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
 
       const event = helpers
         .mockEvent("GET", "/works/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -101,7 +96,6 @@ describe("Doc retrieval routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/collections/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
@@ -127,7 +121,6 @@ describe("Doc retrieval routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/file-sets/{id}")
-        .pathPrefix("/api/v2")
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);

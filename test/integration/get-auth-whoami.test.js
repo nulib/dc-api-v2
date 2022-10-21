@@ -12,7 +12,6 @@ describe("auth whoami", function () {
 
     const event = helpers
       .mockEvent("GET", "/auth/whoami")
-      .pathPrefix("/api/v2")
       .headers({
         Cookie:
           "dcApiV2Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;",
@@ -27,10 +26,7 @@ describe("auth whoami", function () {
   it("rejects an invalid or missing NUSSO token", async () => {
     process.env.API_TOKEN_SECRET = "abc123";
 
-    const event = helpers
-      .mockEvent("GET", "/auth/whoami")
-      .pathPrefix("/api/v2")
-      .render();
+    const event = helpers.mockEvent("GET", "/auth/whoami").render();
 
     const result = await getAuthWhoamiHandler.handler(event);
     expect(result.statusCode).to.eq(401);

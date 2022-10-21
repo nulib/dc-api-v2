@@ -15,7 +15,6 @@ describe("Thumbnail routes", () => {
   describe("Collection", () => {
     const event = helpers
       .mockEvent("GET", "/collections/{id}/thumbnail")
-      .pathPrefix("/api/v2")
       .pathParams({ id: 1234 });
 
     it("retrieves a thumbnail", async () => {
@@ -101,7 +100,6 @@ describe("Thumbnail routes", () => {
   describe("Work", () => {
     const event = helpers
       .mockEvent("GET", "/works/{id}/thumbnail")
-      .pathPrefix("/api/v2")
       .pathParams({ id: 1234 });
 
     it("retrieves a thumbnail", async () => {
@@ -154,7 +152,6 @@ describe("Thumbnail routes", () => {
   describe("QueryString parameters", () => {
     const event = helpers
       .mockEvent("GET", "/works/{id}/thumbnail")
-      .pathPrefix("/api/v2")
       .pathParams({ id: 1234 });
 
     it("accepts a proper size", async () => {

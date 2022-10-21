@@ -17,7 +17,7 @@ describe("Paginator", function () {
 
   this.beforeEach(() => {
     pager = new Paginator(
-      "http://dcapi.library.northwestern.edu/v2/",
+      "https://api.test.library.northwestern.edu/api/v2/",
       "search",
       ["works"],
       requestBody
@@ -34,8 +34,8 @@ describe("Paginator", function () {
     expect(result.prev_url).to.be.undefined;
 
     let url = new URL(result.next_url);
-    expect(url.host).to.eq("dcapi.library.northwestern.edu");
-    expect(url.pathname).to.eq("/v2/search");
+    expect(url.host).to.eq("api.test.library.northwestern.edu");
+    expect(url.pathname).to.eq("/api/v2/search");
     expect(url.searchParams.get("page")).to.eq("2");
   });
 

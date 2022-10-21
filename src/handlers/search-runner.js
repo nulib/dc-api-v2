@@ -1,4 +1,4 @@
-const { baseUrl } = require("../helpers");
+const { baseUrl, effectivePath } = require("../helpers");
 const { processRequest, processResponse } = require("./middleware");
 const {
   extractRequestedModels,
@@ -9,7 +9,6 @@ const { search } = require("../api/opensearch");
 const responseTransformer = require("../api/response/transformer");
 const { decodeSearchToken, Paginator } = require("../api/pagination");
 const RequestPipeline = require("../api/request/pipeline");
-const Path = require("path");
 
 /**
  * Function to wrap search requests and transform responses
@@ -31,7 +30,7 @@ const doSearch = async (event, searchParams = {}) => {
   }
 
   const base = new URL(baseUrl(event));
-  const path = Path.relative(base.pathname, event.requestContext?.http?.path);
+  const path = effectivePath(event);
 
   const pager = new Paginator(
     base.toString(),

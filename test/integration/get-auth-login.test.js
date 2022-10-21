@@ -20,7 +20,6 @@ describe("auth login", function () {
 
     const event = helpers
       .mockEvent("GET", "/auth/login")
-      .pathPrefix("/api/v2")
       .queryParams({ goto: "https://test-goto.com" })
       .render();
 

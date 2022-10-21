@@ -7,7 +7,6 @@ const optionsHandler = require("../../src/handlers/options-request");
 describe("OPTIONS handler", async () => {
   const event = helpers
     .mockEvent("OPTIONS", "/auth/whoami")
-    .pathPrefix("/api/v2")
     .headers({
       Origin: "https://dc.library.northwestern.edu/origin-test-path",
     })

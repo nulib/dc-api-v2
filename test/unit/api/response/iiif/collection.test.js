@@ -9,7 +9,7 @@ describe("IIIF Collection response transformer", () => {
   let pager;
   beforeEach(() => {
     pager = new Paginator(
-      "http://dcapi.library.northwestern.edu/v2/",
+      "http://dcapi.library.northwestern.edu/api/v2/",
       "search",
       ["works"],
       { query: { query_string: { query: "genre.label:architecture" } } },
