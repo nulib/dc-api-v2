@@ -1,6 +1,8 @@
 const { processRequest, processResponse } = require("./middleware");
 const { getWork } = require("../api/opensearch");
 const { isFromReadingRoom } = require("../helpers");
+
+const manifestResponse = require("../api/response/iiif/manifest");
 const opensearchResponse = require("../api/response/opensearch");
 
 /**
@@ -11,6 +13,16 @@ exports.handler = async (event) => {
   const id = event.pathParameters.id;
   const allowPrivate = isFromReadingRoom(event);
   const esResponse = await getWork(id, { allowPrivate });
-  const response = await opensearchResponse.transform(esResponse);
+
+  let response;
+  const as = event.queryStringParameters.as;
+
+  if (as && as === "iiif") {
+    // Make it IIIFy
+    response = manifestResponse.transform(esResponse);
+  } else {
+    response = await opensearchResponse.transform(esResponse);
+  }
+
   return processResponse(event, response);
 };

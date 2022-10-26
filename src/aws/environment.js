@@ -13,6 +13,10 @@ function dcApiEndpoint() {
   return process.env.DC_API_ENDPOINT;
 }
 
+function dcUrl() {
+  return process.env.DC_URL;
+}
+
 function elasticsearchEndpoint() {
   return process.env.ELASTICSEARCH_ENDPOINT;
 }
@@ -30,6 +34,7 @@ function region() {
 module.exports = {
   apiToken,
   dcApiEndpoint,
+  dcUrl,
   elasticsearchEndpoint,
   prefix,
   region,
