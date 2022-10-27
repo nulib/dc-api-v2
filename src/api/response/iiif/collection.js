@@ -50,9 +50,7 @@ async function buildCollection(responseBody, pageInfo) {
     const collectionId = new URL(pageInfo.query_url).pathname
       .split("/")
       .reverse()[0];
-    thumbnailId = new URL(
-      `${dcApiEndpoint()}/collections/${collectionId}/thumbnail`
-    );
+    const thumbnailId = `${dcApiEndpoint()}/collections/${collectionId}/thumbnail`;
     result.thumbnail = [
       {
         id: thumbnailId,
@@ -133,14 +131,8 @@ function loadItem(item) {
     },
     thumbnail: [
       {
-        id: `${item.representative_file_set.url}/full/400,/0/default.jpg`,
-        service: [
-          {
-            profile: "http://iiif.io/api/image/2/level2.json",
-            "@context": "http://iiif.io/api/image/2/context.json",
-            "@id": item.representative_file_set.url,
-          },
-        ],
+        id: item.thumbnail,
+        format: "image/jpeg",
         type: "Image",
         width: 400,
         height: 400,
