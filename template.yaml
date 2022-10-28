@@ -97,6 +97,22 @@ Resources:
             ApiId: !Ref dcApi
             Path: /auth/login
             Method: GET
+  getAuthLogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-auth-logout.handler
+      Description: Performs NUSSO logout.
+      Environment:
+        Variables:
+          NUSSO_API_KEY: !Ref NussoApiKey
+          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/logout
+            Method: GET
   getAuthWhoAmIFunction:
     Type: AWS::Serverless::Function
     Properties:
