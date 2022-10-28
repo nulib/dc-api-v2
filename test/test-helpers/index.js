@@ -6,6 +6,11 @@ const EventBuilder = require("./event-builder.js");
 function saveEnvironment() {
   const env = Object.assign({}, process.env);
 
+  beforeEach(function () {
+    process.env.DC_URL = "https://thisisafakedcurl";
+    process.env.DC_API_ENDPOINT = "https://thisisafakeapiurl";
+  });
+
   afterEach(function () {
     process.env = env;
   });

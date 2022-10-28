@@ -1,4 +1,4 @@
-const dcUrl = process.env.DC_URL || "http://placeholder-for-dc-url";
+const { dcApiEndpoint, dcUrl } = require("../../../aws/environment");
 
 async function transform(response, pager) {
   if (response.statusCode === 200) {
@@ -26,7 +26,7 @@ async function buildCollection(responseBody, pageInfo) {
     },
   } = pageInfo;
 
-  return {
+  result = {
     "@context": ["http://iiif.io/api/presentation/3/context.json"],
     id: collectionId(pageInfo),
     type: "Collection",
@@ -42,8 +42,27 @@ async function buildCollection(responseBody, pageInfo) {
         },
       },
     ],
+
     items: getItems(responseBody?.hits?.hits, pageInfo),
   };
+
+  if (pageInfo.options?.parameterOverrides) {
+    const collectionId = new URL(pageInfo.query_url).pathname
+      .split("/")
+      .reverse()[0];
+    const thumbnailId = `${dcApiEndpoint()}/collections/${collectionId}/thumbnail`;
+    result.thumbnail = [
+      {
+        id: thumbnailId,
+        type: "Image",
+        format: "image/jpeg",
+        width: 400,
+        height: 400,
+      },
+    ];
+  }
+
+  return result;
 }
 
 function getItems(hits, pageInfo) {
@@ -77,9 +96,9 @@ function homepageUrl(pageInfo) {
     const collectionId = new URL(pageInfo.query_url).pathname
       .split("/")
       .reverse()[0];
-    result = new URL(`/collections/${collectionId}`, dcUrl);
+    result = new URL(`/collections/${collectionId}`, dcUrl());
   } else {
-    result = new URL("/search", dcUrl);
+    result = new URL("/search", dcUrl());
     if (pageInfo.options?.queryStringParameters?.query)
       result.searchParams.set(
         "q",
@@ -96,7 +115,7 @@ function loadItem(item) {
     type: "Manifest",
     homepage: [
       {
-        id: `${dcUrl}/items/${item.id}`,
+        id: new URL(`/items/${item.id}`, dcUrl()),
         type: "Text",
         format: "text/html",
         label: {
@@ -112,14 +131,8 @@ function loadItem(item) {
     },
     thumbnail: [
       {
-        id: [`${item.representative_file_set.url}/full/400,/0/default.jpg`],
-        service: [
-          {
-            profile: "http://iiif.io/api/image/2/level2.json",
-            "@context": "http://iiif.io/api/image/2/context.json",
-            "@id": `${item.representative_file_set.url}`,
-          },
-        ],
+        id: item.thumbnail,
+        format: "image/jpeg",
         type: "Image",
         width: 400,
         height: 400,
