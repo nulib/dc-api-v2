@@ -63,7 +63,7 @@ The API will be available at:
 
 ## Running the API locally via our AWS dev domain
 
-This will make the local environment live at: https://[NAME].dev.rdc.library.northwestern.edu:3002/search
+This will make the local environment live at: https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:3002/search
 
 ```
 docker run --rm -it -d \
