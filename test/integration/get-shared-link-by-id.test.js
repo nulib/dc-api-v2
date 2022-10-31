@@ -59,5 +59,45 @@ describe("Retrieve shared link by id", () => {
       const result = await handler(event);
       expect(result.statusCode).to.eq(404);
     });
+
+    it("retrieves an unpublished single shared link document", async () => {
+      mock
+        .get("/shared_links/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/shared-link-1234.json"));
+
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/private-unpublished-work-1234.json")
+        );
+
+      const event = helpers
+        .mockEvent("GET", "/shared-links/{id}")
+        .pathParams({ id: 1234 })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.data.api_model).to.eq("Work");
+      expect(resultBody.data.visibility).to.eq("Private");
+    });
+
+    it("returns a 404 when the link exists but the work doesn't", async () => {
+      mock
+        .get("/shared_links/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/shared-link-1234.json"));
+
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/missing-work-1234.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/shared-links/{id}")
+        .pathParams({ id: 1234 })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(404);
+    });
   });
 });
