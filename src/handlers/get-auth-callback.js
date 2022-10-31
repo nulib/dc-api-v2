@@ -78,9 +78,9 @@ async function redeemForNetIdOnly(event) {
       const { netid } = response.data;
       const user = {
         uid: netid,
-        displayName: netid,
-        givenName: netid,
-        sn: "(NetID)",
+        displayName: [netid],
+        givenName: [netid],
+        sn: ["(NetID)"],
         mail: `${netid}@e.northwestern.edu`,
       };
       return user;
