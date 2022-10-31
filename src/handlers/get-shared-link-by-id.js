@@ -16,7 +16,10 @@ exports.handler = async (event) => {
   if (linkExpired(expirationDate) || !workId)
     return invalidRequest("Not Found");
 
-  const workResponse = await getWork(workId, { allowPrivate: true });
+  const workResponse = await getWork(workId, {
+    allowPrivate: true,
+    allowUnpublished: true,
+  });
   if (workResponse.statusCode !== 200) return invalidRequest("Not Found");
   const response = opensearchResponse.transform(workResponse);
   return processResponse(event, response);

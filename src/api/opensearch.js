@@ -18,12 +18,12 @@ async function getSharedLink(id, opts) {
   return getDocument("shared_links", id, opts);
 }
 
-async function getDocument(index, id, opts) {
+async function getDocument(index, id, opts = {}) {
   const request = initRequest(`/${prefix(index)}/_doc/${id}`);
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
-    if (index != "shared_links" && !isVisible(body, opts?.allowPrivate)) {
+    if (index != "shared_links" && !isVisible(body, opts)) {
       let responseBody = {
         _index: prefix(index),
         _type: "_doc",
@@ -40,14 +40,15 @@ async function getDocument(index, id, opts) {
   return response;
 }
 
-function isVisible(doc, allowPrivate) {
+function isVisible(doc, { allowPrivate, allowUnpublished }) {
   if (!doc?.found) return false;
-  const isAllowed = allowPrivate || doc?._source?.visibility !== "Private";
-  if (doc?._source.api_model == "FileSet") {
-    return isAllowed;
-  } else {
-    return doc?._source?.published && isAllowed;
-  }
+  const isAllowedVisibility =
+    allowPrivate || doc?._source.visibility !== "Private";
+  const isAllowedPublished =
+    allowUnpublished ||
+    doc?._source.published ||
+    doc?._source.api_model == "FileSet";
+  return isAllowedVisibility && isAllowedPublished;
 }
 
 function initRequest(path) {
