@@ -53,6 +53,13 @@ components:
       schema:
         type: integer
         minimum: 0
+    sort:
+      name: sort
+      in: query
+      required: false
+      description: Comma-delimited list of fields to sort search results (e.g. "create_date:asc,modified_date:desc")
+      schema:
+        type: string
     as:
       name: as
       in: query
@@ -70,10 +77,10 @@ components:
       description: Desired aspect ratio
       schema:
         type: string
-        enum: 
+        enum:
           - full
           - square
-    thumbnailSize: 
+    thumbnailSize:
       name: size
       in: query
       required: false
@@ -100,8 +107,8 @@ components:
         application/json:
           schema:
             oneOf:
-            - $ref: "#/components/schemas/OpenSearchResponse"
-            - $ref: "#/components/schemas/IiifPresentationManifest"
+              - $ref: "#/components/schemas/OpenSearchResponse"
+              - $ref: "#/components/schemas/IiifPresentationManifest"
   schemas:
     IiifPresentationManifest:
       type: object

@@ -1,3 +1,5 @@
+const sortJson = require("sort-json");
+
 module.exports = class {
   constructor(method, route) {
     const now = new Date();
@@ -116,6 +118,6 @@ module.exports = class {
       ).toString();
     }
 
-    return result;
+    return sortJson(result);
   }
 };
