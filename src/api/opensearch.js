@@ -44,10 +44,7 @@ function isVisible(doc, { allowPrivate, allowUnpublished }) {
   if (!doc?.found) return false;
   const isAllowedVisibility =
     allowPrivate || doc?._source.visibility !== "Private";
-  const isAllowedPublished =
-    allowUnpublished ||
-    doc?._source.published ||
-    doc?._source.api_model == "FileSet";
+  const isAllowedPublished = allowUnpublished || doc?._source.published;
   return isAllowedVisibility && isAllowedPublished;
 }
 
