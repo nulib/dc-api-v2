@@ -11,7 +11,7 @@ info:
     name: NUL Repository Team
     email: repository@northwestern.edu
 servers:
-- url: https://dcapi.rdc.library.northwestern.edu/api/v2
+  - url: https://dcapi.rdc.library.northwestern.edu/api/v2
 tags:
   - name: Models
     description: >
@@ -24,21 +24,22 @@ paths:
     get:
       operationId: getCollections
       tags:
-      - Collection
+        - Collection
       parameters:
-      - $ref: "./types.yaml#/components/parameters/page"
-      - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
   /collections/{id}:
     get:
       tags:
-      - Collection
+        - Collection
       operationId: getCollectionById
       parameters:
-      - $ref: "./types.yaml#/components/parameters/id"
-      - $ref: "./types.yaml#/components/parameters/as"
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
@@ -46,12 +47,12 @@ paths:
     get:
       operationId: getCollectionThumbnail
       tags:
-      - Collection
-      parameters: 
-      - $ref: "./types.yaml#/components/parameters/id"
-      - $ref: "./types.yaml#/components/parameters/id"
-      - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
-      - $ref: "./types.yaml#/components/parameters/thumbnailSize"
+        - Collection
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
+        - $ref: "./types.yaml#/components/parameters/thumbnailSize"
       responses:
         200:
           description: A thumbnail image for the given collection
@@ -64,9 +65,9 @@ paths:
     get:
       operationId: getFileSetById
       tags:
-      - FileSet
+        - FileSet
       parameters:
-      - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/id"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
@@ -74,9 +75,9 @@ paths:
     get:
       operationId: getWorkById
       tags:
-      - Work
+        - Work
       parameters:
-      - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/id"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
@@ -84,12 +85,13 @@ paths:
     get:
       operationId: getSimilarWorks
       tags:
-      - Work
+        - Work
       parameters:
-      - $ref: "./types.yaml#/components/parameters/id"
-      - $ref: "./types.yaml#/components/parameters/page"
-      - $ref: "./types.yaml#/components/parameters/size"
-      - $ref: "./types.yaml#/components/parameters/as"
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+        - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -97,11 +99,11 @@ paths:
     get:
       operationId: getWorkThumbnail
       tags:
-      - Work
-      parameters: 
-      - $ref: "./types.yaml#/components/parameters/id"
-      - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
-      - $ref: "./types.yaml#/components/parameters/thumbnailSize"
+        - Work
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
+        - $ref: "./types.yaml#/components/parameters/thumbnailSize"
       responses:
         200:
           description: A thumbnail image for the given work
@@ -114,12 +116,13 @@ paths:
     get:
       operationId: getSearch
       tags:
-      - Search
+        - Search
       parameters:
         - $ref: "./types.yaml#/components/parameters/query"
         - $ref: "./types.yaml#/components/parameters/searchToken"
         - $ref: "./types.yaml#/components/parameters/page"
         - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
@@ -127,13 +130,13 @@ paths:
     post:
       operationId: postSearch
       tags:
-      - Search
+        - Search
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              
+
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -141,13 +144,14 @@ paths:
     get:
       operationId: getSearchWithModels
       tags:
-      - Search
+        - Search
       parameters:
         - $ref: "./types.yaml#/components/parameters/models"
         - $ref: "./types.yaml#/components/parameters/query"
         - $ref: "./types.yaml#/components/parameters/searchToken"
         - $ref: "./types.yaml#/components/parameters/page"
         - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
@@ -155,11 +159,12 @@ paths:
     post:
       operationId: postSearchWithModels
       tags:
-      - Search
+        - Search
       parameters:
         - $ref: "./types.yaml#/components/parameters/models"
         - $ref: "./types.yaml#/components/parameters/page"
         - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:

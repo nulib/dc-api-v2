@@ -174,5 +174,30 @@ describe("Search routes", () => {
       const resultBody = JSON.parse(result.body);
       expect(resultBody.type).to.eq("Collection");
     });
+
+    it("allows sorting via query string parameters", async () => {
+      const originalQuery = {
+        query: { query_string: { query: "*" } },
+        sort: [{ create_date: "asc" }, { modified_date: "desc" }],
+      };
+      const authQuery = new RequestPipeline(originalQuery)
+        .authFilter()
+        .toJson();
+
+      mock
+        .post("/dc-v2-work/_search", authQuery)
+        .reply(200, helpers.testFixture("mocks/search.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .queryParams({ sort: "create_date:asc,modified_date:desc" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.pagination.query_url).to.contain(
+        "?sort=create_date%3Aasc%2Cmodified_date%3Adesc"
+      );
+    });
   });
 });

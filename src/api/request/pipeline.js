@@ -1,4 +1,5 @@
 const { isFromReadingRoom } = require("../../helpers");
+const sortJson = require("sort-json");
 
 function filterFor(query, event) {
   const matchTheQuery = query;
@@ -32,6 +33,6 @@ module.exports = class RequestPipeline {
   }
 
   toJson() {
-    return JSON.stringify(this.searchContext);
+    return JSON.stringify(sortJson(this.searchContext));
   }
 };

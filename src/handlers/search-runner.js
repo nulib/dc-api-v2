@@ -86,37 +86,42 @@ const constructSearchContext = async (event) => {
   searchContext.size = queryStringParameters.size || searchContext.size || 10;
   searchContext.from = queryStringParameters.from || searchContext.from || 0;
 
+  if (queryStringParameters?.sort || searchContext.sort)
+    searchContext.sort =
+      parseSortParameter(queryStringParameters) || searchContext.sort;
+
   if (queryStringParameters.page) {
     const page = Number(queryStringParameters.page || 1);
     const size = Number(queryStringParameters.size || 10);
     searchContext.from = (page - 1) * size;
   }
 
-  // if (queryStringParameters.sort) {
-  //   //TODO
-  // }
-
   return searchContext;
 };
 
-const fromQueryString = ({ queryStringParameters, requestContext }) => {
-  if (queryStringParameters?.query) {
-    return {
-      query: {
-        query_string: {
-          query: queryStringParameters.query,
-        },
+const fromQueryString = ({ queryStringParameters, _requestContext }) => {
+  let request = {
+    query: {
+      query_string: {
+        query: queryStringParameters?.query || "*",
       },
-    };
-  } else {
-    return {
-      query: {
-        query_string: {
-          query: "*",
-        },
-      },
-    };
+    },
+  };
+  return request;
+};
+
+const parseSortParameter = ({ sort: sortString }) => {
+  if (sortString == undefined) return null;
+  let values = [];
+
+  for (const el of sortString.split(",")) {
+    let obj = {};
+    const [key, value] = el.split(":");
+    obj[key] = value;
+    values.push(obj);
   }
+
+  return values;
 };
 
 const responseFormat = async (event) => {
