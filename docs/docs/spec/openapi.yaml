@@ -71,6 +71,18 @@ paths:
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /file-sets/{id}/authorization:
+    get:
+      operationId: getFileSetAuth
+      tags:
+        - FileSet
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        204:
+          description: "The resource is authorized"
+        403:
+          $ref: "The resource is not authorized"
   /works/{id}:
     get:
       operationId: getWorkById

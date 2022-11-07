@@ -190,6 +190,29 @@ Resources:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}
             Method: GET
+  getFileSetAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-file-set-auth.handler
+      Description: Authorizes access to a file set.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiSecret
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/authorization
+            Method: GET
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
