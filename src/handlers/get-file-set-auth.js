@@ -4,12 +4,21 @@ const { isFromReadingRoom } = require("../helpers");
 const isObject = require("lodash.isobject");
 const jwt = require("jsonwebtoken");
 
+const OPEN_DOCUMENT_NAMESPACE = /^0{8}-0{4}-0{4}-0{4}-0{9}[0-9A-Fa-f]{3}/;
+
 /**
  * Authorizes a FileSet by id
  */
 exports.handler = async (event) => {
   event = processRequest(event);
   const id = event.pathParameters.id;
+
+  console.log(id);
+  console.log(OPEN_DOCUMENT_NAMESPACE.test(id));
+  // Special namespace for entities that aren't actual entities
+  // with indexed metadata (i.e., placeholder images)
+  if (OPEN_DOCUMENT_NAMESPACE.test(id)) return sendResponse(event, 204);
+
   const osResponse = await getFileSet(id, {
     allowPrivate: true,
     allowUnpublished: true,
@@ -20,12 +29,7 @@ exports.handler = async (event) => {
   }
 
   const body = JSON.parse(osResponse.body);
-
-  if (!body?.found) {
-    return sendResponse(event, 404);
-  }
-
-  const fileSet = JSON.parse(osResponse.body)._source;
+  const fileSet = body._source;
   const token = event.cookieObject.dcApiV2Token;
   const visibility = fileSet.visibility;
   const published = fileSet.published;

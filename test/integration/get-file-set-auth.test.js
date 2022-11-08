@@ -129,5 +129,18 @@ describe("Authorize a file set by id", () => {
       const result = await handler(event);
       expect(result.statusCode).to.eq(403);
     });
+
+    it("authorizes requests for IDs in the always-allow namespace", async () => {
+      const id = "00000000-0000-0000-0000-000000000001";
+
+      mock.get(`/dc-v2-file-set/_doc/${id}`).reply(404, "Not Found");
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}/authorization")
+        .pathParams({ id })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(204);
+    });
   });
 });
