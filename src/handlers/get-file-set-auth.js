@@ -13,8 +13,6 @@ exports.handler = async (event) => {
   event = processRequest(event);
   const id = event.pathParameters.id;
 
-  console.log(id);
-  console.log(OPEN_DOCUMENT_NAMESPACE.test(id));
   // Special namespace for entities that aren't actual entities
   // with indexed metadata (i.e., placeholder images)
   if (OPEN_DOCUMENT_NAMESPACE.test(id)) return sendResponse(event, 204);
