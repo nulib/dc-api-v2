@@ -3,6 +3,7 @@
 const {
   baseUrl,
   decodeEventBody,
+  decodeToken,
   isFromReadingRoom,
   normalizeHeaders,
   objectifyCookies,
@@ -10,6 +11,8 @@ const {
 } = require("../../../src/helpers");
 const chai = require("chai");
 const expect = chai.expect;
+const ApiToken = require("../../../src/api/api-token");
+const jwt = require("jsonwebtoken");
 
 describe("helpers", () => {
   describe("baseUrl()", () => {
@@ -199,6 +202,69 @@ describe("helpers", () => {
         testName: "works%20when%20there%20are%20cookies",
         cookieType: "snickerdoodle",
       });
+    });
+  });
+
+  describe("decodeToken", async () => {
+    it("adds the decoded token to the event", () => {
+      const token = new ApiToken().user({ uid: "abc123" }).sign();
+
+      const event = helpers
+        .mockEvent("GET", "/works/{id}/")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
+        })
+        .render();
+      let result = objectifyCookies(event);
+      result = decodeToken(event);
+      expect(result.userToken.token).to.include({
+        sub: "abc123",
+      });
+      expect(result.userToken.token).to.not.have.property("isReadingRoom");
+    });
+    it("adds an anonymous token to the event if the token is expired", () => {
+      const payload = {
+        iss: "https://example.com",
+        sub: "user123",
+        name: "Some One",
+        exp: Math.floor(Number(new Date()) / 1000),
+        iat: Math.floor(Number(new Date()) / 1000),
+        email: "user@example.com",
+      };
+      const token = jwt.sign(payload, process.env.API_TOKEN_SECRET);
+
+      const event = helpers
+        .mockEvent("GET", "/works/{id}/")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
+        })
+        .render();
+      let result = objectifyCookies(event);
+      result = decodeToken(event);
+      expect(result.userToken.token).to.not.include({
+        sub: "abc123",
+      });
+    });
+    it("adds the reading room flag to the token", () => {
+      const token = new ApiToken().user({ uid: "abc123" }).sign();
+
+      const event = helpers
+        .mockEvent("GET", "/works/{id}/")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
+        })
+        .render();
+      process.env.READING_ROOM_IPS = event.requestContext.http.sourceIp;
+
+      let result = objectifyCookies(event);
+      result = decodeToken(event);
+      expect(result.userToken.token).to.include({
+        sub: "abc123",
+      });
+      expect(result.userToken.token.isReadingRoom).to.be.true;
     });
   });
 

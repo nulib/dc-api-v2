@@ -1,6 +1,5 @@
 const { processRequest, processResponse } = require("./middleware");
 const { getWork } = require("../api/opensearch");
-const { isFromReadingRoom } = require("../helpers");
 
 const manifestResponse = require("../api/response/iiif/manifest");
 const opensearchResponse = require("../api/response/opensearch");
@@ -11,8 +10,12 @@ const opensearchResponse = require("../api/response/opensearch");
 exports.handler = async (event) => {
   event = processRequest(event);
   const id = event.pathParameters.id;
-  const allowPrivate = isFromReadingRoom(event);
-  const esResponse = await getWork(id, { allowPrivate });
+
+  const allowPrivate =
+    event.userToken.isReadingRoom() || event.userToken.hasEntitlement(id);
+  const allowUnpublished = event.userToken.hasEntitlement(id);
+
+  const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
 
   let response;
   const as = event.queryStringParameters.as;

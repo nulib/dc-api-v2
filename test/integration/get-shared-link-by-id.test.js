@@ -3,6 +3,7 @@
 const chai = require("chai");
 const expect = chai.expect;
 chai.use(require("chai-http"));
+const ApiToken = require("../../src/api/api-token");
 
 describe("Retrieve shared link by id", () => {
   helpers.saveEnvironment();
@@ -12,6 +13,8 @@ describe("Retrieve shared link by id", () => {
     const { handler } = require("../../src/handlers/get-shared-link-by-id");
 
     it("retrieves a single shared link document", async () => {
+      process.env.API_TOKEN_SECRET = "abc123";
+      process.env.API_TOKEN_NAME = "dcapiTEST";
       mock
         .get("/shared_links/_doc/1234")
         .reply(200, helpers.testFixture("mocks/shared-link-1234.json"));
@@ -29,6 +32,13 @@ describe("Retrieve shared link by id", () => {
       const resultBody = JSON.parse(result.body);
       expect(resultBody.data.api_model).to.eq("Work");
       expect(resultBody.data.visibility).to.eq("Private");
+
+      const dcApiCookie = helpers.cookieValue(
+        result.cookies,
+        process.env.API_TOKEN_NAME
+      );
+      const token = new ApiToken(dcApiCookie);
+      expect(token.hasEntitlement("1234")).to.be.true;
     });
 
     it("404s a missing shared link", async () => {

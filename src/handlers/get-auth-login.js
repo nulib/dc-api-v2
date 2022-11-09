@@ -1,4 +1,4 @@
-const { dcApiEndpoint } = require("../aws/environment");
+const { dcApiEndpoint, apiTokenSecret } = require("../environment");
 const axios = require("axios").default;
 const cookie = require("cookie");
 const { processRequest, processResponse } = require("./middleware");

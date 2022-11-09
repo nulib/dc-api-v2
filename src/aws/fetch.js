@@ -2,7 +2,7 @@ const { defaultProvider } = require("@aws-sdk/credential-provider-node");
 const { SignatureV4 } = require("@aws-sdk/signature-v4");
 const { NodeHttpHandler } = require("@aws-sdk/node-http-handler");
 const { Sha256 } = require("@aws-crypto/sha256-browser");
-const region = require("./environment").region();
+const region = require("../environment").region();
 
 async function awsFetch(request) {
   const signer = new SignatureV4({

@@ -1,13 +1,13 @@
 "use strict";
 
+const ApiToken = require("../../src/api/api-token");
 const chai = require("chai");
 const expect = chai.expect;
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
 
-process.env.API_TOKEN_SECRET = "abc123";
-
 describe("Authorize a file set by id", () => {
+  process.env.API_TOKEN_SECRET = "abc123";
+  process.env.API_TOKEN_NAME = "dcapiTEST";
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
@@ -32,12 +32,13 @@ describe("Authorize a file set by id", () => {
         .get("/dc-v2-file-set/_doc/1234")
         .reply(200, helpers.testFixture("mocks/fileset-unpublished-1234.json"));
 
+      const token = new ApiToken().user({ uid: "abc123" }).sign();
+
       const event = helpers
         .mockEvent("GET", "/file-sets/{id}/authorization")
         .pathParams({ id: 1234 })
         .headers({
-          Cookie:
-            "dcApiV2Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;",
+          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
         })
         .render();
       const result = await handler(event);
@@ -49,12 +50,13 @@ describe("Authorize a file set by id", () => {
         .get("/dc-v2-file-set/_doc/1234")
         .reply(200, helpers.testFixture("mocks/fileset-netid-1234.json"));
 
+      const token = new ApiToken().user({ uid: "abc123" }).sign();
+
       const event = helpers
         .mockEvent("GET", "/file-sets/{id}/authorization")
         .pathParams({ id: 1234 })
         .headers({
-          Cookie:
-            "dcApiV2Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;",
+          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
         })
         .render();
       const result = await handler(event);
@@ -114,6 +116,71 @@ describe("Authorize a file set by id", () => {
         .pathParams({ id: 1234 })
         .render();
       process.env.READING_ROOM_IPS = event.requestContext.http.sourceIp;
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(204);
+    });
+
+    it("authorizes a netId file set if the request has a superuser token", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/fileset-netid-1234.json"));
+
+      const token = new ApiToken().superUser().sign();
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}/authorization")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
+        })
+        .render();
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(204);
+    });
+
+    it("authorizes a restricted unpublished file set if the request has a superuser token", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-restricted-unpublished-1234.json")
+        );
+
+      const token = new ApiToken().superUser().sign();
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}/authorization")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
+        })
+        .render();
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(204);
+    });
+
+    it("authorizes a restricted unpublished file set if the token has an entitlement for a work id", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-restricted-unpublished-1234.json")
+        );
+
+      const token = new ApiToken()
+        .addEntitlement("756ea5b9-8ca1-4bd7-a70e-4b2082dd0440")
+        .sign();
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}/authorization")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
+        })
+        .render();
 
       const result = await handler(event);
       expect(result.statusCode).to.eq(204);

@@ -4,6 +4,8 @@ const chai = require("chai");
 const expect = chai.expect;
 const searchHandlers = require("../../src/handlers/search");
 const RequestPipeline = require("../../src/api/request/pipeline");
+const { processRequest } = require("../../src/handlers/middleware");
+
 chai.use(require("chai-http"));
 
 describe("Search routes", () => {
@@ -13,7 +15,9 @@ describe("Search routes", () => {
   describe("POST /search/{targets}", () => {
     const handler = searchHandlers.postSearch;
     const originalQuery = { query: { match_all: {} } };
-    const authQuery = new RequestPipeline(originalQuery).authFilter().toJson();
+    const authQuery = new RequestPipeline(originalQuery)
+      .authFilter(processRequest({}))
+      .toJson();
 
     it("performs a works search by default", async () => {
       mock
@@ -77,7 +81,9 @@ describe("Search routes", () => {
   describe("GET /search", () => {
     const handler = searchHandlers.getSearch;
     const originalQuery = { query: { match_all: {} } };
-    const authQuery = new RequestPipeline(originalQuery).authFilter().toJson();
+    const authQuery = new RequestPipeline(originalQuery)
+      .authFilter(processRequest({}))
+      .toJson();
     const searchToken =
       "N4IgRg9gJgniBcoCOBXApgJzokBbAhgC4DGAFgPr4A2VCwAvvQDQgDOAlgF5oICMADMzzQ0VVggDaIAO4QMAa3EBdekA";
 
@@ -85,14 +91,15 @@ describe("Search routes", () => {
       const originalQuery = {
         query: { query_string: { query: "*" } },
       };
+      const event = helpers.mockEvent("GET", "/search").queryParams().render();
+
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter()
+        .authFilter(processRequest(event))
         .toJson();
 
       mock
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
-      const event = helpers.mockEvent("GET", "/search").queryParams().render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header(
@@ -153,18 +160,18 @@ describe("Search routes", () => {
       const originalQuery = {
         query: { query_string: { query: "*" } },
       };
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .queryParams({ as: "iiif" })
+        .render();
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter()
+        .authFilter(processRequest(event))
         .toJson();
 
       mock
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
 
-      const event = helpers
-        .mockEvent("GET", "/search")
-        .queryParams({ as: "iiif" })
-        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header(
@@ -180,18 +187,18 @@ describe("Search routes", () => {
         query: { query_string: { query: "*" } },
         sort: [{ create_date: "asc" }, { modified_date: "desc" }],
       };
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .queryParams({ sort: "create_date:asc,modified_date:desc" })
+        .render();
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter()
+        .authFilter(processRequest(event))
         .toJson();
 
       mock
         .post("/dc-v2-work/_search", authQuery)
         .reply(200, helpers.testFixture("mocks/search.json"));
 
-      const event = helpers
-        .mockEvent("GET", "/search")
-        .queryParams({ sort: "create_date:asc,modified_date:desc" })
-        .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
       const resultBody = JSON.parse(result.body);
