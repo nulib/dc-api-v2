@@ -1,6 +1,7 @@
 const { processRequest, processResponse } = require("./middleware");
 const { getSharedLink, getWork } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
+const { apiTokenName } = require("../aws/environment");
 
 /**
  * Get a shared link document by id
@@ -22,6 +23,7 @@ exports.handler = async (event) => {
   });
   if (workResponse.statusCode !== 200) return invalidRequest("Not Found");
   const response = opensearchResponse.transform(workResponse);
+
   return processResponse(event, response);
 };
 

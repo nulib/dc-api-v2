@@ -2,6 +2,7 @@ const { processRequest, processResponse } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
 const { isFromReadingRoom } = require("../helpers");
 const isObject = require("lodash.isobject");
+const { apiTokenName } = require("../aws/environment");
 const jwt = require("jsonwebtoken");
 
 const OPEN_DOCUMENT_NAMESPACE = /^0{8}-0{4}-0{4}-0{4}-0{9}[0-9A-Fa-f]{3}/;
@@ -28,7 +29,7 @@ exports.handler = async (event) => {
 
   const body = JSON.parse(osResponse.body);
   const fileSet = body._source;
-  const token = event.cookieObject.dcApiV2Token;
+  const token = event.cookieObject[apiTokenName()];
   const visibility = fileSet.visibility;
   const published = fileSet.published;
   const readingRoom = isFromReadingRoom(event);

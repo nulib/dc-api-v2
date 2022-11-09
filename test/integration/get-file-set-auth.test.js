@@ -6,6 +6,7 @@ const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
 
 process.env.API_TOKEN_SECRET = "abc123";
+process.env.API_TOKEN_NAME = "dcapiTEST";
 
 describe("Authorize a file set by id", () => {
   helpers.saveEnvironment();
@@ -36,8 +37,7 @@ describe("Authorize a file set by id", () => {
         .mockEvent("GET", "/file-sets/{id}/authorization")
         .pathParams({ id: 1234 })
         .headers({
-          Cookie:
-            "dcApiV2Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;",
+          Cookie: `${process.env.API_TOKEN_NAME}=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;`,
         })
         .render();
       const result = await handler(event);
@@ -53,8 +53,7 @@ describe("Authorize a file set by id", () => {
         .mockEvent("GET", "/file-sets/{id}/authorization")
         .pathParams({ id: 1234 })
         .headers({
-          Cookie:
-            "dcApiV2Token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;",
+          Cookie: `${process.env.API_TOKEN_NAME}=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkaXNwbGF5TmFtZSI6IlNvbWUgT25lIiwiaWF0IjoxNjY1NDE3NzYzfQ.Nwi8dJnc7w201ZtO5de5zYmU-F5gEalkmHZ5pR1VXms;`,
         })
         .render();
       const result = await handler(event);

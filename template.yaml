@@ -15,12 +15,16 @@ Globals:
     Timeout: 3
     Environment:
       Variables:
+        API_TOKEN_NAME: !Ref ApiTokenName
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
         ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
         ENV_PREFIX: !Ref EnvironmentPrefix
         READING_ROOM_IPS: !Ref ReadingRoomIPs
 Parameters:
+  ApiTokenName:
+    Type: String
+    Description: Name of the jwt that DC API issues
   ApiSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)

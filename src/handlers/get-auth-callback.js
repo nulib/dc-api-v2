@@ -1,7 +1,8 @@
+const { apiTokenName } = require("../aws/environment");
 const axios = require("axios").default;
 const cookie = require("cookie");
-const jwt = require("jsonwebtoken");
 const { processRequest, processResponse } = require("./middleware");
+const { dcApiToken } = require("./api-token");
 
 const BAD_DIRECTORY_SEARCH_FAULT =
   /Reason: ResponseCode 404 is treated as error/;
@@ -20,11 +21,12 @@ exports.handler = async (event) => {
   const user = await redeemSsoToken(event);
   let response;
   if (user) {
-    const token = jwt.sign(user, process.env.API_TOKEN_SECRET);
+    console.log("process.env.API_TOKEN_NAME", process.env.API_TOKEN_NAME);
+    const token = dcApiToken(user);
     response = {
       statusCode: 302,
       cookies: [
-        cookie.serialize("dcApiV2Token", token, {
+        cookie.serialize(process.env.API_TOKEN_NAME, token, {
           domain: "library.northwestern.edu",
           path: "/",
           secure: true,

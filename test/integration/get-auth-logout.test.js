@@ -8,12 +8,12 @@ const getAuthLogoutHandler = require("../../src/handlers/get-auth-logout");
 describe("auth logout", function () {
   helpers.saveEnvironment();
 
-  it("logs a user out of NU WebSSO and expires the dcApiV2Token", async () => {
+  it("logs a user out of NU WebSSO and expires the DC API Token", async () => {
     process.env.NUSSO_BASE_URL = "https://nusso-base.com/";
     process.env.NUSSO_API_KEY = "abc123";
 
     const url = "https://test.com/northwestern#logout";
-    const _scope = nock(process.env.NUSSO_BASE_URL).get("/logout").reply(200, {
+    nock(process.env.NUSSO_BASE_URL).get("/logout").reply(200, {
       url: url,
     });
 
