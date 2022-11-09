@@ -3,6 +3,9 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const { processRequest, processResponse } = require("./middleware");
 
+const BAD_DIRECTORY_SEARCH_FAULT =
+  /Reason: ResponseCode 404 is treated as error/;
+
 /**
  * NUSSO auth callback
  */
@@ -36,60 +39,53 @@ exports.handler = async (event) => {
   return processResponse(event, response);
 };
 
+async function getNetIdFromToken(nusso) {
+  const response = await axios.get(
+    `${process.env.NUSSO_BASE_URL}validateWebSSOToken`,
+    {
+      headers: {
+        apikey: process.env.NUSSO_API_KEY,
+        webssotoken: nusso,
+      },
+    }
+  );
+  return response?.data?.netid;
+}
+
 async function redeemSsoToken(event) {
-  if (event.cookieObject.nusso) {
+  const nusso = event.cookieObject.nusso;
+  const netid = await getNetIdFromToken(nusso);
+  if (netid) {
     try {
       const response = await axios.get(
         `${process.env.NUSSO_BASE_URL}validate-with-directory-search-response`,
         {
           headers: {
             apikey: process.env.NUSSO_API_KEY,
-            webssotoken: event.cookieObject.nusso,
+            webssotoken: nusso,
           },
         }
       );
-      const user = response.data.results[0];
-      return user;
+      return { ...response.data.results[0], uid: netid };
     } catch (err) {
-      if ((err = ~/Reason: ResponseCode 404 is treated as error/)) {
-        return await redeemForNetIdOnly(event);
+      if (
+        BAD_DIRECTORY_SEARCH_FAULT.test(err?.response?.data?.fault?.faultstring)
+      ) {
+        return redeemForNetIdOnly(netid);
       }
-      console.error(err);
+      console.error(err.response.data);
       return null;
     }
   } else {
-    console.warn("No NUSSO token found in request");
+    console.warn("NUSSO token could not be redeemed");
     return null;
   }
 }
 
-async function redeemForNetIdOnly(event) {
-  if (event.cookieObject.nusso) {
-    try {
-      const response = await axios.get(
-        `${process.env.NUSSO_BASE_URL}validateWebSSOToken`,
-        {
-          headers: {
-            apikey: process.env.NUSSO_API_KEY,
-            webssotoken: event.cookieObject.nusso,
-          },
-        }
-      );
-      const { netid } = response.data;
-      const user = {
-        uid: netid,
-        displayName: [netid],
-        givenName: [netid],
-        sn: ["(NetID)"],
-        mail: `${netid}@e.northwestern.edu`,
-      };
-      return user;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
-  } else {
-    console.warn("No NUSSO token found in request");
-    return null;
-  }
+function redeemForNetIdOnly(netid) {
+  return {
+    uid: netid,
+    displayName: [netid],
+    mail: `${netid}@e.northwestern.edu`,
+  };
 }
