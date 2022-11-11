@@ -74,6 +74,21 @@ describe("Authorize a file set by id", () => {
       expect(result.statusCode).to.eq(403);
     });
 
+    it("does authorize a netid, published file set with no token if the user is in the reading room", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/fileset-netid-1234.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}/authorization")
+        .pathParams({ id: 1234 })
+        .render();
+
+      process.env.READING_ROOM_IPS = event.requestContext.http.sourceIp;
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(204);
+    });
+
     it("authorizes an restricted file set if the user is in a Reading Room", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")

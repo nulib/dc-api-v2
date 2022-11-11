@@ -51,7 +51,7 @@ function isAllowedVisibility(token, visibility, readingRoom) {
     case "Public":
       return true;
     case "Institution":
-      return isValidToken(token);
+      return isValidToken(token) || readingRoom;
     case "Private":
       return readingRoom;
     default:
