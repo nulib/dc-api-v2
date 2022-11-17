@@ -62,7 +62,7 @@ function initRequest(path) {
   });
 }
 
-async function search(targets, body) {
+async function search(targets, body, optionsQuery = {}) {
   const endpoint = elasticsearchEndpoint();
 
   const request = new HttpRequest({
@@ -74,9 +74,49 @@ async function search(targets, body) {
     },
     body: body,
     path: `/${targets}/_search`,
+    query: optionsQuery,
   });
 
   return await awsFetch(request);
 }
 
-module.exports = { getCollection, getFileSet, getSharedLink, getWork, search };
+async function scroll(scrollId) {
+  const endpoint = elasticsearchEndpoint();
+
+  const request = new HttpRequest({
+    method: "POST",
+    hostname: endpoint,
+    headers: {
+      Host: endpoint,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ scroll: "2m" }),
+    path: `_search/scroll/${scrollId}`,
+  });
+  return await awsFetch(request);
+}
+
+async function deleteScroll(scrollId) {
+  const endpoint = elasticsearchEndpoint();
+
+  const request = new HttpRequest({
+    method: "DELETE",
+    hostname: endpoint,
+    headers: {
+      Host: endpoint,
+      "Content-Type": "application/json",
+    },
+    path: `_search/scroll/${scrollId}`,
+  });
+  return await awsFetch(request);
+}
+
+module.exports = {
+  getCollection,
+  getFileSet,
+  getSharedLink,
+  getWork,
+  search,
+  scroll,
+  deleteScroll,
+};
