@@ -92,8 +92,7 @@ const constructSearchContext = async (event) => {
 
   if (queryStringParameters.page) {
     const page = Number(queryStringParameters.page || 1);
-    const size = Number(queryStringParameters.size || 10);
-    searchContext.from = (page - 1) * size;
+    searchContext.from = (page - 1) * searchContext.size;
   }
 
   return searchContext;
