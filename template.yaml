@@ -389,6 +389,7 @@ Resources:
       DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
       ApiId: !Ref V1ApiId
       Stage: !Ref V1ApiStage
+    DependsOn: dcApi
 
   # root API
   rootApi:
@@ -420,6 +421,7 @@ Resources:
       DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
       ApiId: !Ref rootApi
       Stage: !Ref rootApilatestStage
+    DependsOn: dcApi
   docsBucket:
     Type: AWS::S3::Bucket
     Properties:
