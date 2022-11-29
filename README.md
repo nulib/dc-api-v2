@@ -63,15 +63,8 @@ The API will be available at:
 
 ## Running the API locally via our AWS dev domain
 
-This will make the local environment live at: https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:3002/search
+Use the [https-proxy](https://github.com/nulib/aws-developer-environment#convenience-scripts) script to make the local environment live at: https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:3002/search
 
 ```
-docker run --rm -it -d \
-  -e "UPSTREAM_DOMAIN=172.17.0.1" \
-  -e "UPSTREAM_PORT=3000" \
-  -e "PROXY_DOMAIN=$DEV_PREFIX.dev.rdc.library.northwestern.edu" \
-  -v /home/ec2-user/.dev_cert/dev.rdc.cert.pem:/etc/nginx/certs/cert.pem \
-  -v /home/ec2-user/.dev_cert/dev.rdc.key.pem:/etc/nginx/certs/key.pem \
-  -p 3002:443 \
-  outrigger/https-proxy:1.0
+https-proxy start 3002 3000
 ```
