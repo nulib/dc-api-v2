@@ -1,0 +1,13 @@
+{
+  "_index": "dev-shared_links",
+  "_type": "_doc",
+  "_id": "1234",
+  "_version": 1,
+  "found": true,
+  "_source": {
+    "target_index": "meadow",
+    "target_id": "1234",
+    "shared_link_id": "b47a0a1c-ca52-424f-877f-a2ab9f1c0735",
+    "expires": "2028-10-26T16:47:06Z"
+  }
+}

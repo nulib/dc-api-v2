@@ -1,0 +1,183 @@
+openapi: 3.0.1
+info:
+  title: Northwestern University Libraries Digital Collections API
+  description: >
+    This is full Markdown intro text. This API drives the [Northwestern University Libraries Digital 
+    Collections](https://dc.library.northwestern.edu) site.
+
+    I can even put line breaks in it. I can also link back to the [main documentation](..).
+  version: 2.0.0
+  contact:
+    name: NUL Repository Team
+    email: repository@northwestern.edu
+servers:
+  - url: https://dcapi.rdc.library.northwestern.edu/api/v2
+tags:
+  - name: Models
+    description: >
+      Endpoints for listing and retrieving Collections, FileSets, and Works.
+  - name: Search
+    description: >
+      Endpoints for searching the index.
+paths:
+  /collections:
+    get:
+      operationId: getCollections
+      tags:
+        - Collection
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+  /collections/{id}:
+    get:
+      tags:
+        - Collection
+      operationId: getCollectionById
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /collections/{id}/thumbnail:
+    get:
+      operationId: getCollectionThumbnail
+      tags:
+        - Collection
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
+        - $ref: "./types.yaml#/components/parameters/thumbnailSize"
+      responses:
+        200:
+          description: A thumbnail image for the given collection
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+  /file-sets/{id}:
+    get:
+      operationId: getFileSetById
+      tags:
+        - FileSet
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /file-sets/{id}/authorization:
+    get:
+      operationId: getFileSetAuth
+      tags:
+        - FileSet
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        204:
+          description: "The resource is authorized"
+        403:
+          $ref: "The resource is not authorized"
+  /works/{id}:
+    get:
+      operationId: getWorkById
+      tags:
+        - Work
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /works/{id}/similar:
+    get:
+      operationId: getSimilarWorks
+      tags:
+        - Work
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+        - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+  /works/{id}/thumbnail:
+    get:
+      operationId: getWorkThumbnail
+      tags:
+        - Work
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
+        - $ref: "./types.yaml#/components/parameters/thumbnailSize"
+      responses:
+        200:
+          description: A thumbnail image for the given work
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+  /search:
+    get:
+      operationId: getSearch
+      tags:
+        - Search
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/query"
+        - $ref: "./types.yaml#/components/parameters/searchToken"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+        - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+    post:
+      operationId: postSearch
+      tags:
+        - Search
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+  /search/{models}:
+    get:
+      operationId: getSearchWithModels
+      tags:
+        - Search
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/models"
+        - $ref: "./types.yaml#/components/parameters/query"
+        - $ref: "./types.yaml#/components/parameters/searchToken"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+        - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"
+    post:
+      operationId: postSearchWithModels
+      tags:
+        - Search
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/models"
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+        - $ref: "./types.yaml#/components/parameters/as"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/SearchResponse"

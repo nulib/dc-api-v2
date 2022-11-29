@@ -1,0 +1,45 @@
+name: Run Tests
+on:
+  - push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ci
+      AWS_SECRET_ACCESS_KEY: ci
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "npm"
+      - run: npm ci
+      - name: Check code style
+        run: npm run prettier
+      - name: Run tests
+        run: npm run test:coverage
+  validate-template:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: test
+    steps:
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
+          aws-region: us-east-1
+      - uses: actions/checkout@v3
+      - name: Validate template
+        run: sam build && sam validate
+  validate-api-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Validate OpenAPI Spec
+        run: |
+          docker run -u 1001 --rm --workdir /github/workspace \
+            -v $GITHUB_WORKSPACE:/github/workspace \
+            openapitools/openapi-generator-cli:latest validate \
+            -i /github/workspace/docs/docs/spec/openapi.yaml

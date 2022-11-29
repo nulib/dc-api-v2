@@ -1,21 +1,26 @@
 {
-  "name": "hello_world",
-  "version": "1.0.0",
-  "description": "hello world sample for NodeJS",
-  "main": "hello.js",
-  "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
-  "author": "SAM CLI",
-  "license": "MIT",
+  "name": "dc-api-build",
+  "version": "2.0.0pre",
+  "description": "NUL Digital Collections API Build Environment",
+  "repository": "https://github.com/nulib/dc-api-v2",
+  "author": "nulib",
+  "license": "Apache-2.0",
   "dependencies": {
-    "axios": ">=0.21.1"
+    "dc-api": "file:./src"
   },
   "scripts": {
-    "test": "mocha tests/unit/"
+    "preinstall": "cd src && npm i && cd -",
+    "prettier": "prettier -c src test",
+    "prettier:fix": "prettier -cw src test",
+    "test": "mocha",
+    "test:coverage": "nyc npm test"
   },
   "devDependencies": {
-    "aws-sdk": "^2.1187.0",
     "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
     "mocha": "^9.1.4",
+    "nock": "^13.2.9",
+    "nyc": "^15.1.0",
     "prettier": "^2.7.1"
   }
 }

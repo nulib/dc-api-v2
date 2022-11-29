@@ -1,0 +1,7 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+
+[default.local_start_api.parameters]
+env_vars = "env.json"

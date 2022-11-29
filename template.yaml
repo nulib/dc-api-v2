@@ -4,13 +4,41 @@ Description: >
   dc-api-v2
 
   Sample SAM Template for dc-api-v2
-
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
+    CodeUri: ./src
+    Runtime: nodejs16.x
+    Architectures:
+      - x86_64
+    MemorySize: 128
     Timeout: 3
-
+    Environment:
+      Variables:
+        DC_API_ENDPOINT: !Ref DcApiEndpoint
+        DC_URL: !Ref DcUrl
+        ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+        ENV_PREFIX: !Ref EnvironmentPrefix
+        READING_ROOM_IPS: !Ref ReadingRoomIPs
 Parameters:
+  ApiSecret:
+    Type: String
+    Description: Secret Key for Encrypting JWTs (must match IIIF server)
+  CustomDomainCertificateArn:
+    Type: String
+    Description: SSL Certificate for the Custom Domain Name
+  CustomDomainZone:
+    Type: String
+    Description: Hosted Zone Name for Custom Domain
+  CustomDomainHost:
+    Type: String
+    Description: Hostname within ApiDomainName for Custom Domain
+  DcApiEndpoint:
+    Type: String
+    Description: URL for DC API
+  DcUrl:
+    Type: String
+    Description: URL of Digital Collections website
   ElasticsearchEndpoint:
     Type: String
     Description: Elasticsearch url
@@ -18,32 +46,114 @@ Parameters:
     Type: String
     Description: Index Prefix
     Default: ""
+  NussoApiKey:
+    Type: String
+    Description: API key for auth server
+  NussoBaseUrl:
+    Type: String
+    Description: Auth server URL
+  ReadingRoomIPs:
+    Type: String
+    Description: Comma-delimited list of IP addresses to serve private resources to
+  V1ApiId:
+    Type: String
+    Description: ID of the v1 API to mount on /api/v1
+  V1ApiStage:
+    Type: String
+    Description: Stage name of the v1 API to mount on /api/v1
+    Default: latest
 Resources:
-  helloWorldFunction:
+  # V2 API
+  getAuthCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/hello.helloHandler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Description: Says hello.
+      Handler: handlers/get-auth-callback.handler
+      Description: NUSSO callback function.
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiSecret
+          NUSSO_API_KEY: !Ref NussoApiKey
+          NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
         Api:
-          Type: Api
+          Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
-            Path: /hello
+            ApiId: !Ref dcApi
+            Path: /auth/callback
+            Method: GET
+  getAuthLoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-auth-login.handler
+      Description: Performs NUSSO login.
+      Environment:
+        Variables:
+          NUSSO_API_KEY: !Ref NussoApiKey
+          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/login
+            Method: GET
+  getAuthLogoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-auth-logout.handler
+      Description: Performs NUSSO logout.
+      Environment:
+        Variables:
+          NUSSO_API_KEY: !Ref NussoApiKey
+          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/logout
+            Method: GET
+  getAuthWhoAmIFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-auth-whoami.handler
+      Description: Exchanges valid JWT token for user information.
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiSecret
+          NUSSO_API_KEY: !Ref NussoApiKey
+          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/whoami
+            Method: GET
+  getCollectionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-collections.handler
+      Description: Gets Collections.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections
             Method: GET
   getCollectionByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-collection-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
+      Handler: handlers/get-collection-by-id.handler
       Description: Gets a Collection by id.
       Policies:
         Version: 2012-10-17
@@ -53,26 +163,17 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
-          Type: Api
+          Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /collections/{id}
             Method: GET
   getFileSetByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-file-set-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
+      Handler: handlers/get-file-set-by-id.handler
       Description: Gets a FileSet by id.
       Policies:
         Version: 2012-10-17
@@ -82,26 +183,40 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
-          Type: Api
+          Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /file-sets/{id}
+            Method: GET
+  getFileSetAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-file-set-auth.handler
+      Description: Authorizes access to a file set.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiSecret
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/authorization
             Method: GET
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-work-by-id.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
+      Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
       Policies:
         Version: 2012-10-17
@@ -111,27 +226,18 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
       Events:
         Api:
-          Type: Api
+          Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
-  searchFunction:
+  getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/search.handler
-      Runtime: nodejs16.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: Handles OpenSearch search requests, Works only by default.
+      Handler: handlers/get-thumbnail.handler
+      Description: Gets a Work's representative thumbnail.
       Policies:
         Version: 2012-10-17
         Statement:
@@ -142,24 +248,213 @@ Resources:
             Resource: "*"
       Environment:
         Variables:
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+          API_TOKEN_SECRET: !Ref ApiSecret
+      Events:
+        CollectionApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections/{id}/thumbnail
+            Method: GET
+        WorkApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/thumbnail
+            Method: GET
+  getSimilarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-similar.handler
+      Timeout: 100
+      Description: Gets works similar to a specific work.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        WorkApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/similar
+            Method: GET
+  searchPostFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/search.postSearch
+      Description: Handles OpenSearch search requests, Works only by default.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
       Events:
         SearchApi:
-          Type: Api
+          Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /search
             Method: POST
         SearchWithModelsApi:
-          Type: Api
+          Type: HttpApi
           Properties:
-            RestApiId: !Ref dcApi
+            ApiId: !Ref dcApi
             Path: /search/{models}
             Method: POST
-  dcApi:
-    Type: AWS::Serverless::Api
+  searchGetFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      EndpointConfiguration:
-        Type: REGIONAL
+      Handler: handlers/search.getSearch
+      Description: Handles paging requests
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        SearchApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /search
+            Method: GET
+        SearchWithModelsApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /search/{models}
+            Method: GET
+  optionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/options-request.handler
+      Timeout: 3
+      Description: Handles all OPTIONS requests
+      Events:
+        Everything:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /{proxy+}
+            Method: OPTIONS
+  getSharedLinkByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-shared-link-by-id.handler
+      Description: Gets a shared link document by id.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /shared-links/{id}
+            Method: GET
+  dcApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
       StageName: v2
+      StageVariables:
+        basePath: api/v2
+      Domain:
+        DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+        BasePath: api/v2
+        CertificateArn: !Ref CustomDomainCertificateArn
+        Route53:
+          HostedZoneName: !Sub "${CustomDomainZone}."
+
+  # v1 API Mapping
+  v1Mapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiMappingKey: api/v1
+      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+      ApiId: !Ref V1ApiId
+      Stage: !Ref V1ApiStage
+    DependsOn: dcApi
+
+  # root API
+  rootApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: latest
+  rootRedirect:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./redirect
+      Handler: index.handler
+      Timeout: 1
+      Description: Redirects to latest version of docs
+      Environment:
+        Variables:
+          REDIRECT_TO: /docs/v2/index.html
+      Events:
+        RedirectApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref rootApi
+            Path: /
+            Method: GET
+
+  # Documentation
+  docsMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+      ApiId: !Ref rootApi
+      Stage: !Ref rootApilatestStage
+    DependsOn: dcApi
+  docsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "dcapi-docs.${CustomDomainZone}"
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+  docsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${docsBucket}/*"
+      Bucket: !Ref docsBucket
+  docsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref rootApi
+      IntegrationMethod: GET
+      IntegrationType: HTTP_PROXY
+      IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
+      PayloadFormatVersion: "1.0"
+  docsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref rootApi
+      AuthorizationType: NONE
+      RouteKey: GET /docs/v2/{proxy+}
+      Target: !Sub "integrations/${docsIntegration}"

@@ -1,0 +1,43 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /search/{models}",
+  "rawPath": "/v2/search/collections",
+  "rawQueryString": "",
+  "cookies": [],
+  "headers": {
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "accept-encoding": "gzip, deflate, br",
+    "accept-language": "en-US,en;q=0.9",
+    "content-length": "0",
+    "host": "api.test.library.northwestern.edu",
+    "user-agent": "Mocha Test",
+    "x-forwarded-for": "10.9.8.7",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https"
+  },
+  "requestContext": {
+    "accountId": "625046682746",
+    "apiId": "pewpewpew",
+    "domainName": "api.test.library.northwestern.edu",
+    "domainPrefix": "dcapi",
+    "http": {
+      "method": "GET",
+      "path": "/v2/search/collections",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "10.9.8.7",
+      "userAgent": "Mocha Test"
+    },
+    "requestId": "aVmRZjmGoAMEVuw=",
+    "routeKey": "GET /search/{models}",
+    "stage": "v2",
+    "time": "21/Oct/2022:04:18:42 +0000",
+    "timeEpoch": 1666325922398
+  },
+  "pathParameters": {
+    "models": "collections"
+  },
+  "stageVariables": {
+    "basePath": "api/v2"
+  },
+  "isBase64Encoded": false
+}

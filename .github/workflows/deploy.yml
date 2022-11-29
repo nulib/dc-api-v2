@@ -1,0 +1,91 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - deploy/staging
+      - main
+env:
+  CONFIG_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - name: Set GitHub Deploy Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.TFVARS_DEPLOY_KEY }}
+      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          repository: "nulib/tfvars"
+          ref: main
+          path: ".tfvars"
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
+          aws-region: us-east-1
+      - run: ln -s .tfvars/dc-api/samconfig.toml .
+      - run: sam build
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env $CONFIG_ENV
+  docs-changed:
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.changed-files.outputs.any_modified == 'true' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: Get changed doc files
+        id: changed-files
+        uses: tj-actions/changed-files@v29.0.2
+        with:
+          files: |
+            .github/workflows/docs.yaml
+            docs/*
+  publish-docs:
+    needs: docs-changed
+    if: ${{ needs.docs-changed.outputs.result == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
+          aws-region: us-east-1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 1.1.14
+      - name: Install dependencies
+        run: poetry install
+        working-directory: ./docs
+      - name: Build docs
+        run: poetry run mkdocs build --clean
+        working-directory: ./docs
+      - name: Determine correct deploy domain for environment
+        run: sed -i s/rdc\\.library\\.northwestern\\.edu/${ZONE}/g docs/site/spec/openapi.*
+        env:
+          ZONE: ${{ secrets.HostedZone }}
+      - name: Generate JSON API
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: openapi
+          openapi-file: docs/site/spec/openapi.yaml
+          command-args: -o docs/site/spec
+      - name: Copy to S3
+        run: aws s3 sync --delete docs/site/ s3://dcapi-docs.${ZONE}/
+        env:
+          ZONE: ${{ secrets.HostedZone }}

@@ -1,35 +1,29 @@
-const AWS = require("aws-sdk");
+const { HttpRequest } = require("@aws-sdk/protocol-http");
 const { awsFetch } = require("../aws/fetch");
-const { prefix } = require("../aws/environment");
+const { elasticsearchEndpoint, prefix } = require("../aws/environment");
 
-const elasticsearchEndpoint = process.env.ELASTICSEARCH_ENDPOINT;
-const region = process.env.AWS_REGION || "us-east-1";
-
-async function getCollection(id) {
-  return getDocument("dc-v2-collection", id);
+async function getCollection(id, opts) {
+  return getDocument("dc-v2-collection", id, opts);
 }
 
-async function getFileSet(id) {
-  return getDocument("dc-v2-file-set", id);
+async function getFileSet(id, opts) {
+  return getDocument("dc-v2-file-set", id, opts);
 }
 
-async function getWork(id) {
-  return getDocument("dc-v2-work", id);
+async function getWork(id, opts) {
+  return getDocument("dc-v2-work", id, opts);
 }
 
-async function getDocument(index, id) {
-  const endpoint = new AWS.Endpoint(elasticsearchEndpoint);
-  const request = new AWS.HttpRequest(endpoint, region);
+async function getSharedLink(id, opts) {
+  return getDocument("shared_links", id, opts);
+}
 
-  request.method = "GET";
-  request.path += prefix(index) + `/_doc/${id}`;
-  request.headers["host"] = elasticsearchEndpoint;
-  request.headers["Content-Type"] = "application/json";
-
+async function getDocument(index, id, opts = {}) {
+  const request = initRequest(`/${prefix(index)}/_doc/${id}`);
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
-    if (!isVisible(body)) {
+    if (index != "shared_links" && !isVisible(body, opts)) {
       let responseBody = {
         _index: prefix(index),
         _type: "_doc",
@@ -46,25 +40,43 @@ async function getDocument(index, id) {
   return response;
 }
 
-function isVisible(doc) {
-  if (doc?._source.api_model == "FileSet") {
-    return doc?._source?.visibility !== "Private";
-  } else {
-    return doc?._source?.published && doc?._source?.visibility !== "Private";
-  }
+function isVisible(doc, { allowPrivate, allowUnpublished }) {
+  if (!doc?.found) return false;
+  const isAllowedVisibility =
+    allowPrivate || doc?._source.visibility !== "Private";
+  const isAllowedPublished = allowUnpublished || doc?._source.published;
+  return isAllowedVisibility && isAllowedPublished;
+}
+
+function initRequest(path) {
+  const endpoint = elasticsearchEndpoint();
+
+  return new HttpRequest({
+    method: "GET",
+    hostname: endpoint,
+    headers: {
+      Host: endpoint,
+      "Content-Type": "application/json",
+    },
+    path: path,
+  });
 }
 
 async function search(targets, body) {
-  const endpoint = new AWS.Endpoint(elasticsearchEndpoint);
-  const request = new AWS.HttpRequest(endpoint, region);
+  const endpoint = elasticsearchEndpoint();
 
-  request.method = "POST";
-  request.body = body;
-  request.path += `${targets}/_search`;
-  request.headers["host"] = elasticsearchEndpoint;
-  request.headers["Content-Type"] = "application/json";
+  const request = new HttpRequest({
+    method: "POST",
+    hostname: endpoint,
+    headers: {
+      Host: endpoint,
+      "Content-Type": "application/json",
+    },
+    body: body,
+    path: `/${targets}/_search`,
+  });
 
   return await awsFetch(request);
 }
 
-module.exports = { getCollection, getFileSet, getWork, search };
+module.exports = { getCollection, getFileSet, getSharedLink, getWork, search };

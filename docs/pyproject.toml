@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "dc-api-v2"
+version = "2.0.0"
+description = "Northwestern University Library Digital Collections API Documentation"
+authors = ["Michael B. Klein <michael.klein@northwestern.edu>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+mkdocs = "^1.1.2"
+mkdocs-macros-plugin = { git = "https://github.com/fralau/mkdocs_macros_plugin.git",  tag = "v0.5.12" }
+Pygments = "^2.7.3"
+diagrams = "^0.21.1"
+mkdocs-material = "^8.4.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

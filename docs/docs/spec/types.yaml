@@ -1,0 +1,156 @@
+openapi: 3.0.1
+components:
+  parameters:
+    models:
+      name: models
+      in: path
+      description: Comma-delimited list of models to search
+      required: true
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - collections
+            - file-sets
+            - Works
+      style: simple
+    id:
+      name: id
+      in: path
+      required: true
+      description: Collection, FileSet, or Work ID
+      schema:
+        type: string
+        format: uuid
+    query:
+      name: query
+      in: query
+      required: false
+      description: Keyword query
+      schema:
+        type: string
+    searchToken:
+      name: searchToken
+      in: query
+      required: false
+      description: Search token from previous search response
+      schema:
+        type: string
+    page:
+      name: page
+      in: query
+      required: false
+      description: Page number of results to retrieve
+      schema:
+        type: integer
+        minimum: 1
+    size:
+      name: size
+      in: query
+      required: false
+      description: Maximum number of results per page
+      schema:
+        type: integer
+        minimum: 0
+    sort:
+      name: sort
+      in: query
+      required: false
+      description: Comma-delimited list of fields to sort search results (e.g. "create_date:asc,modified_date:desc")
+      schema:
+        type: string
+    as:
+      name: as
+      in: query
+      required: false
+      description: Desired output format
+      schema:
+        type: string
+        enum:
+          - iiif
+          - opensearch
+    thumbnailAspect:
+      name: aspect
+      in: query
+      required: false
+      description: Desired aspect ratio
+      schema:
+        type: string
+        enum:
+          - full
+          - square
+    thumbnailSize:
+      name: size
+      in: query
+      required: false
+      description: Size of largest dimension
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 300
+  responses:
+    DocumentResponse:
+      description: A single document response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "#/components/schemas/IndexDocument"
+              info:
+                type: object
+    SearchResponse:
+      description: A page of search results
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/OpenSearchResponse"
+              - $ref: "#/components/schemas/IiifPresentationManifest"
+  schemas:
+    IiifPresentationManifest:
+      type: object
+      description: A [IIIF Presentation v3.x](https://iiif.io/api/presentation/3.0/) Manifest
+    IndexDocument:
+      type: object
+      description: A single index document
+    OpenSearchResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/IndexDocument"
+          description: An array of response documents
+        pagination:
+          $ref: "#/components/schemas/PaginationInfo"
+    PaginationInfo:
+      type: object
+      description: Pagination info for the current response
+      properties:
+        next_url:
+          type: string
+          description: Full URL to the next page of results
+        prev_url:
+          type: string
+          description: Full URL to the previous page of results
+        query_url:
+          type: string
+          description: Base URL to repeat this query for a given page
+        current_page:
+          type: integer
+          description: Index of current page of results
+        limit:
+          type: integer
+          description: Number of results per page
+        offset:
+          type: integer
+          description: Starting index of first result on the current page
+        total_hits:
+          type: integer
+          description: Total number of results
+        total_pages:
+          type: integer
+          description: Total number of result pages

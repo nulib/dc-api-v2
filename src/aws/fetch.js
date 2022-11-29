@@ -1,45 +1,33 @@
-const AWS = require("aws-sdk");
+const { defaultProvider } = require("@aws-sdk/credential-provider-node");
+const { SignatureV4 } = require("@aws-sdk/signature-v4");
+const { NodeHttpHandler } = require("@aws-sdk/node-http-handler");
+const { Sha256 } = require("@aws-crypto/sha256-browser");
+const region = require("./environment").region();
 
-function awsFetch(request) {
-  return new Promise((resolve, reject) => {
-    signRequest(request).then((signedRequest) => {
-      var client = new AWS.HttpClient();
-      client.handleRequest(
-        signedRequest,
-        null,
-        function (response) {
-          let returnValue = {
-            statusCode: response.statusCode,
-          };
-          let responseBody = "";
-          response.on("data", function (chunk) {
-            responseBody += chunk;
-          });
-          response.on("end", function (chunk) {
-            resolve({ ...returnValue, body: responseBody });
-          });
-        },
-        function (error) {
-          console.error("Error: " + error);
-          reject(error);
-        }
-      );
-    });
+async function awsFetch(request) {
+  const signer = new SignatureV4({
+    credentials: defaultProvider(),
+    region: region,
+    service: "es",
+    sha256: Sha256,
   });
-}
 
-function signRequest(request) {
-  return new Promise((resolve, _reject) => {
-    let chain = new AWS.CredentialProviderChain();
+  const signedRequest = await signer.sign(request);
 
-    chain.resolve((err, credentials) => {
-      if (err) {
-        console.error("Sending unsigned request: ", err);
-      } else {
-        var signer = new AWS.Signers.V4(request, "es");
-        signer.addAuthorization(credentials, new Date());
-      }
-      resolve(request);
+  const client = new NodeHttpHandler();
+  const { response } = await client.handle(signedRequest);
+
+  return await new Promise((resolve, _reject) => {
+    let returnValue = {
+      statusCode: response.statusCode,
+    };
+    let responseBody = "";
+
+    response.body.on("data", function (chunk) {
+      responseBody += chunk;
+    });
+    response.body.on("end", function (chunk) {
+      resolve({ ...returnValue, body: responseBody });
     });
   });
 }
