@@ -29,6 +29,9 @@ exports.handler = async (event) => {
           path: "/",
           secure: true,
         }),
+        cookie.serialize("redirectUrl", null, {
+          expires: new Date(1),
+        }),
       ],
       headers: {
         location: returnPath,

@@ -64,6 +64,10 @@ describe("auth callback", function () {
     expect(result.statusCode).to.eq(302);
     expect(result.headers.location).to.eq("https://example.com");
 
+    expect(result.cookies).to.include(
+      "redirectUrl=null; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    );
+
     const { dcApiV2Token } = cookie.parse(result.cookies[0]);
     const token = jwt.verify(dcApiV2Token, process.env.API_TOKEN_SECRET);
     expect(token).to.deep.include({
