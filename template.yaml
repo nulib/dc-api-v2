@@ -368,6 +368,32 @@ Resources:
             ApiId: !Ref dcApi
             Path: /shared-links/{id}
             Method: GET
+  oaiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/oai.handler
+      Description: Transforms works into OAI Records.
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        GetApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /oai
+            Method: GET
+        PostApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /oai
+            Method: POST
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:

@@ -1,0 +1,29 @@
+{
+  "error": {
+    "root_cause": [
+      {
+        "type": "search_context_missing_exception",
+        "reason": "No search context found for id [30222]"
+      }
+    ],
+    "type": "search_phase_execution_exception",
+    "reason": "all shards failed",
+    "phase": "query",
+    "grouped": true,
+    "failed_shards": [
+      {
+        "shard": -1,
+        "index": null,
+        "reason": {
+          "type": "search_context_missing_exception",
+          "reason": "No search context found for id [30222]"
+        }
+      }
+    ],
+    "caused_by": {
+      "type": "search_context_missing_exception",
+      "reason": "No search context found for id [30222]"
+    }
+  },
+  "status": 404
+}
