@@ -1,6 +1,6 @@
 const { HttpRequest } = require("@aws-sdk/protocol-http");
 const { awsFetch } = require("../aws/fetch");
-const { elasticsearchEndpoint, prefix } = require("../aws/environment");
+const { elasticsearchEndpoint, prefix } = require("../environment");
 
 async function getCollection(id, opts) {
   return getDocument("dc-v2-collection", id, opts);
@@ -23,6 +23,7 @@ async function getDocument(index, id, opts = {}) {
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
+
     if (index != "shared_links" && !isVisible(body, opts)) {
       let responseBody = {
         _index: prefix(index),
@@ -37,6 +38,7 @@ async function getDocument(index, id, opts = {}) {
       };
     }
   }
+
   return response;
 }
 
@@ -45,6 +47,7 @@ function isVisible(doc, { allowPrivate, allowUnpublished }) {
   const isAllowedVisibility =
     allowPrivate || doc?._source.visibility !== "Private";
   const isAllowedPublished = allowUnpublished || doc?._source.published;
+
   return isAllowedVisibility && isAllowedPublished;
 }
 

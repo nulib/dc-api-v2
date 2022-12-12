@@ -1,6 +1,7 @@
 "use strict";
 
 const chai = require("chai");
+const ApiToken = require("../../src/api/api-token");
 const expect = chai.expect;
 const { handler } = require("../../src/handlers/get-thumbnail");
 
@@ -165,6 +166,50 @@ describe("Thumbnail routes", () => {
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
       expectCorsHeaders(result);
+    });
+
+    it("returns 404 if the work is private", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(404);
+    });
+
+    it("returns 404 if the work is unpublished", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/unpublished-work-1234.json"));
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(404);
+    });
+
+    it("returns 200 if there is an entitlement for an unpublished, private work", async () => {
+      const token = new ApiToken().addEntitlement("1234").sign();
+      const event = helpers
+        .mockEvent("GET", "/works/{id}/thumbnail")
+        .pathParams({ id: "1234" })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
+        });
+
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/private-unpublished-work-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(event.render());
+
+      expect(result.statusCode).to.eq(200);
     });
   });
 

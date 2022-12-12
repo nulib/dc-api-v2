@@ -8,6 +8,7 @@
     "id": "1234",
     "api_model": "FileSet",
     "visibility": "Private",
-    "published": false
+    "published": false,
+    "work_id": "756ea5b9-8ca1-4bd7-a70e-4b2082dd0440"
   }
 }

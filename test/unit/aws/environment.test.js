@@ -1,6 +1,6 @@
 "use strict";
 
-const environment = require("../../../src/aws/environment");
+const environment = require("../../../src/environment");
 
 const chai = require("chai");
 const expect = chai.expect;

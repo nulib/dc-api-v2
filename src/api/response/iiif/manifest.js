@@ -1,5 +1,5 @@
 const { IIIFBuilder } = require("iiif-builder");
-const { dcApiEndpoint, dcUrl } = require("../../../aws/environment");
+const { dcApiEndpoint, dcUrl } = require("../../../environment");
 const {
   buildAnnotationBody,
   buildImageResourceId,

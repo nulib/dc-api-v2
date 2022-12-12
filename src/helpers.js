@@ -1,6 +1,10 @@
 const parseHeader = require("parse-http-header");
 const path = require("path");
 const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
+const { apiTokenName } = require("./environment");
+const ApiToken = require("./api/api-token");
+const cookie = require("cookie");
+const _ = require("lodash");
 
 function addCorsHeaders(event, response) {
   const allowOrigin = event?.headers?.origin || "*";
@@ -33,6 +37,41 @@ function decodeEventBody(event) {
   event.body = Buffer.from(event.body, "base64").toString("utf8");
   event.isBase64Encoded = false;
   return event;
+}
+
+function decodeToken(event) {
+  const existingToken = event.cookieObject[apiTokenName()];
+
+  try {
+    event.userToken = new ApiToken(existingToken);
+    event._userTokenUpdated = !existingToken;
+  } catch (error) {
+    event.userToken = new ApiToken();
+    event._userTokenUpdated = true;
+  }
+  if (isFromReadingRoom(event)) {
+    event.userToken.readingRoom();
+    event._userTokenUpdated = true;
+  }
+
+  return event;
+}
+
+function encodeToken(event, response) {
+  if (event._userTokenUpdated) {
+    const newCookie = cookie.serialize(apiTokenName(), event.userToken.sign(), {
+      domain: "library.northwestern.edu",
+      path: "/",
+      secure: true,
+    });
+
+    response.cookies =
+      response.hasOwnProperty("cookies") && _.isArray(response.cookies)
+        ? response.cookies
+        : [];
+    response.cookies.push(newCookie);
+  }
+  return response;
 }
 
 function isApiGateway(event) {
@@ -135,6 +174,8 @@ module.exports = {
   addCorsHeaders,
   baseUrl,
   decodeEventBody,
+  decodeToken,
+  encodeToken,
   effectivePath,
   ensureCharacterEncoding,
   isFromReadingRoom,

@@ -1,6 +1,7 @@
 const axios = require("axios").default;
 const cookie = require("cookie");
 const { processRequest, processResponse } = require("./middleware");
+const ApiToken = require("../api/api-token");
 
 /**
  * Performs NUSSO logout
@@ -15,18 +16,12 @@ exports.handler = async (event) => {
     .then((response) => {
       resp = {
         statusCode: 302,
-        cookies: [
-          cookie.serialize("dcApiV2Token", null, {
-            expires: new Date(1),
-            domain: "library.northwestern.edu",
-            path: "/",
-            secure: true,
-          }),
-        ],
         headers: {
           location: response.data.url,
         },
       };
+      event.userToken = new ApiToken();
+      event._userTokenUpdated = true;
     })
     .catch((error) => {
       console.error("NUSSO request error", error);

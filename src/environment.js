@@ -9,6 +9,14 @@ function apiToken() {
   return jwt.sign(token, process.env.API_TOKEN_SECRET);
 }
 
+function apiTokenName() {
+  return process.env.API_TOKEN_NAME;
+}
+
+function apiTokenSecret() {
+  return process.env.API_TOKEN_SECRET;
+}
+
 function dcApiEndpoint() {
   return process.env.DC_API_ENDPOINT;
 }
@@ -33,6 +41,8 @@ function region() {
 
 module.exports = {
   apiToken,
+  apiTokenName,
+  apiTokenSecret,
   dcApiEndpoint,
   dcUrl,
   elasticsearchEndpoint,

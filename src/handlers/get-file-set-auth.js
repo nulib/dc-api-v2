@@ -1,8 +1,6 @@
+const ApiToken = require("../api/api-token");
 const { processRequest, processResponse } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
-const { isFromReadingRoom } = require("../helpers");
-const isObject = require("lodash.isobject");
-const jwt = require("jsonwebtoken");
 
 const OPEN_DOCUMENT_NAMESPACE = /^0{8}-0{4}-0{4}-0{4}-0{9}[0-9A-Fa-f]{3}/;
 
@@ -28,12 +26,19 @@ exports.handler = async (event) => {
 
   const body = JSON.parse(osResponse.body);
   const fileSet = body._source;
-  const token = event.cookieObject.dcApiV2Token;
+
+  const token = event.userToken;
+
   const visibility = fileSet.visibility;
   const published = fileSet.published;
-  const readingRoom = isFromReadingRoom(event);
+  const readingRoom = token.isReadingRoom();
+  const workId = fileSet.work_id;
 
-  if (isAllowedVisibility(token, visibility, readingRoom) && published) {
+  if (token.isSuperUser()) {
+    return sendResponse(event, 204);
+  } else if (token.hasEntitlement(workId)) {
+    return sendResponse(event, 204);
+  } else if (isAllowedVisibility(token, visibility, readingRoom) && published) {
     return sendResponse(event, 204);
   } else {
     return sendResponse(event, 403);
@@ -51,16 +56,10 @@ function isAllowedVisibility(token, visibility, readingRoom) {
     case "Public":
       return true;
     case "Institution":
-      return isValidToken(token) || readingRoom;
+      return token.isLoggedIn() || readingRoom;
     case "Private":
       return readingRoom;
     default:
       return false;
   }
-}
-
-function isValidToken(token) {
-  if (!!token === false) return false;
-  const user = jwt.verify(token, process.env.API_TOKEN_SECRET);
-  return isObject(user);
 }

@@ -1,8 +1,10 @@
 const { addCorsHeaders } = require("../helpers");
-const { apiToken } = require("../aws/environment");
+const ApiToken = require("../api/api-token");
 const axios = require("axios").default;
-const { getCollection, getWork } = require("../api/opensearch");
+const cookie = require("cookie");
 const opensearchResponse = require("../api/response/opensearch");
+const { apiTokenName } = require("../environment");
+const { getCollection, getWork } = require("../api/opensearch");
 const { processRequest } = require("./middleware");
 
 function getAxiosResponse(url, config) {
@@ -29,8 +31,11 @@ function validateRequest(event) {
   return { id, aspect, size };
 }
 
-const getWorkThumbnail = async (id, aspect, size) => {
-  const esResponse = await getWork(id);
+const getWorkThumbnail = async (id, aspect, size, event) => {
+  const allowPrivate = (allowUnpublished = event.userToken.hasEntitlement(id));
+
+  const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
+
   if (esResponse.statusCode != 200) {
     return opensearchResponse.transform(esResponse);
   }
@@ -49,7 +54,17 @@ const getWorkThumbnail = async (id, aspect, size) => {
   const thumbnail = `${iiif_base}/${aspect}/!${size},${size}/0/default.jpg`;
 
   const { status, headers, data } = await getAxiosResponse(thumbnail, {
-    headers: { Authorization: `Bearer ${apiToken()}` },
+    headers: {
+      cookie: cookie.serialize(
+        apiTokenName(),
+        new ApiToken().superUser().sign(),
+        {
+          domain: "library.northwestern.edu",
+          path: "/",
+          secure: true,
+        }
+      ),
+    },
     responseType: "arraybuffer",
   });
 
@@ -72,7 +87,7 @@ const getWorkThumbnail = async (id, aspect, size) => {
 };
 
 const getParameters = async (event) => {
-  const { id, aspect, size } = validateRequest(processRequest(event));
+  const { id, aspect, size } = validateRequest(event);
   if (event.rawPath.match(/\/collections\//)) {
     const esResponse = await getCollection(id);
     if (esResponse.statusCode != 200) {
@@ -93,6 +108,7 @@ const getParameters = async (event) => {
 exports.handler = async (event) => {
   let response;
 
+  event = processRequest(event);
   try {
     const { id, aspect, size, error } = await getParameters(event);
     if (error) {
@@ -104,7 +120,7 @@ exports.handler = async (event) => {
         body: "Not Found",
       };
     } else {
-      response = await getWorkThumbnail(id, aspect, size);
+      response = await getWorkThumbnail(id, aspect, size, event);
     }
   } catch (err) {
     response = {

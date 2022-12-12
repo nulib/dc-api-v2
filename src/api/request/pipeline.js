@@ -1,12 +1,12 @@
-const { isFromReadingRoom } = require("../../helpers");
 const sortJson = require("sort-json");
+const ApiToken = require("../api-token");
 
 function filterFor(query, event) {
   const matchTheQuery = query;
   const beUnpublished = { term: { published: false } };
   const beRestricted = { term: { visibility: "Private" } };
 
-  const filter = isFromReadingRoom(event)
+  const filter = event.userToken.isReadingRoom()
     ? { must: [matchTheQuery], must_not: [beUnpublished] }
     : { must: [matchTheQuery], must_not: [beUnpublished, beRestricted] };
 

@@ -15,7 +15,7 @@
     "cookie": "^0.5.0",
     "iiif-builder": "^1.0.6",
     "jsonwebtoken": "^8.5.1",
-    "lodash.isobject": "^3.0.2",
+    "lodash": "^4.17.21",
     "lz-string": "^1.4.4",
     "parse-http-header": "^1.0.1",
     "sort-json": "^2.0.1",

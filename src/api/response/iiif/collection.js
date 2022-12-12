@@ -1,4 +1,4 @@
-const { dcApiEndpoint, dcUrl } = require("../../../aws/environment");
+const { dcApiEndpoint, dcUrl } = require("../../../environment");
 
 async function transform(response, pager) {
   if (response.statusCode === 200) {

@@ -3,11 +3,13 @@
 const RequestPipeline = require("../../../../src/api/request/pipeline");
 const chai = require("chai");
 const expect = chai.expect;
+const { processRequest } = require("../../../../src/handlers/middleware");
+const ApiToken = require("../../../../src/api/api-token");
 
 describe("RequestPipeline", () => {
   helpers.saveEnvironment();
 
-  const event = helpers.mockEvent("GET", "/search").render();
+  let event = helpers.mockEvent("GET", "/search").render();
 
   const requestBody = {
     query: { match: { term: { title: "The Title" } } },
@@ -24,6 +26,8 @@ describe("RequestPipeline", () => {
   });
 
   it("adds an auth filter", () => {
+    event.userToken = new ApiToken();
+
     const result = pipeline.authFilter(event);
     expect(result.searchContext.size).to.eq(50);
     expect(result.searchContext.query.bool.must).to.include(requestBody.query);
@@ -37,9 +41,11 @@ describe("RequestPipeline", () => {
     expect(JSON.parse(pipeline.toJson())).to.deep.equal(requestBody);
   });
 
-  describe("reading room IPs", () => {
+  describe("reading room user", () => {
     it("filters out private results by default", () => {
-      process.env.READING_ROOM_IPS = "192.168.0.1,172.16.10.2";
+      event.userToken = new ApiToken();
+
+      // process.env.READING_ROOM_IPS = "192.168.0.1,172.16.10.2";
       const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
       expect(result.searchContext.query.bool.must).to.include(
@@ -51,8 +57,9 @@ describe("RequestPipeline", () => {
       );
     });
 
-    it("includes private results from allowed IP addresses", () => {
-      process.env.READING_ROOM_IPS = "10.9.8.7,192.168.0.1";
+    it("includes private results if the user is in the reading room", () => {
+      event.userToken = new ApiToken().readingRoom();
+
       const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
       expect(result.searchContext.query.bool.must).to.include(
