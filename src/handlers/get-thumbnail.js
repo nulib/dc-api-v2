@@ -1,3 +1,4 @@
+const { addCorsHeaders } = require("../helpers");
 const { apiToken } = require("../aws/environment");
 const axios = require("axios").default;
 const { getCollection, getWork } = require("../api/opensearch");
@@ -75,7 +76,7 @@ const getParameters = async (event) => {
   if (event.rawPath.match(/\/collections\//)) {
     const esResponse = await getCollection(id);
     if (esResponse.statusCode != 200) {
-      return { error: opensearchResponse.transform(esResponse) };
+      return { error: await opensearchResponse.transform(esResponse) };
     }
 
     const body = JSON.parse(esResponse.body);
@@ -90,24 +91,28 @@ const getParameters = async (event) => {
  * A simple function to proxy a Collection or Work thumbnail from the IIIF server
  */
 exports.handler = async (event) => {
+  let response;
+
   try {
     const { id, aspect, size, error } = await getParameters(event);
-    if (error) return error;
-
-    if (!id) {
-      return {
+    if (error) {
+      response = error;
+    } else if (!id) {
+      response = {
         statusCode: 404,
         headers: { "content-type": "text/plain" },
         body: "Not Found",
       };
+    } else {
+      response = await getWorkThumbnail(id, aspect, size);
     }
-
-    return await getWorkThumbnail(id, aspect, size);
   } catch (err) {
-    return {
+    response = {
       statusCode: 400,
       headers: { "content-type": "text/plain" },
       body: err.message,
     };
   }
+
+  return addCorsHeaders(event, response);
 };

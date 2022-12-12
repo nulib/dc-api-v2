@@ -4,6 +4,13 @@ const chai = require("chai");
 const expect = chai.expect;
 const { handler } = require("../../src/handlers/get-thumbnail");
 
+function expectCorsHeaders(result) {
+  expect(result.headers["Access-Control-Allow-Credentials"]).to.eq("true");
+  expect(result.headers["Access-Control-Allow-Origin"]).to.eq(
+    "https://test.example.edu/"
+  );
+}
+
 describe("Thumbnail routes", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
@@ -15,6 +22,7 @@ describe("Thumbnail routes", () => {
   describe("Collection", () => {
     const event = helpers
       .mockEvent("GET", "/collections/{id}/thumbnail")
+      .headers({ origin: "https://test.example.edu/" })
       .pathParams({ id: 1234 });
 
     it("retrieves a thumbnail", async () => {
@@ -33,6 +41,7 @@ describe("Thumbnail routes", () => {
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(200);
       expect(result.headers["content-type"]).to.eq("image/jpeg");
+      expectCorsHeaders(result);
     });
 
     it("returns an error from the IIIF server", async () => {
@@ -49,6 +58,7 @@ describe("Thumbnail routes", () => {
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(403);
       expect(result.body).to.eq("Forbidden");
+      expectCorsHeaders(result);
     });
 
     it("returns 404 if the collection doc can't be found", async () => {
@@ -58,6 +68,7 @@ describe("Thumbnail routes", () => {
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
     });
 
     it("returns 404 if the work doc can't be found", async () => {
@@ -70,6 +81,7 @@ describe("Thumbnail routes", () => {
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
     });
 
     it("returns 404 if the collection doc has no representative work", async () => {
@@ -82,6 +94,7 @@ describe("Thumbnail routes", () => {
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
     });
 
     it("returns 404 if the work doc has no thumbnail", async () => {
@@ -94,12 +107,14 @@ describe("Thumbnail routes", () => {
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
     });
   });
 
   describe("Work", () => {
     const event = helpers
       .mockEvent("GET", "/works/{id}/thumbnail")
+      .headers({ origin: "https://test.example.edu/" })
       .pathParams({ id: 1234 });
 
     it("retrieves a thumbnail", async () => {
@@ -115,6 +130,7 @@ describe("Thumbnail routes", () => {
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(200);
       expect(result.headers["content-type"]).to.eq("image/jpeg");
+      expectCorsHeaders(result);
     });
 
     it("returns an error from the IIIF server", async () => {
@@ -128,6 +144,7 @@ describe("Thumbnail routes", () => {
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(403);
       expect(result.body).to.eq("Forbidden");
+      expectCorsHeaders(result);
     });
 
     it("returns 404 if the work doc can't be found", async () => {
@@ -137,6 +154,7 @@ describe("Thumbnail routes", () => {
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
     });
 
     it("returns 404 if the work doc has no thumbnail", async () => {
@@ -146,6 +164,7 @@ describe("Thumbnail routes", () => {
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
     });
   });
 
