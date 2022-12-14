@@ -1,6 +1,7 @@
 const fs = require("fs");
 const nock = require("nock");
 const path = require("path");
+const { isArray } = require("util");
 const EventBuilder = require("./event-builder.js");
 
 function saveEnvironment() {
@@ -49,13 +50,21 @@ function testFixture(file) {
 }
 
 function cookieValue(cookies, cookieName) {
-  let cookieValue = "";
-  const regex = new RegExp(`(^| )${cookieName}=(?<value>([^;]+))`);
+  if (!Array.isArray(cookies)) return undefined;
+
+  let cookieValue = { value: "" };
+  const regex = new RegExp(`^${cookieName}=(?<value>[^;]+)(?<props>.+)?$`);
   for (const c of cookies) {
     const match = regex.exec(c);
     if (match) {
-      const { value } = match.groups;
-      cookieValue = value;
+      const { value, props } = match.groups;
+      cookieValue.value = value;
+      if (props) {
+        for (const prop of props.split(/;\s+/)) {
+          const [propKey, propValue] = prop.split(/=/);
+          if (propKey != "") cookieValue[propKey] = propValue;
+        }
+      }
     }
   }
   return cookieValue;

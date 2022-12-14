@@ -22,15 +22,17 @@ describe("auth logout", function () {
 
     const result = await getAuthLogoutHandler.handler(event);
 
+    expect(result.statusCode).to.eq(302);
+    expect(result.headers.location).to.eq(url);
+
     const dcApiCookie = helpers.cookieValue(
       result.cookies,
       process.env.API_TOKEN_NAME
     );
 
-    const apiToken = new ApiToken(dcApiCookie);
-    expect(result.statusCode).to.eq(302);
-    expect(result.headers.location).to.eq(url);
+    const apiToken = new ApiToken(dcApiCookie.value);
     expect(apiToken.token.sub).to.not.exist;
     expect(apiToken.token.isLoggedIn).to.be.false;
+    expect(dcApiCookie.Expires).to.eq("Thu, 01 Jan 1970 00:00:00 GMT");
   });
 });

@@ -1,19 +1,27 @@
 const { apiTokenSecret, dcApiEndpoint } = require("../environment");
 const jwt = require("jsonwebtoken");
 
+function emptyToken() {
+  return {
+    iss: dcApiEndpoint(),
+    exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60, // 12 hours
+    iat: Math.floor(Number(new Date()) / 1000),
+    entitlements: new Set(),
+    isLoggedIn: false,
+  };
+}
 class ApiToken {
   constructor(signedToken) {
     if (signedToken) {
-      this.token = jwt.verify(signedToken, apiTokenSecret());
+      try {
+        this.token = jwt.verify(signedToken, apiTokenSecret());
+      } catch {
+        this.token = emptyToken();
+        this.expire();
+      }
       this.token.entitlements = new Set(this.token.entitlements || []);
     } else {
-      this.token = {
-        iss: dcApiEndpoint(),
-        exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60, // 12 hours
-        iat: Math.floor(Number(new Date()) / 1000),
-        entitlements: new Set(),
-        isLoggedIn: false,
-      };
+      this.token = emptyToken();
     }
   }
 
@@ -28,7 +36,7 @@ class ApiToken {
       isLoggedIn: !!user,
     };
 
-    return this;
+    return this.update();
   }
 
   readingRoom() {
@@ -45,8 +53,7 @@ class ApiToken {
 
   addEntitlement(entitlement) {
     this.token.entitlements.add(entitlement);
-
-    return this;
+    return this.update();
   }
 
   entitlements(entitlements) {
@@ -54,11 +61,21 @@ class ApiToken {
       ...this.token,
       entitlements: new Set(entitlements),
     };
-    return this;
+    return this.update();
   }
 
   removeEntitlement(entitlement) {
     this.token.entitlements.delete(entitlement);
+    return this.update();
+  }
+
+  expire() {
+    this._shouldExpire = true;
+    return this.update();
+  }
+
+  update() {
+    this._updated = true;
     return this;
   }
 
@@ -94,6 +111,14 @@ class ApiToken {
 
   isSuperUser() {
     return this.token.isSuperUser;
+  }
+
+  shouldExpire() {
+    return !!this._shouldExpire;
+  }
+
+  updated() {
+    return !!this._updated;
   }
 }
 

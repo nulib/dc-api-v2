@@ -40,7 +40,7 @@ describe("auth callback", function () {
       process.env.API_TOKEN_NAME
     );
 
-    const apiToken = new ApiToken(dcApiCookie);
+    const apiToken = new ApiToken(dcApiCookie.value);
 
     expect(apiToken.token.sub).to.eq("uid123");
     expect(apiToken.token.name).to.eq("Some User");
@@ -72,7 +72,7 @@ describe("auth callback", function () {
       process.env.API_TOKEN_NAME
     );
 
-    const apiToken = new ApiToken(dcApiCookie);
+    const apiToken = new ApiToken(dcApiCookie.value);
 
     expect(apiToken.token.sub).to.eq("uid123");
     expect(apiToken.token.name).to.eq("uid123");

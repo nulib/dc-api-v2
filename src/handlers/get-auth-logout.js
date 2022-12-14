@@ -20,8 +20,7 @@ exports.handler = async (event) => {
           location: response.data.url,
         },
       };
-      event.userToken = new ApiToken();
-      event._userTokenUpdated = true;
+      event.userToken = new ApiToken().expire();
     })
     .catch((error) => {
       console.error("NUSSO request error", error);
