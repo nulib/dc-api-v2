@@ -21,7 +21,6 @@ exports.handler = async (event) => {
   let response;
   if (user) {
     event.userToken = new ApiToken().user(user);
-    event._userTokenUpdated = true;
     response = {
       statusCode: 302,
       cookies: [

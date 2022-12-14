@@ -29,7 +29,6 @@ exports.handler = async (event) => {
   // add entitlement for the work id
   // TODO make part of request/response processing
   event.userToken.addEntitlement(workId);
-  event._userTokenUpdated = true;
 
   return processResponse(event, response);
 };

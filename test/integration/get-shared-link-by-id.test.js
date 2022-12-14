@@ -37,7 +37,7 @@ describe("Retrieve shared link by id", () => {
         result.cookies,
         process.env.API_TOKEN_NAME
       );
-      const token = new ApiToken(dcApiCookie);
+      const token = new ApiToken(dcApiCookie.value);
       expect(token.hasEntitlement("1234")).to.be.true;
     });
 

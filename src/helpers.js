@@ -44,26 +44,29 @@ function decodeToken(event) {
 
   try {
     event.userToken = new ApiToken(existingToken);
-    event._userTokenUpdated = !existingToken;
   } catch (error) {
     event.userToken = new ApiToken();
-    event._userTokenUpdated = true;
   }
   if (isFromReadingRoom(event)) {
     event.userToken.readingRoom();
-    event._userTokenUpdated = true;
   }
 
   return event;
 }
 
 function encodeToken(event, response) {
-  if (event._userTokenUpdated) {
-    const newCookie = cookie.serialize(apiTokenName(), event.userToken.sign(), {
+  if (event.userToken.updated()) {
+    let cookieOptions = {
       domain: "library.northwestern.edu",
       path: "/",
       secure: true,
-    });
+    };
+    if (event.userToken.shouldExpire()) cookieOptions.expires = new Date(0);
+    const newCookie = cookie.serialize(
+      apiTokenName(),
+      event.userToken.sign(),
+      cookieOptions
+    );
 
     response.cookies =
       response.hasOwnProperty("cookies") && _.isArray(response.cookies)

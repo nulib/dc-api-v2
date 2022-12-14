@@ -31,9 +31,15 @@ describe("auth whoami", function () {
     const result = await getAuthWhoamiHandler.handler(event);
     expect(result.statusCode).to.eq(200);
     expect(JSON.parse(result.body)).to.contain({ name: "Some One" });
+
+    const dcApiCookie = helpers.cookieValue(
+      result.cookies,
+      process.env.API_TOKEN_NAME
+    );
+    expect(dcApiCookie).to.be.undefined;
   });
 
-  it("Replaces an expired token with an anonymous token", async () => {
+  it("Expires the DC API Token and appears anonymous when an expired token is present", async () => {
     const payload = {
       iss: "https://example.com",
       sub: "user123",
@@ -52,31 +58,32 @@ describe("auth whoami", function () {
       .render();
 
     const result = await getAuthWhoamiHandler.handler(event);
+    const body = JSON.parse(result.body);
+
     expect(result.statusCode).to.eq(200);
-    expect(JSON.parse(result.body)).not.to.contain({
-      sub: "user123",
+    expect(body).to.contain({
+      iss: process.env.DC_API_ENDPOINT,
+      isLoggedIn: false,
     });
-  });
+    expect(body).not.to.contain({ sub: "user123" });
 
-  it("Issues an anonymous API token if no token is present", async () => {
-    const event = helpers.mockEvent("GET", "/auth/whoami").render();
-
-    const result = await getAuthWhoamiHandler.handler(event);
     const dcApiCookie = helpers.cookieValue(
       result.cookies,
       process.env.API_TOKEN_NAME
     );
+    expect(dcApiCookie.Expires).to.eq("Thu, 01 Jan 1970 00:00:00 GMT");
+  });
 
-    const apiToken = new ApiToken(dcApiCookie);
-    expect(apiToken.token.iss).to.eq(process.env.DC_API_ENDPOINT);
-    expect(apiToken.token.sub).to.not.exist;
+  it("Issues an anonymous API token if no token is present", async () => {
+    const event = helpers.mockEvent("GET", "/auth/whoami").render();
+    const result = await getAuthWhoamiHandler.handler(event);
+    const body = JSON.parse(result.body);
 
     expect(result.statusCode).to.eq(200);
-    expect(JSON.parse(result.body)).to.contain({
+    expect(body).to.contain({
       iss: process.env.DC_API_ENDPOINT,
+      isLoggedIn: false,
     });
-    expect(JSON.parse(result.body)).not.to.contain({
-      sub: "user123",
-    });
+    expect(body).not.to.contain({ sub: "user123" });
   });
 });
