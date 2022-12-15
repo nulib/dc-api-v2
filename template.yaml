@@ -28,9 +28,6 @@ Parameters:
     Description: Name of the jwt that DC API issues
   ApiTokenSecret:
     Type: String
-    Description: Name of the jwt that DC API issues
-  ApiSecret:
-    Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
   CustomDomainCertificateArn:
     Type: String
@@ -79,7 +76,6 @@ Resources:
       Description: NUSSO callback function.
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiSecret
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
@@ -128,7 +124,6 @@ Resources:
       Description: Exchanges valid JWT token for user information.
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiSecret
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
@@ -213,7 +208,6 @@ Resources:
             Resource: "*"
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiSecret
       Events:
         Api:
           Type: HttpApi
@@ -256,7 +250,6 @@ Resources:
             Resource: "*"
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiSecret
       Events:
         CollectionApi:
           Type: HttpApi
