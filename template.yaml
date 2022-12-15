@@ -206,8 +206,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
       Events:
         Api:
           Type: HttpApi
@@ -248,8 +246,6 @@ Resources:
             Action:
               - es:ESHttp*
             Resource: "*"
-      Environment:
-        Variables:
       Events:
         CollectionApi:
           Type: HttpApi
