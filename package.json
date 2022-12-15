@@ -9,7 +9,7 @@
     "dc-api": "file:./src"
   },
   "scripts": {
-    "preinstall": "cd src && npm i && cd -",
+    "preinstall": "cd src && npm i && cd - && jq '. | .[\"dependencies\"] = .devDependencies | del(.devDependencies)' src/package.json > dependency-layer/package.json && cd dependency-layer && npm i && cd -",
     "prettier": "prettier -c src test",
     "prettier:fix": "prettier -cw src test",
     "test": "mocha",

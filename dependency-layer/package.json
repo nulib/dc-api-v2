@@ -5,7 +5,7 @@
   "repository": "https://github.com/nulib/dc-api-v2",
   "author": "nulib",
   "license": "Apache-2.0",
-  "devDependencies": {
+  "dependencies": {
     "@aws-crypto/sha256-browser": "^2.0.1",
     "@aws-sdk/credential-provider-node": "^3.142.0",
     "@aws-sdk/node-http-handler": "^3.127.0",

@@ -1,13 +1,13 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  dc-api-v2
-
-  Sample SAM Template for dc-api-v2
+  SAM Stack for dc-api-v2
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     CodeUri: ./src
+    Layers:
+      - !Ref dependencyLayer
     Runtime: nodejs16.x
     Architectures:
       - x86_64
@@ -16,7 +16,7 @@ Globals:
     Environment:
       Variables:
         API_TOKEN_NAME: !Ref ApiTokenName
-        API_TOKEN_SECRET: !Ref ApiTokenSecret
+        API_TOKEN_SECRET: !Ref ApiSecret
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
         ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
@@ -68,6 +68,17 @@ Parameters:
     Description: Stage name of the v1 API to mount on /api/v1
     Default: latest
 Resources:
+  dependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      CompatibleArchitectures:
+        - x86_64
+      CompatibleRuntimes:
+        - nodejs16.x
+      ContentUri: ./dependency-layer
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: nodejs16.x
   # V2 API
   getAuthCallbackFunction:
     Type: AWS::Serverless::Function
