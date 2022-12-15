@@ -16,9 +16,17 @@ tags:
   - name: Models
     description: >
       Endpoints for listing and retrieving Collections, FileSets, and Works.
+  - name: Collection
+  - name: FileSet
+  - name: Work
   - name: Search
     description: >
       Endpoints for searching the index.
+  - name: OAI-PMH
+    description: >
+      Minimal endpoint implementing the Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH).
+      As OAI-PMH is not a REST protocol, it is difficult to represent using OpenAPI/Swagger documentation.
+      For full documentation and examples, please see the [official specification](https://www.openarchives.org/pmh/).
 paths:
   /collections:
     get:
@@ -181,3 +189,78 @@ paths:
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
+  /oai:
+    get:
+      operationId: oaiGet
+      tags:
+        - OAI-PMH
+      parameters:
+        - name: verb
+          description: All OAI-PMH verbs are supported with the exception of `ListSets`
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - GetRecord
+              - Identify
+              - ListIdentifiers
+              - ListMetadataFormats
+              - ListRecords
+        - name: identifier
+          description: Required for `GetRecord` requests
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: metadataPrefix
+          description: Required for `ListIdentifiers`, `ListRecords`, and `GetRecord` requests
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - oai_dc
+        - name: resumptionToken
+          description: Exclusive parameter for retrieving additional results
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: An OAI-PMH response document
+          content:
+            application/xml:
+              schema:
+                type: object
+    post:
+      operationId: oaiPost
+      tags:
+        - OAI-PMH
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                verb:
+                  description: All OAI-PMH verbs are supported with the exception of `ListSets`
+                  type: string
+                identifier:
+                  description: Required for `GetRecord` requests
+                  type: string
+                metadataPrefix:
+                  description: Required for `ListIdentifiers`, `ListRecords`, and `GetRecord` requests
+                  type: string
+                resumptionToken:
+                  description: Exclusive parameter for retrieving additional results
+                  type: string
+      responses:
+        200:
+          description: An OAI-PMH response document
+          content:
+            application/xml:
+              schema:
+                type: object
