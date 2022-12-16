@@ -13,7 +13,8 @@
     "prettier": "prettier -c src test",
     "prettier:fix": "prettier -cw src test",
     "test": "mocha",
-    "test:coverage": "nyc npm test"
+    "test:coverage": "nyc npm test",
+    "validate-spec": "openapi-generator-cli validate -i ./docs/docs/spec/openapi.yaml"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -21,6 +22,7 @@
     "mocha": "^9.1.4",
     "nock": "^13.2.9",
     "nyc": "^15.1.0",
+    "@openapitools/openapi-generator-cli": "^2.5.2",
     "prettier": "^2.7.1"
   }
 }
