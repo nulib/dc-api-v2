@@ -89,11 +89,11 @@ In a nutshell:
    sg open all 8000
    poetry run mkdocs serve -a 0.0.0.0:8000
    ```
-   Docs will be accessible at https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/
+   Docs will be accessible at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/
 
 ### OpenAPI/Swagger Docs
 
-We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
+We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
 
 The existing spec files ([`openapi.yaml`](docs/docs/spec/openapi.yaml) and [`types.yaml`](docs/docs/spec/types.yaml)) are the best reference for understanding and updating the spec. It's especially important to understand how `openapi.yaml` uses the [`$ref` keyword](https://swagger.io/docs/specification/using-ref/) to refer to reusable elements defined in `types.yaml`.
 
