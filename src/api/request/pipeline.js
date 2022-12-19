@@ -1,5 +1,4 @@
 const sortJson = require("sort-json");
-const ApiToken = require("../api-token");
 
 function filterFor(query, event) {
   const matchTheQuery = query;

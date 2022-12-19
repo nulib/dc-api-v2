@@ -1,7 +1,7 @@
+const { _processRequest } = require("../../src/handlers/middleware");
 const fs = require("fs");
 const nock = require("nock");
 const path = require("path");
-const { isArray } = require("util");
 const EventBuilder = require("./event-builder.js");
 
 function saveEnvironment() {
@@ -77,4 +77,5 @@ global.helpers = {
   encodedFixture,
   testFixture,
   cookieValue,
+  preprocess: _processRequest,
 };

@@ -3,7 +3,6 @@
 const RequestPipeline = require("../../../../src/api/request/pipeline");
 const chai = require("chai");
 const expect = chai.expect;
-const { processRequest } = require("../../../../src/handlers/middleware");
 const ApiToken = require("../../../../src/api/api-token");
 
 describe("RequestPipeline", () => {
@@ -28,7 +27,7 @@ describe("RequestPipeline", () => {
   it("adds an auth filter", () => {
     event.userToken = new ApiToken();
 
-    const result = pipeline.authFilter(event);
+    const result = pipeline.authFilter(helpers.preprocess(event));
     expect(result.searchContext.size).to.eq(50);
     expect(result.searchContext.query.bool.must).to.include(requestBody.query);
     expect(result.searchContext.query.bool.must_not).to.deep.include(
@@ -46,7 +45,7 @@ describe("RequestPipeline", () => {
       event.userToken = new ApiToken();
 
       // process.env.READING_ROOM_IPS = "192.168.0.1,172.16.10.2";
-      const result = pipeline.authFilter(event);
+      const result = pipeline.authFilter(helpers.preprocess(event));
       expect(result.searchContext.size).to.eq(50);
       expect(result.searchContext.query.bool.must).to.include(
         requestBody.query
@@ -60,7 +59,7 @@ describe("RequestPipeline", () => {
     it("includes private results if the user is in the reading room", () => {
       event.userToken = new ApiToken().readingRoom();
 
-      const result = pipeline.authFilter(event);
+      const result = pipeline.authFilter(helpers.preprocess(event));
       expect(result.searchContext.size).to.eq(50);
       expect(result.searchContext.query.bool.must).to.include(
         requestBody.query

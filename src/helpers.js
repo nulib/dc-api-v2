@@ -6,11 +6,43 @@ const ApiToken = require("./api/api-token");
 const cookie = require("cookie");
 const _ = require("lodash");
 
+const AcceptableHeaders = [
+  "Accept",
+  "Accept-Charset",
+  "Accept-Encoding",
+  "Accept-Language",
+  "Accept-Datetime",
+  "Authorization",
+  "Cache-Control",
+  "Content-Length",
+  "Content-Type",
+  "Cookie",
+  "Date",
+  "Expect",
+  "Host",
+  "If-Match",
+  "If-Modified-Since",
+  "If-None-Match",
+  "If-Range",
+  "If-Unmodified-Since",
+  "Origin",
+  "Pragma",
+  "Range",
+  "Referer",
+  "User-Agent",
+  "X-CSRF-Token",
+  "X-Forwarded-For",
+  "X-Forwarded-Host",
+  "X-Forwarded-Port",
+  "X-Requested-With",
+];
+const TextTypes = new RegExp(/^(application\/(json|(.+\+)?xml)$|text\/)/);
+
 function addCorsHeaders(event, response) {
   const allowOrigin = event?.headers?.origin || "*";
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Headers": AcceptableHeaders.join(", "),
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Max-Age": "600",
@@ -22,11 +54,18 @@ function addCorsHeaders(event, response) {
 
 function ensureCharacterEncoding(response, defaultEncoding = "UTF-8") {
   response.headers ||= {};
-  response.headers["Content-Type"] ||= "application/json; charset=UTF-8";
-  const contentTypeHeader = Object.keys(response.headers).find(
+
+  let contentTypeHeader = Object.keys(response.headers).find(
     (name) => name.toLocaleLowerCase() == "content-type"
   );
-  if (!parseHeader(response.headers[contentTypeHeader]).charset) {
+
+  if (!contentTypeHeader) {
+    contentTypeHeader = "Content-Type";
+    response[contentTypeHeader] ||= "application/json; charset=UTF-8";
+  }
+
+  const value = parseHeader(response.headers[contentTypeHeader]);
+  if (TextTypes.test(value[0]) & !value.charset) {
     response.headers[contentTypeHeader] += `; charset=${defaultEncoding}`;
   }
   return response;

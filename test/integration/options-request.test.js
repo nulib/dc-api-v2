@@ -18,5 +18,9 @@ describe("OPTIONS handler", async () => {
       "Access-Control-Allow-Origin":
         "https://dc.library.northwestern.edu/origin-test-path",
     });
+
+    expect(
+      response.headers["Access-Control-Allow-Headers"].split(/, /)
+    ).to.include("Content-Type");
   });
 });

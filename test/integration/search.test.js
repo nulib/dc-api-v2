@@ -4,7 +4,6 @@ const chai = require("chai");
 const expect = chai.expect;
 const searchHandlers = require("../../src/handlers/search");
 const RequestPipeline = require("../../src/api/request/pipeline");
-const { processRequest } = require("../../src/handlers/middleware");
 
 chai.use(require("chai-http"));
 
@@ -16,7 +15,7 @@ describe("Search routes", () => {
     const handler = searchHandlers.postSearch;
     const originalQuery = { query: { match_all: {} } };
     const authQuery = new RequestPipeline(originalQuery)
-      .authFilter(processRequest({}))
+      .authFilter(helpers.preprocess({}))
       .toJson();
 
     it("performs a works search by default", async () => {
@@ -82,7 +81,7 @@ describe("Search routes", () => {
     const handler = searchHandlers.getSearch;
     const originalQuery = { query: { match_all: {} } };
     const authQuery = new RequestPipeline(originalQuery)
-      .authFilter(processRequest({}))
+      .authFilter(helpers.preprocess({}))
       .toJson();
     const searchToken =
       "N4IgRg9gJgniBcoCOBXApgJzokBbAhgC4DGAFgPr4A2VCwAvvQDQgDOAlgF5oICMADMzzQ0VVggDaIAO4QMAa3EBdekA";
@@ -94,7 +93,7 @@ describe("Search routes", () => {
       const event = helpers.mockEvent("GET", "/search").queryParams().render();
 
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter(processRequest(event))
+        .authFilter(helpers.preprocess(event))
         .toJson();
 
       mock
@@ -165,7 +164,7 @@ describe("Search routes", () => {
         .queryParams({ as: "iiif" })
         .render();
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter(processRequest(event))
+        .authFilter(helpers.preprocess(event))
         .toJson();
 
       mock
@@ -192,7 +191,7 @@ describe("Search routes", () => {
         .queryParams({ sort: "create_date:asc,modified_date:desc" })
         .render();
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter(processRequest(event))
+        .authFilter(helpers.preprocess(event))
         .toJson();
 
       mock

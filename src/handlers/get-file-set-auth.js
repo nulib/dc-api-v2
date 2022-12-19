@@ -1,19 +1,17 @@
-const ApiToken = require("../api/api-token");
-const { processRequest, processResponse } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
+const { wrap } = require("./middleware");
 
 const OPEN_DOCUMENT_NAMESPACE = /^0{8}-0{4}-0{4}-0{4}-0{9}[0-9A-Fa-f]{3}/;
 
 /**
  * Authorizes a FileSet by id
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
+exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
 
   // Special namespace for entities that aren't actual entities
   // with indexed metadata (i.e., placeholder images)
-  if (OPEN_DOCUMENT_NAMESPACE.test(id)) return sendResponse(event, 204);
+  if (OPEN_DOCUMENT_NAMESPACE.test(id)) return sendResponse(204);
 
   const osResponse = await getFileSet(id, {
     allowPrivate: true,
@@ -21,7 +19,7 @@ exports.handler = async (event) => {
   });
 
   if (osResponse.statusCode != 200) {
-    return sendResponse(event, osResponse.statusCode, osResponse.statusCode);
+    return sendResponse(osResponse.statusCode);
   }
 
   const body = JSON.parse(osResponse.body);
@@ -35,20 +33,20 @@ exports.handler = async (event) => {
   const workId = fileSet.work_id;
 
   if (token.isSuperUser()) {
-    return sendResponse(event, 204);
+    return sendResponse(204);
   } else if (token.hasEntitlement(workId)) {
-    return sendResponse(event, 204);
+    return sendResponse(204);
   } else if (isAllowedVisibility(token, visibility, readingRoom) && published) {
-    return sendResponse(event, 204);
+    return sendResponse(204);
   } else {
-    return sendResponse(event, 403);
+    return sendResponse(403);
   }
-};
+});
 
-function sendResponse(event, statusCode) {
-  return processResponse(event, {
+function sendResponse(statusCode) {
+  return {
     statusCode: statusCode,
-  });
+  };
 }
 
 function isAllowedVisibility(token, visibility, readingRoom) {

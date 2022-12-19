@@ -4,7 +4,6 @@ const chai = require("chai");
 const expect = chai.expect;
 const { handler } = require("../../src/handlers/get-similar");
 const RequestPipeline = require("../../src/api/request/pipeline");
-const { processRequest } = require("../../src/handlers/middleware");
 chai.use(require("chai-http"));
 
 describe("Similar routes", () => {
@@ -14,7 +13,9 @@ describe("Similar routes", () => {
     .mockEvent("GET", "/works/{id}/similar")
     .pathParams({ id: 1234 });
   const makeQuery = (params) =>
-    new RequestPipeline(params).authFilter(processRequest(baseEvent)).toJson();
+    new RequestPipeline(params)
+      .authFilter(helpers.preprocess(baseEvent))
+      .toJson();
 
   it("paginates results using default size and page number", async () => {
     mock

@@ -1,14 +1,12 @@
-const { processRequest, processResponse } = require("./middleware");
 const { getWork } = require("../api/opensearch");
-
 const manifestResponse = require("../api/response/iiif/manifest");
+const { wrap } = require("./middleware");
 const opensearchResponse = require("../api/response/opensearch");
 
 /**
  * A simple function to get a Work by id
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
+exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
 
   const allowPrivate =
@@ -17,15 +15,12 @@ exports.handler = async (event) => {
 
   const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
 
-  let response;
   const as = event.queryStringParameters.as;
 
   if (as && as === "iiif") {
     // Make it IIIFy
-    response = manifestResponse.transform(esResponse);
+    return manifestResponse.transform(esResponse);
   } else {
-    response = await opensearchResponse.transform(esResponse);
+    return await opensearchResponse.transform(esResponse);
   }
-
-  return processResponse(event, response);
-};
+});

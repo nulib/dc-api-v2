@@ -4,8 +4,6 @@ const chai = require("chai");
 const expect = chai.expect;
 const getAuthWhoamiHandler = require("../../src/handlers/get-auth-whoami");
 const jwt = require("jsonwebtoken");
-const ApiToken = require("../../src/api/api-token");
-const { processRequest } = require("../../src/handlers/middleware");
 
 describe("auth whoami", function () {
   helpers.saveEnvironment();

@@ -1,15 +1,11 @@
-const { processRequest, processResponse } = require("./middleware");
+const { wrap } = require("./middleware");
 const { getSharedLink, getWork } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
-const { apiTokenName } = require("../environment");
-const ApiToken = require("../api/api-token");
-const cookie = require("cookie");
 
 /**
  * Get a shared link document by id
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
+exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
   const sharedLinkResponse = await getSharedLink(id);
   const sharedLinkResponseBody = JSON.parse(sharedLinkResponse.body);
@@ -24,14 +20,12 @@ exports.handler = async (event) => {
     allowUnpublished: true,
   });
   if (workResponse.statusCode !== 200) return invalidRequest("Not Found");
-  const response = await opensearchResponse.transform(workResponse);
 
   // add entitlement for the work id
   // TODO make part of request/response processing
   event.userToken.addEntitlement(workId);
-
-  return processResponse(event, response);
-};
+  return await opensearchResponse.transform(workResponse);
+});
 
 const invalidRequest = (message) => {
   return {
