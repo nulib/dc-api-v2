@@ -1,11 +1,10 @@
-const { addCorsHeaders } = require("../helpers");
 const ApiToken = require("../api/api-token");
 const axios = require("axios").default;
 const cookie = require("cookie");
 const opensearchResponse = require("../api/response/opensearch");
 const { apiTokenName } = require("../environment");
 const { getCollection, getWork } = require("../api/opensearch");
-const { processRequest } = require("./middleware");
+const { wrap } = require("./middleware");
 
 function getAxiosResponse(url, config) {
   return new Promise((resolve) => {
@@ -105,30 +104,25 @@ const getParameters = async (event) => {
 /**
  * A simple function to proxy a Collection or Work thumbnail from the IIIF server
  */
-exports.handler = async (event) => {
-  let response;
-
-  event = processRequest(event);
+exports.handler = wrap(async (event) => {
   try {
     const { id, aspect, size, error } = await getParameters(event);
     if (error) {
-      response = error;
+      return error;
     } else if (!id) {
-      response = {
+      return {
         statusCode: 404,
         headers: { "content-type": "text/plain" },
         body: "Not Found",
       };
     } else {
-      response = await getWorkThumbnail(id, aspect, size, event);
+      return await getWorkThumbnail(id, aspect, size, event);
     }
   } catch (err) {
-    response = {
+    return {
       statusCode: 400,
       headers: { "content-type": "text/plain" },
       body: err.message,
     };
   }
-
-  return addCorsHeaders(event, response);
-};
+});

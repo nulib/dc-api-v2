@@ -1,5 +1,4 @@
 const { baseUrl, effectivePath } = require("../helpers");
-const { processRequest, processResponse } = require("./middleware");
 const {
   extractRequestedModels,
   modelsToTargets,
@@ -14,7 +13,6 @@ const RequestPipeline = require("../api/request/pipeline");
  * Function to wrap search requests and transform responses
  */
 const doSearch = async (event, searchParams = {}) => {
-  event = processRequest(event);
   const models = extractRequestedModels(event.pathParameters?.models);
   const format = await responseFormat(event);
 
@@ -52,11 +50,7 @@ const doSearch = async (event, searchParams = {}) => {
     filteredSearchContext
   );
 
-  const response = await responseTransformer.transformSearchResult(
-    esResponse,
-    pager
-  );
-  return processResponse(event, response);
+  return await responseTransformer.transformSearchResult(esResponse, pager);
 };
 
 const invalidRequest = (message) => {

@@ -1,6 +1,6 @@
 const axios = require("axios").default;
 const cookie = require("cookie");
-const { processRequest, processResponse } = require("./middleware");
+const { wrap } = require("./middleware");
 const ApiToken = require("../api/api-token");
 
 const BAD_DIRECTORY_SEARCH_FAULT =
@@ -9,19 +9,16 @@ const BAD_DIRECTORY_SEARCH_FAULT =
 /**
  * NUSSO auth callback
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
-
+exports.handler = wrap(async (event) => {
   const returnPath = Buffer.from(
     decodeURIComponent(event.cookieObject.redirectUrl),
     "base64"
   ).toString("utf8");
 
   const user = await redeemSsoToken(event);
-  let response;
   if (user) {
     event.userToken = new ApiToken().user(user);
-    response = {
+    return {
       statusCode: 302,
       cookies: [
         cookie.serialize("redirectUrl", null, {
@@ -33,9 +30,8 @@ exports.handler = async (event) => {
       },
     };
   }
-
-  return processResponse(event, response);
-};
+  return { statusCode: 400 };
+});
 
 async function getNetIdFromToken(nusso) {
   const response = await axios.get(

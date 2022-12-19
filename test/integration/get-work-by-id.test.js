@@ -47,13 +47,6 @@ describe("Retrieve work by id", () => {
     });
 
     it("returns a single work as a IIIF Manifest", async () => {
-      // const originalQuery = {
-      //   query: { query_string: { query: "collection.id:1234" } },
-      // };
-      // const authQuery = new RequestPipeline(originalQuery)
-      //   .authFilter()
-      //   .toJson();
-
       mock
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/work-1234.json"));

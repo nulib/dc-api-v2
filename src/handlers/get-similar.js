@@ -1,10 +1,11 @@
 const { doSearch } = require("./search-runner");
+const { wrap } = require("./middleware");
 const { modelsToTargets } = require("../api/request/models");
 
 /**
  * Get similar works via 'More Like This' query
  */
-exports.handler = async (event) => {
+exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
   const models = ["works"];
   const workIndex = modelsToTargets(models);
@@ -34,4 +35,4 @@ exports.handler = async (event) => {
   };
 
   return doSearch(event, { includeToken: false });
-};
+});

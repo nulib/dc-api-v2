@@ -1,4 +1,3 @@
-const { processRequest } = require("./middleware");
 const { baseUrl } = require("../helpers");
 const {
   getRecord,
@@ -8,6 +7,7 @@ const {
   listRecords,
 } = require("./oai/verbs");
 const { invalidOaiRequest } = require("./oai/xml-transformer");
+const { wrap } = require("./middleware");
 
 const allowedVerbs = [
   "GetRecord",
@@ -21,8 +21,7 @@ const allowedVerbs = [
 /**
  * A function to support the OAI-PMH harvesting specfication
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
+exports.handler = wrap(async (event) => {
   const url = `${baseUrl(event)}oai`;
   let verb, identifier, metadataPrefix, resumptionToken;
   if (event.requestContext.http.method === "GET") {
@@ -60,4 +59,4 @@ exports.handler = async (event) => {
     default:
       return invalidOaiRequest("badVerb", "Illegal OAI verb");
   }
-};
+});

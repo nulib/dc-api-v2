@@ -4,7 +4,6 @@ const chai = require("chai");
 const expect = chai.expect;
 const getCollectionsHandler = require("../../src/handlers/get-collections");
 const RequestPipeline = require("../../src/api/request/pipeline");
-const { processRequest } = require("../../src/handlers/middleware");
 chai.use(require("chai-http"));
 
 describe("Collections route", () => {
@@ -17,7 +16,7 @@ describe("Collections route", () => {
     let event;
     const makeQuery = (params) =>
       new RequestPipeline({ query: { match_all: {} }, ...params })
-        .authFilter(processRequest(baseEvent))
+        .authFilter(helpers.preprocess(baseEvent))
         .toJson();
 
     it("paginates results using default size and page number", async () => {

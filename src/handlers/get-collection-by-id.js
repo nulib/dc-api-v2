@@ -1,14 +1,12 @@
-const { processRequest, processResponse } = require("./middleware");
+const { wrap } = require("./middleware");
 const { getCollection } = require("../api/opensearch");
 const { doSearch } = require("./search-runner");
 const opensearchResponse = require("../api/response/opensearch");
 
 const getCollectionById = async (event) => {
-  event = processRequest(event);
   const id = event.pathParameters.id;
   const esResponse = await getCollection(id);
-  const response = await opensearchResponse.transform(esResponse);
-  return processResponse(event, response);
+  return await opensearchResponse.transform(esResponse);
 };
 
 const getIiifCollectionById = async (event) => {
@@ -30,8 +28,8 @@ const getIiifCollectionById = async (event) => {
 /**
  * Get a colletion by id
  */
-exports.handler = async (event) => {
+exports.handler = wrap(async (event) => {
   return event.queryStringParameters?.as === "iiif"
     ? getIiifCollectionById(event)
     : getCollectionById(event);
-};
+});

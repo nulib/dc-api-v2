@@ -3,7 +3,6 @@
 const chai = require("chai");
 const expect = chai.expect;
 const RequestPipeline = require("../../src/api/request/pipeline");
-const { processRequest } = require("../../src/handlers/middleware");
 chai.use(require("chai-http"));
 
 describe("Retrieve collection by id", () => {
@@ -51,7 +50,7 @@ describe("Retrieve collection by id", () => {
         query: { query_string: { query: "collection.id:1234" } },
       };
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter(processRequest({}))
+        .authFilter(helpers.preprocess({}))
         .toJson();
 
       mock

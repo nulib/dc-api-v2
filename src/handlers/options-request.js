@@ -1,6 +1,5 @@
-const { processRequest, processResponse } = require("./middleware");
+const { wrap } = require("./middleware");
 
-module.exports.handler = async (event) => {
-  event = processRequest(event);
-  return processResponse(event, { statusCode: 200 });
-};
+module.exports.handler = wrap(async () => {
+  return { statusCode: 200 };
+});
