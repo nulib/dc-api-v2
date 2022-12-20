@@ -1,21 +1,16 @@
 "use strict";
 
 const chai = require("chai");
-const cookie = require("cookie");
 const expect = chai.expect;
-const jwt = require("jsonwebtoken");
 const nock = require("nock");
 const getAuthCallbackHandler = require("../../src/handlers/get-auth-callback");
+const ApiToken = require("../../src/api/api-token");
 
 describe("auth callback", function () {
   helpers.saveEnvironment();
 
   let event;
   beforeEach(() => {
-    process.env.NUSSO_BASE_URL = "https://nusso-base.com/";
-    process.env.NUSSO_API_KEY = "abc123";
-    process.env.API_TOKEN_SECRET = "abc123";
-
     event = helpers
       .mockEvent("GET", "/auth/callback")
       .headers({
@@ -32,7 +27,7 @@ describe("auth callback", function () {
     nock(process.env.NUSSO_BASE_URL)
       .get("/validate-with-directory-search-response")
       .reply(200, {
-        results: [{ displayName: ["Some User"] }],
+        results: [{ uid: "uid123", displayName: ["Some User"] }],
       });
 
     const result = await getAuthCallbackHandler.handler(event);
@@ -40,12 +35,16 @@ describe("auth callback", function () {
     expect(result.statusCode).to.eq(302);
     expect(result.headers.location).to.eq("https://example.com");
 
-    const { dcApiV2Token } = cookie.parse(result.cookies[0]);
-    const token = jwt.verify(dcApiV2Token, process.env.API_TOKEN_SECRET);
-    expect(token).to.deep.include({
-      displayName: ["Some User"],
-      uid: "uid123",
-    });
+    const dcApiCookie = helpers.cookieValue(
+      result.cookies,
+      process.env.API_TOKEN_NAME
+    );
+
+    const apiToken = new ApiToken(dcApiCookie.value);
+
+    expect(apiToken.token.sub).to.eq("uid123");
+    expect(apiToken.token.name).to.eq("Some User");
+    expect(apiToken.isLoggedIn()).to.be.true;
   });
 
   it("assembles a user object from the netID if directory search fails", async () => {
@@ -64,12 +63,20 @@ describe("auth callback", function () {
     expect(result.statusCode).to.eq(302);
     expect(result.headers.location).to.eq("https://example.com");
 
-    const { dcApiV2Token } = cookie.parse(result.cookies[0]);
-    const token = jwt.verify(dcApiV2Token, process.env.API_TOKEN_SECRET);
-    expect(token).to.deep.include({
-      displayName: ["uid123"],
-      mail: "uid123@e.northwestern.edu",
-      uid: "uid123",
-    });
+    expect(result.cookies).to.include(
+      "redirectUrl=null; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    );
+
+    const dcApiCookie = helpers.cookieValue(
+      result.cookies,
+      process.env.API_TOKEN_NAME
+    );
+
+    const apiToken = new ApiToken(dcApiCookie.value);
+
+    expect(apiToken.token.sub).to.eq("uid123");
+    expect(apiToken.token.name).to.eq("uid123");
+    expect(apiToken.token.email).to.eq("uid123@e.northwestern.edu");
+    expect(apiToken.isLoggedIn()).to.be.true;
   });
 });

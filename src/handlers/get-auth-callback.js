@@ -1,7 +1,7 @@
 const axios = require("axios").default;
 const cookie = require("cookie");
-const jwt = require("jsonwebtoken");
-const { processRequest, processResponse } = require("./middleware");
+const { wrap } = require("./middleware");
+const ApiToken = require("../api/api-token");
 
 const BAD_DIRECTORY_SEARCH_FAULT =
   /Reason: ResponseCode 404 is treated as error/;
@@ -9,25 +9,20 @@ const BAD_DIRECTORY_SEARCH_FAULT =
 /**
  * NUSSO auth callback
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
-
+exports.handler = wrap(async (event) => {
   const returnPath = Buffer.from(
     decodeURIComponent(event.cookieObject.redirectUrl),
     "base64"
   ).toString("utf8");
 
   const user = await redeemSsoToken(event);
-  let response;
   if (user) {
-    const token = jwt.sign(user, process.env.API_TOKEN_SECRET);
-    response = {
+    event.userToken = new ApiToken().user(user);
+    return {
       statusCode: 302,
       cookies: [
-        cookie.serialize("dcApiV2Token", token, {
-          domain: "library.northwestern.edu",
-          path: "/",
-          secure: true,
+        cookie.serialize("redirectUrl", null, {
+          expires: new Date(1),
         }),
       ],
       headers: {
@@ -35,9 +30,8 @@ exports.handler = async (event) => {
       },
     };
   }
-
-  return processResponse(event, response);
-};
+  return { statusCode: 400 };
+});
 
 async function getNetIdFromToken(nusso) {
   const response = await axios.get(

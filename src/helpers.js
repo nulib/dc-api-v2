@@ -1,12 +1,48 @@
 const parseHeader = require("parse-http-header");
 const path = require("path");
 const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
+const { apiTokenName } = require("./environment");
+const ApiToken = require("./api/api-token");
+const cookie = require("cookie");
+const _ = require("lodash");
+
+const AcceptableHeaders = [
+  "Accept",
+  "Accept-Charset",
+  "Accept-Encoding",
+  "Accept-Language",
+  "Accept-Datetime",
+  "Authorization",
+  "Cache-Control",
+  "Content-Length",
+  "Content-Type",
+  "Cookie",
+  "Date",
+  "Expect",
+  "Host",
+  "If-Match",
+  "If-Modified-Since",
+  "If-None-Match",
+  "If-Range",
+  "If-Unmodified-Since",
+  "Origin",
+  "Pragma",
+  "Range",
+  "Referer",
+  "User-Agent",
+  "X-CSRF-Token",
+  "X-Forwarded-For",
+  "X-Forwarded-Host",
+  "X-Forwarded-Port",
+  "X-Requested-With",
+];
+const TextTypes = new RegExp(/^(application\/(json|(.+\+)?xml)$|text\/)/);
 
 function addCorsHeaders(event, response) {
   const allowOrigin = event?.headers?.origin || "*";
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Headers": AcceptableHeaders.join(", "),
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Max-Age": "600",
@@ -18,11 +54,18 @@ function addCorsHeaders(event, response) {
 
 function ensureCharacterEncoding(response, defaultEncoding = "UTF-8") {
   response.headers ||= {};
-  response.headers["Content-Type"] ||= "application/json; charset=UTF-8";
-  const contentTypeHeader = Object.keys(response.headers).find(
+
+  let contentTypeHeader = Object.keys(response.headers).find(
     (name) => name.toLocaleLowerCase() == "content-type"
   );
-  if (!parseHeader(response.headers[contentTypeHeader]).charset) {
+
+  if (!contentTypeHeader) {
+    contentTypeHeader = "Content-Type";
+    response[contentTypeHeader] ||= "application/json; charset=UTF-8";
+  }
+
+  const value = parseHeader(response.headers[contentTypeHeader]);
+  if (TextTypes.test(value[0]) & !value.charset) {
     response.headers[contentTypeHeader] += `; charset=${defaultEncoding}`;
   }
   return response;
@@ -33,6 +76,44 @@ function decodeEventBody(event) {
   event.body = Buffer.from(event.body, "base64").toString("utf8");
   event.isBase64Encoded = false;
   return event;
+}
+
+function decodeToken(event) {
+  const existingToken = event.cookieObject[apiTokenName()];
+
+  try {
+    event.userToken = new ApiToken(existingToken);
+  } catch (error) {
+    event.userToken = new ApiToken();
+  }
+  if (isFromReadingRoom(event)) {
+    event.userToken.readingRoom();
+  }
+
+  return event;
+}
+
+function encodeToken(event, response) {
+  if (event.userToken.updated()) {
+    let cookieOptions = {
+      domain: "library.northwestern.edu",
+      path: "/",
+      secure: true,
+    };
+    if (event.userToken.shouldExpire()) cookieOptions.expires = new Date(0);
+    const newCookie = cookie.serialize(
+      apiTokenName(),
+      event.userToken.sign(),
+      cookieOptions
+    );
+
+    response.cookies =
+      response.hasOwnProperty("cookies") && _.isArray(response.cookies)
+        ? response.cookies
+        : [];
+    response.cookies.push(newCookie);
+  }
+  return response;
 }
 
 function isApiGateway(event) {
@@ -135,6 +216,8 @@ module.exports = {
   addCorsHeaders,
   baseUrl,
   decodeEventBody,
+  decodeToken,
+  encodeToken,
   effectivePath,
   ensureCharacterEncoding,
   isFromReadingRoom,

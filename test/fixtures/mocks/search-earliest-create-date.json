@@ -1,0 +1,29 @@
+{
+  "took": 3,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 10000,
+      "relation": "gte"
+    },
+    "max_score": null,
+    "hits": [
+      {
+        "_index": "dc-v2-work-1658438320350940",
+        "_type": "_doc",
+        "_id": "559ca7fb-55d1-45dc-9d8d-bd2ae2de6ae5",
+        "_score": null,
+        "_source": {
+          "create_date": "2022-11-22T20:36:00.581418Z"
+        },
+        "sort": [1669149360581]
+      }
+    ]
+  }
+}

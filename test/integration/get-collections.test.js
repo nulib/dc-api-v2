@@ -16,7 +16,7 @@ describe("Collections route", () => {
     let event;
     const makeQuery = (params) =>
       new RequestPipeline({ query: { match_all: {} }, ...params })
-        .authFilter()
+        .authFilter(helpers.preprocess(baseEvent))
         .toJson();
 
     it("paginates results using default size and page number", async () => {

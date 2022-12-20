@@ -13,7 +13,9 @@ describe("Similar routes", () => {
     .mockEvent("GET", "/works/{id}/similar")
     .pathParams({ id: 1234 });
   const makeQuery = (params) =>
-    new RequestPipeline(params).authFilter().toJson();
+    new RequestPipeline(params)
+      .authFilter(helpers.preprocess(baseEvent))
+      .toJson();
 
   it("paginates results using default size and page number", async () => {
     mock

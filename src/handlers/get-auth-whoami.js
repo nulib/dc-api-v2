@@ -1,31 +1,21 @@
-const jwt = require("jsonwebtoken");
-const { processRequest, processResponse } = require("./middleware");
+const { wrap } = require("./middleware");
 
 /**
- * NUSSO whoami - validates JWT and returns user info
+ * Whoami - validates JWT and returns user info, or issues an anonymous
+ * token if none is present
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
-
+exports.handler = wrap(async (event) => {
   try {
-    const token = event.cookieObject.dcApiV2Token;
-    const user = jwt.verify(token, process.env.API_TOKEN_SECRET);
+    const token = event.userToken;
 
-    const response = {
+    return {
       statusCode: 200,
-      headers: {
-        "Access-Control-Allow-Origin": event.headers.origin,
-        "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-        "Access-Control-Allow-Credentials": "true",
-      },
-      body: JSON.stringify(user),
+      body: JSON.stringify(token.userInfo()),
     };
-    return processResponse(event, response);
   } catch (error) {
     return {
       statusCode: 401,
       body: "Error verifying API token: " + error.message,
     };
   }
-};
+});

@@ -50,7 +50,7 @@ describe("Retrieve collection by id", () => {
         query: { query_string: { query: "collection.id:1234" } },
       };
       const authQuery = new RequestPipeline(originalQuery)
-        .authFilter()
+        .authFilter(helpers.preprocess({}))
         .toJson();
 
       mock

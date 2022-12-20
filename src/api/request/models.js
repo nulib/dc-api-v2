@@ -1,4 +1,4 @@
-const { prefix } = require("../../aws/environment");
+const { prefix } = require("../../environment");
 
 const mapTargets = {
   works: "dc-v2-work",

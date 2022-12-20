@@ -1,8 +1,10 @@
-const { apiToken } = require("../aws/environment");
+const ApiToken = require("../api/api-token");
 const axios = require("axios").default;
-const { getCollection, getWork } = require("../api/opensearch");
+const cookie = require("cookie");
 const opensearchResponse = require("../api/response/opensearch");
-const { processRequest } = require("./middleware");
+const { apiTokenName } = require("../environment");
+const { getCollection, getWork } = require("../api/opensearch");
+const { wrap } = require("./middleware");
 
 function getAxiosResponse(url, config) {
   return new Promise((resolve) => {
@@ -28,8 +30,11 @@ function validateRequest(event) {
   return { id, aspect, size };
 }
 
-const getWorkThumbnail = async (id, aspect, size) => {
-  const esResponse = await getWork(id);
+const getWorkThumbnail = async (id, aspect, size, event) => {
+  const allowPrivate = (allowUnpublished = event.userToken.hasEntitlement(id));
+
+  const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
+
   if (esResponse.statusCode != 200) {
     return opensearchResponse.transform(esResponse);
   }
@@ -48,7 +53,17 @@ const getWorkThumbnail = async (id, aspect, size) => {
   const thumbnail = `${iiif_base}/${aspect}/!${size},${size}/0/default.jpg`;
 
   const { status, headers, data } = await getAxiosResponse(thumbnail, {
-    headers: { Authorization: `Bearer ${apiToken()}` },
+    headers: {
+      cookie: cookie.serialize(
+        apiTokenName(),
+        new ApiToken().superUser().sign(),
+        {
+          domain: "library.northwestern.edu",
+          path: "/",
+          secure: true,
+        }
+      ),
+    },
     responseType: "arraybuffer",
   });
 
@@ -71,11 +86,11 @@ const getWorkThumbnail = async (id, aspect, size) => {
 };
 
 const getParameters = async (event) => {
-  const { id, aspect, size } = validateRequest(processRequest(event));
+  const { id, aspect, size } = validateRequest(event);
   if (event.rawPath.match(/\/collections\//)) {
     const esResponse = await getCollection(id);
     if (esResponse.statusCode != 200) {
-      return { error: opensearchResponse.transform(esResponse) };
+      return { error: await opensearchResponse.transform(esResponse) };
     }
 
     const body = JSON.parse(esResponse.body);
@@ -89,20 +104,20 @@ const getParameters = async (event) => {
 /**
  * A simple function to proxy a Collection or Work thumbnail from the IIIF server
  */
-exports.handler = async (event) => {
+exports.handler = wrap(async (event) => {
   try {
     const { id, aspect, size, error } = await getParameters(event);
-    if (error) return error;
-
-    if (!id) {
+    if (error) {
+      return error;
+    } else if (!id) {
       return {
         statusCode: 404,
         headers: { "content-type": "text/plain" },
         body: "Not Found",
       };
+    } else {
+      return await getWorkThumbnail(id, aspect, size, event);
     }
-
-    return await getWorkThumbnail(id, aspect, size);
   } catch (err) {
     return {
       statusCode: 400,
@@ -110,4 +125,4 @@ exports.handler = async (event) => {
       body: err.message,
     };
   }
-};
+});

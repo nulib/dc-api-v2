@@ -3,7 +3,7 @@
 const transformer = require("../../../../../src/api/response/iiif/manifest");
 const chai = require("chai");
 const expect = chai.expect;
-const { dcApiEndpoint, dcUrl } = require("../../../../../src/aws/environment");
+const { dcApiEndpoint, dcUrl } = require("../../../../../src/environment");
 
 describe("Image Work as IIIF Manifest response transformer", () => {
   function getMetadataValueByLabel(metadataArray, targetLabel) {

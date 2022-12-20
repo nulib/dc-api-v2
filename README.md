@@ -68,3 +68,41 @@ Use the [https-proxy](https://github.com/nulib/aws-developer-environment#conveni
 ```
 https-proxy start 3002 3000
 ```
+
+## Writing Documentation
+
+API documentation is automatically regenerated and deployed on pushes to the staging and production branches. The documentation is in two parts:
+
+### Regular Docs
+
+The `docs` directory contains a standard `mkdocs` project, which can be edited using the same tools and format as the main [Repository Documentation](http://docs.rdc.library.northwestern.edu/#contributing).
+
+In a nutshell:
+
+1. Clone this project into a working directory (which you probably already have).
+2. Edit the Markdown files in the `docs/docs` directory.
+3. To run `mkdocs` locally and preview your work:
+   ```shell
+   pip install poetry # only has to be done once
+   cd docs
+   poetry install
+   sg open all 8000
+   poetry run mkdocs serve -a 0.0.0.0:8000
+   ```
+   Docs will be accessible at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/
+
+### OpenAPI/Swagger Docs
+
+We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
+
+The existing spec files ([`openapi.yaml`](docs/docs/spec/openapi.yaml) and [`types.yaml`](docs/docs/spec/types.yaml)) are the best reference for understanding and updating the spec. It's especially important to understand how `openapi.yaml` uses the [`$ref` keyword](https://swagger.io/docs/specification/using-ref/) to refer to reusable elements defined in `types.yaml`.
+
+For an in-depth look, or to learn how to define things for which there aren't good examples in our spec, refer to the [full OpenAPI documentation](https://swagger.io/docs/specification/).
+
+#### Build Artifacts
+
+`openapi.html` renders the Swagger UI directly from the unmodified `openapi.yaml`. In addition, the build process generates a JSON copy of the spec using the [OpenAPI Generator CLI](https://openapi-generator.tech). In order to make sure the spec is valid before checking it in, run:
+```shell
+npm run validate-spec
+```
+This check is also part of the CI test workflow, so an invalid spec file will cause the branch to fail CI.

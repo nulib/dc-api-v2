@@ -1,21 +1,17 @@
-const { processRequest, processResponse } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
-const { isFromReadingRoom } = require("../helpers");
-const isObject = require("lodash.isobject");
-const jwt = require("jsonwebtoken");
+const { wrap } = require("./middleware");
 
 const OPEN_DOCUMENT_NAMESPACE = /^0{8}-0{4}-0{4}-0{4}-0{9}[0-9A-Fa-f]{3}/;
 
 /**
  * Authorizes a FileSet by id
  */
-exports.handler = async (event) => {
-  event = processRequest(event);
+exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
 
   // Special namespace for entities that aren't actual entities
   // with indexed metadata (i.e., placeholder images)
-  if (OPEN_DOCUMENT_NAMESPACE.test(id)) return sendResponse(event, 204);
+  if (OPEN_DOCUMENT_NAMESPACE.test(id)) return sendResponse(204);
 
   const osResponse = await getFileSet(id, {
     allowPrivate: true,
@@ -23,27 +19,34 @@ exports.handler = async (event) => {
   });
 
   if (osResponse.statusCode != 200) {
-    return sendResponse(event, osResponse.statusCode, osResponse.statusCode);
+    return sendResponse(osResponse.statusCode);
   }
 
   const body = JSON.parse(osResponse.body);
   const fileSet = body._source;
-  const token = event.cookieObject.dcApiV2Token;
+
+  const token = event.userToken;
+
   const visibility = fileSet.visibility;
   const published = fileSet.published;
-  const readingRoom = isFromReadingRoom(event);
+  const readingRoom = token.isReadingRoom();
+  const workId = fileSet.work_id;
 
-  if (isAllowedVisibility(token, visibility, readingRoom) && published) {
-    return sendResponse(event, 204);
+  if (token.isSuperUser()) {
+    return sendResponse(204);
+  } else if (token.hasEntitlement(workId)) {
+    return sendResponse(204);
+  } else if (isAllowedVisibility(token, visibility, readingRoom) && published) {
+    return sendResponse(204);
   } else {
-    return sendResponse(event, 403);
+    return sendResponse(403);
   }
-};
+});
 
-function sendResponse(event, statusCode) {
-  return processResponse(event, {
+function sendResponse(statusCode) {
+  return {
     statusCode: statusCode,
-  });
+  };
 }
 
 function isAllowedVisibility(token, visibility, readingRoom) {
@@ -51,16 +54,10 @@ function isAllowedVisibility(token, visibility, readingRoom) {
     case "Public":
       return true;
     case "Institution":
-      return isValidToken(token) || readingRoom;
+      return token.isLoggedIn() || readingRoom;
     case "Private":
       return readingRoom;
     default:
       return false;
   }
-}
-
-function isValidToken(token) {
-  if (!!token === false) return false;
-  const user = jwt.verify(token, process.env.API_TOKEN_SECRET);
-  return isObject(user);
 }

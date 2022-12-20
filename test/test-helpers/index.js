@@ -1,3 +1,4 @@
+const { _processRequest } = require("../../src/handlers/middleware");
 const fs = require("fs");
 const nock = require("nock");
 const path = require("path");
@@ -7,8 +8,12 @@ function saveEnvironment() {
   const env = Object.assign({}, process.env);
 
   beforeEach(function () {
+    process.env.API_TOKEN_SECRET = "abc123";
+    process.env.API_TOKEN_NAME = "dcapiTEST";
     process.env.DC_URL = "https://thisisafakedcurl";
     process.env.DC_API_ENDPOINT = "https://thisisafakeapiurl";
+    process.env.NUSSO_BASE_URL = "https://nusso-base.com/";
+    process.env.NUSSO_API_KEY = "abc123";
   });
 
   afterEach(function () {
@@ -44,10 +49,33 @@ function testFixture(file) {
   return fs.readFileSync(fixtureFile);
 }
 
+function cookieValue(cookies, cookieName) {
+  if (!Array.isArray(cookies)) return undefined;
+
+  let cookieValue = { value: "" };
+  const regex = new RegExp(`^${cookieName}=(?<value>[^;]+)(?<props>.+)?$`);
+  for (const c of cookies) {
+    const match = regex.exec(c);
+    if (match) {
+      const { value, props } = match.groups;
+      cookieValue.value = value;
+      if (props) {
+        for (const prop of props.split(/;\s+/)) {
+          const [propKey, propValue] = prop.split(/=/);
+          if (propKey != "") cookieValue[propKey] = propValue;
+        }
+      }
+    }
+  }
+  return cookieValue;
+}
+
 global.helpers = {
   saveEnvironment,
   mockEvent,
   mockIndex,
   encodedFixture,
   testFixture,
+  cookieValue,
+  preprocess: _processRequest,
 };
