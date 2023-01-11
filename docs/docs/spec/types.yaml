@@ -139,6 +139,10 @@ components:
         query_url:
           type: string
           description: Base URL to repeat this query for a given page
+        search_token:
+          type: string
+          required: false
+          description: Tokenized query to use in subsequent GET requests
         current_page:
           type: integer
           description: Index of current page of results
