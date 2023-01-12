@@ -21,7 +21,7 @@ const allowedVerbs = [
 function invalidDateParameters(verb, dates) {
   if (!["ListRecords", "ListIdentifiers"].includes(verb)) return [];
 
-  const regex = new RegExp(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}$/);
+  const regex = new RegExp(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/);
   let invalidDates = [];
 
   for (const [dateParameter, dateValue] of Object.entries(dates)) {
@@ -62,7 +62,7 @@ exports.handler = wrap(async (event) => {
   if (invalidDateParameters(verb, dates).length > 0)
     return invalidOaiRequest(
       "badArgument",
-      "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffff'"
+      "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffffZ'"
     );
   if (!verb) return invalidOaiRequest("badArgument", "Missing required verb");
 

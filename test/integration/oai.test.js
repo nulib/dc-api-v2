@@ -107,13 +107,13 @@ describe("Oai routes", () => {
         "badArgument"
       );
       expect(resultBody.OAI_PMH.error["_text"]).to.eq(
-        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffff'"
+        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffffZ'"
       );
     });
 
     it("supports 'from' and 'until' parameters in ListRecords and ListIdentifiers verbs", async () => {
       const body =
-        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.791570&until=2022-11-22T06:16:13.791572";
+        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.791570Z&until=2022-11-22T06:16:13.791572Z";
       mock
         .post("/dc-v2-work/_search?scroll=2m")
         .reply(200, helpers.testFixture("mocks/scroll.json"));
@@ -249,7 +249,7 @@ describe("Oai routes", () => {
     it("supports the Identify verb", async () => {
       const query = {
         size: 1,
-        _source: "indexed_at",
+        _source: "create_date",
         query: {
           bool: {
             must: [
@@ -259,14 +259,11 @@ describe("Oai routes", () => {
             ],
           },
         },
-        sort: [{ indexed_at: "asc" }],
+        sort: [{ create_date: "asc" }],
       };
       mock
         .post("/dc-v2-work/_search", query)
-        .reply(
-          200,
-          helpers.testFixture("mocks/search-earliest-indexed-at.json")
-        );
+        .reply(200, helpers.testFixture("mocks/search-earliest-record.json"));
       const event = helpers
         .mockEvent("GET", "/oai")
         .queryParams({ verb: "Identify", metadataPrefix: "oai_dc" })
@@ -277,11 +274,11 @@ describe("Oai routes", () => {
       const resultBody = convert.xml2js(result.body, xmlOpts);
       const identifyElement = resultBody.OAI_PMH.Identify;
       expect(identifyElement.earliestDatestamp._text).to.eq(
-        "2022-11-22T20:36:00.581418"
+        "2022-11-22T20:36:00.581418Z"
       );
       expect(identifyElement.deletedRecord._text).to.eq("no");
       expect(identifyElement.granularity._text).to.eq(
-        "YYYY-MM-DDThh:mm:ss.ffffff"
+        "YYYY-MM-DDThh:mm:ss.ffffffZ"
       );
     });
 
@@ -433,7 +430,7 @@ describe("Oai routes", () => {
         "badRequest"
       );
       expect(resultBody.OAI_PMH.error["_text"]).to.eq(
-        "An error occurred processing the ListRecords request"
+        "An error occurred processing the ListIdentifiers request"
       );
     });
 

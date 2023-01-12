@@ -109,7 +109,7 @@ const identify = async (url) => {
         protocolVersion: "2.0",
         earliestDatestamp: earliestDatestamp,
         deletedRecord: "no",
-        granularity: "YYYY-MM-DDThh:mm:ss.ffffff",
+        granularity: "YYYY-MM-DDThh:mm:ss.ffffffZ",
       },
     },
   };
@@ -184,7 +184,7 @@ const listIdentifiers = async (
   } else {
     return invalidOaiRequest(
       "badRequest",
-      "An error occurred processing the ListRecords request"
+      "An error occurred processing the ListIdentifiers request"
     );
   }
 };
