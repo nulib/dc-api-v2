@@ -28,14 +28,14 @@ async function earliestRecord() {
 }
 
 async function oaiSearch(dates) {
-  let rangeQuery = { range: { create_date: {} } };
+  let rangeQuery = { range: { modified_date: {} } };
 
   if (dates.from) {
-    rangeQuery.range.create_date.gt = dates.from;
+    rangeQuery.range.modified_date.gt = dates.from;
   }
 
   if (dates.until) {
-    rangeQuery.range.create_date.lt = dates.until;
+    rangeQuery.range.modified_date.lt = dates.until;
   }
 
   const body = {
@@ -50,7 +50,7 @@ async function oaiSearch(dates) {
         ],
       },
     },
-    sort: [{ create_date: "asc" }],
+    sort: [{ modified_date: "asc" }],
   };
 
   const esResponse = await search(

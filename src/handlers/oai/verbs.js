@@ -138,8 +138,8 @@ const listIdentifiers = async (
 
   if (response.statusCode == 200) {
     const responseBody = JSON.parse(response.body);
-    let scrollId = responseBody._scroll_id;
     const hits = responseBody.hits.hits;
+    let scrollId = responseBody._scroll_id;
 
     if (hits.length === 0) {
       await deleteScroll(scrollId);
