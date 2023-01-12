@@ -1,5 +1,6 @@
 const { IIIFBuilder } = require("iiif-builder");
 const { dcApiEndpoint, dcUrl } = require("../../../environment");
+const { transformError } = require("../error");
 const {
   buildAnnotationBody,
   buildImageResourceId,
@@ -244,18 +245,6 @@ function transform(response) {
     };
   }
   return transformError(response);
-}
-
-function transformError(response) {
-  const responseBody = {
-    status: response.statusCode,
-    error: "TODO",
-  };
-
-  return {
-    statusCode: response.statusCode,
-    body: JSON.stringify(responseBody),
-  };
 }
 
 module.exports = { transform };

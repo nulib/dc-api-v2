@@ -1,3 +1,5 @@
+const { transformError } = require("../error");
+
 async function transform(response, pager) {
   if (response.statusCode === 200) {
     const responseBody = JSON.parse(response.body);
@@ -39,18 +41,6 @@ async function paginationInfo(responseBody, pager) {
   );
 
   return pageInfo;
-}
-
-function transformError(response) {
-  const responseBody = {
-    status: response.statusCode,
-    error: "TODO",
-  };
-
-  return {
-    statusCode: response.statusCode,
-    body: JSON.stringify(responseBody),
-  };
 }
 
 function extractSource(hits) {

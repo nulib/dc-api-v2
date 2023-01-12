@@ -1,4 +1,5 @@
 const { dcApiEndpoint, dcUrl } = require("../../../environment");
+const { transformError } = require("../error");
 
 async function transform(response, pager) {
   if (response.statusCode === 200) {
@@ -138,15 +139,6 @@ function loadItem(item) {
         height: 400,
       },
     ],
-  };
-}
-
-function transformError(response) {
-  const responseBody = { status: response.statusCode, error: "TODO" };
-
-  return {
-    statusCode: response.statusCode,
-    body: JSON.stringify(responseBody),
   };
 }
 
