@@ -370,6 +370,7 @@ Resources:
     Properties:
       Handler: handlers/oai.handler
       Description: Transforms works into OAI Records.
+      Timeout: 60
       Policies:
         Version: 2012-10-17
         Statement:
