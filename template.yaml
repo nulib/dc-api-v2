@@ -391,6 +391,19 @@ Resources:
             ApiId: !Ref dcApi
             Path: /oai
             Method: POST
+  defaultFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/default-request.handler
+      Timeout: 3
+      Description: Handles all other requests
+      Events:
+        Everything:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: $default
+            Method: ANY
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
