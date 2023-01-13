@@ -1,5 +1,5 @@
 const { invalidOaiRequest, output } = require("../oai/xml-transformer");
-const { earliestRecordCreateDate, oaiSearch } = require("../oai/search");
+const { earliestRecord, oaiSearch } = require("../oai/search");
 const { deleteScroll, getWork, scroll } = require("../../api/opensearch");
 
 const fieldMapper = {
@@ -92,7 +92,7 @@ const getRecord = async (url, id) => {
 };
 
 const identify = async (url) => {
-  let earliestDatestamp = await earliestRecordCreateDate();
+  let earliestDatestamp = await earliestRecord();
   const obj = {
     OAI_PMH: {
       _attributes: oaiAttributes,
@@ -109,14 +109,20 @@ const identify = async (url) => {
         protocolVersion: "2.0",
         earliestDatestamp: earliestDatestamp,
         deletedRecord: "no",
-        granularity: "YYYY-MM-DDThh:mm:ssZ",
+        granularity: "YYYY-MM-DDThh:mm:ss.ffffffZ",
       },
     },
   };
   return output(obj);
 };
 
-const listIdentifiers = async (url, event, metadataPrefix, resumptionToken) => {
+const listIdentifiers = async (
+  url,
+  event,
+  metadataPrefix,
+  dates,
+  resumptionToken
+) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -126,14 +132,14 @@ const listIdentifiers = async (url, event, metadataPrefix, resumptionToken) => {
   const response =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
       ? await scroll(resumptionToken)
-      : await oaiSearch();
+      : await oaiSearch(dates);
   let headers = [];
   let resumptionTokenElement;
 
   if (response.statusCode == 200) {
     const responseBody = JSON.parse(response.body);
-    let scrollId = responseBody._scroll_id;
     const hits = responseBody.hits.hits;
+    let scrollId = responseBody._scroll_id;
 
     if (hits.length === 0) {
       await deleteScroll(scrollId);
@@ -178,7 +184,7 @@ const listIdentifiers = async (url, event, metadataPrefix, resumptionToken) => {
   } else {
     return invalidOaiRequest(
       "badRequest",
-      "An error occurred processing the ListRecords request"
+      "An error occurred processing the ListIdentifiers request"
     );
   }
 };
@@ -206,7 +212,13 @@ const listMetadataFormats = (url) => {
   return output(obj);
 };
 
-const listRecords = async (url, event, metadataPrefix, resumptionToken) => {
+const listRecords = async (
+  url,
+  event,
+  metadataPrefix,
+  dates,
+  resumptionToken
+) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -216,7 +228,7 @@ const listRecords = async (url, event, metadataPrefix, resumptionToken) => {
   const response =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
       ? await scroll(resumptionToken)
-      : await oaiSearch();
+      : await oaiSearch(dates);
   let records = [];
   let resumptionTokenElement;
 
