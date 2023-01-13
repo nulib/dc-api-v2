@@ -58,7 +58,6 @@ paths:
         - Collection
       parameters:
         - $ref: "./types.yaml#/components/parameters/id"
-        - $ref: "./types.yaml#/components/parameters/id"
         - $ref: "./types.yaml#/components/parameters/thumbnailAspect"
         - $ref: "./types.yaml#/components/parameters/thumbnailSize"
       responses:
@@ -90,7 +89,7 @@ paths:
         204:
           description: "The resource is authorized"
         403:
-          $ref: "The resource is not authorized"
+          description: "The resource is not authorized"
   /works/{id}:
     get:
       operationId: getWorkById

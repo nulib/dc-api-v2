@@ -56,16 +56,20 @@ class Paginator {
 
   async pageInfo(count) {
     let url = new URL(this.route, this.baseUrl);
+    let searchToken;
+
     if (this.options?.includeToken != false) {
-      url.searchParams.set(
-        "searchToken",
-        await encodeSearchToken(
+      searchToken =
+        this.options?.parameterOverrides?.searchToken ||
+        this.options?.queryStringParameters?.searchToken ||
+        (await encodeSearchToken(
           this.models,
           this.body,
           this.format,
           this.options
-        )
-      );
+        ));
+
+      url.searchParams.set("searchToken", searchToken);
     }
 
     const queryStringParameters =
@@ -97,6 +101,9 @@ class Paginator {
     if (next) {
       url.searchParams.set("page", next);
       result.next_url = url.toString();
+    }
+    if (searchToken) {
+      result.search_token = searchToken;
     }
 
     return result;
