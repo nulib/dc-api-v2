@@ -1,5 +1,5 @@
 const { invalidOaiRequest, output } = require("../oai/xml-transformer");
-const { earliestRecord, oaiSearch } = require("../oai/search");
+const { earliestRecord, oaiSearch, oaiSets } = require("../oai/search");
 const { deleteScroll, getWork, scroll } = require("../../api/opensearch");
 
 const fieldMapper = {
@@ -27,7 +27,20 @@ const oaiAttributes = {
 };
 
 function header(work) {
-  return { header: { identifier: work.id, datestamp: work.create_date } };
+  let fields = {
+    identifier: work.id,
+    datestamp: work.create_date,
+  };
+
+  if (Object.keys(work.collection).length > 0) {
+    fields = {
+      ...fields,
+      setSpec: work.collection.id,
+      setName: work.collection.title,
+    };
+  }
+
+  return { header: fields };
 }
 
 function transform(work) {
@@ -116,13 +129,7 @@ const identify = async (url) => {
   return output(obj);
 };
 
-const listIdentifiers = async (
-  url,
-  event,
-  metadataPrefix,
-  dates,
-  resumptionToken
-) => {
+const listIdentifiers = async (url, metadataPrefix, dates, resumptionToken) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -212,13 +219,7 @@ const listMetadataFormats = (url) => {
   return output(obj);
 };
 
-const listRecords = async (
-  url,
-  event,
-  metadataPrefix,
-  dates,
-  resumptionToken
-) => {
+const listRecords = async (url, metadataPrefix, dates, resumptionToken) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -283,10 +284,46 @@ const listRecords = async (
   }
 };
 
+const listSets = async (url) => {
+  const response = await oaiSets();
+  if (response.statusCode == 200) {
+    const responseBody = JSON.parse(response.body);
+    const hits = responseBody.hits.hits;
+
+    sets = hits.map((hit) => {
+      const collection = hit._source;
+      return { setSpec: collection.id, setName: collection.title };
+    });
+
+    const obj = {
+      OAI_PMH: {
+        _attributes: oaiAttributes,
+        responseDate: new Date().toISOString(),
+        request: {
+          _attributes: {
+            verb: "ListSets",
+          },
+          _text: url,
+        },
+        ListSets: { set: sets },
+      },
+    };
+
+    return output(obj);
+  } else {
+    return invalidOaiRequest(
+      "badRequest",
+      "An error occurred processing the ListSets request",
+      response.statusCode
+    );
+  }
+};
+
 module.exports = {
   getRecord,
   identify,
   listIdentifiers,
   listMetadataFormats,
   listRecords,
+  listSets,
 };
