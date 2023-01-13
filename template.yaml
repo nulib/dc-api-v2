@@ -238,6 +238,7 @@ Resources:
     Properties:
       Handler: handlers/get-thumbnail.handler
       Description: Gets a Work's representative thumbnail.
+      Timeout: 10
       Policies:
         Version: 2012-10-17
         Statement:
