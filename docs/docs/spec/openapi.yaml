@@ -11,7 +11,7 @@ info:
     name: NUL Repository Team
     email: repository@northwestern.edu
 servers:
-  - url: https://dcapi.rdc.library.northwestern.edu/api/v2
+  - url: https://API_HOST/api/v2
 tags:
   - name: Models
     description: >
