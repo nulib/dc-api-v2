@@ -10,18 +10,18 @@ const {
 } = require("../helpers");
 
 const wrap = function (handler) {
-  try {
-    return async (event) => {
+  return async (event) => {
+    try {
       event = _processRequest(event);
       const response = await handler(event);
       return _processResponse(event, response);
-    };
-  } catch (error) {
-    console.error("error", error);
-    return {
-      statusCode: 400,
-    };
-  }
+    } catch (error) {
+      console.error("error", error);
+      return {
+        statusCode: 400,
+      };
+    }
+  };
 };
 
 const _processRequest = function (event) {
@@ -39,6 +39,7 @@ const _processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
+  if (process.env.DEBUG) console.log(result);
   return result;
 };
 

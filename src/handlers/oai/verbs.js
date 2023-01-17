@@ -1,5 +1,5 @@
 const { invalidOaiRequest, output } = require("../oai/xml-transformer");
-const { earliestRecordCreateDate, oaiSearch } = require("../oai/search");
+const { earliestRecord, oaiSearch, oaiSets } = require("../oai/search");
 const { deleteScroll, getWork, scroll } = require("../../api/opensearch");
 
 const fieldMapper = {
@@ -27,7 +27,20 @@ const oaiAttributes = {
 };
 
 function header(work) {
-  return { header: { identifier: work.id, datestamp: work.create_date } };
+  let fields = {
+    identifier: work.id,
+    datestamp: work.create_date,
+  };
+
+  if (Object.keys(work.collection).length > 0) {
+    fields = {
+      ...fields,
+      setSpec: work.collection.id,
+      setName: work.collection.title,
+    };
+  }
+
+  return { header: fields };
 }
 
 function transform(work) {
@@ -92,7 +105,7 @@ const getRecord = async (url, id) => {
 };
 
 const identify = async (url) => {
-  let earliestDatestamp = await earliestRecordCreateDate();
+  let earliestDatestamp = await earliestRecord();
   const obj = {
     OAI_PMH: {
       _attributes: oaiAttributes,
@@ -109,14 +122,14 @@ const identify = async (url) => {
         protocolVersion: "2.0",
         earliestDatestamp: earliestDatestamp,
         deletedRecord: "no",
-        granularity: "YYYY-MM-DDThh:mm:ssZ",
+        granularity: "YYYY-MM-DDThh:mm:ss.ffffffZ",
       },
     },
   };
   return output(obj);
 };
 
-const listIdentifiers = async (url, event, metadataPrefix, resumptionToken) => {
+const listIdentifiers = async (url, metadataPrefix, dates, resumptionToken) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -126,14 +139,14 @@ const listIdentifiers = async (url, event, metadataPrefix, resumptionToken) => {
   const response =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
       ? await scroll(resumptionToken)
-      : await oaiSearch();
+      : await oaiSearch(dates);
   let headers = [];
   let resumptionTokenElement;
 
   if (response.statusCode == 200) {
     const responseBody = JSON.parse(response.body);
-    let scrollId = responseBody._scroll_id;
     const hits = responseBody.hits.hits;
+    let scrollId = responseBody._scroll_id;
 
     if (hits.length === 0) {
       await deleteScroll(scrollId);
@@ -178,7 +191,7 @@ const listIdentifiers = async (url, event, metadataPrefix, resumptionToken) => {
   } else {
     return invalidOaiRequest(
       "badRequest",
-      "An error occurred processing the ListRecords request"
+      "An error occurred processing the ListIdentifiers request"
     );
   }
 };
@@ -206,7 +219,7 @@ const listMetadataFormats = (url) => {
   return output(obj);
 };
 
-const listRecords = async (url, event, metadataPrefix, resumptionToken) => {
+const listRecords = async (url, metadataPrefix, dates, resumptionToken) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -216,7 +229,7 @@ const listRecords = async (url, event, metadataPrefix, resumptionToken) => {
   const response =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
       ? await scroll(resumptionToken)
-      : await oaiSearch();
+      : await oaiSearch(dates);
   let records = [];
   let resumptionTokenElement;
 
@@ -271,10 +284,46 @@ const listRecords = async (url, event, metadataPrefix, resumptionToken) => {
   }
 };
 
+const listSets = async (url) => {
+  const response = await oaiSets();
+  if (response.statusCode == 200) {
+    const responseBody = JSON.parse(response.body);
+    const hits = responseBody.hits.hits;
+
+    sets = hits.map((hit) => {
+      const collection = hit._source;
+      return { setSpec: collection.id, setName: collection.title };
+    });
+
+    const obj = {
+      OAI_PMH: {
+        _attributes: oaiAttributes,
+        responseDate: new Date().toISOString(),
+        request: {
+          _attributes: {
+            verb: "ListSets",
+          },
+          _text: url,
+        },
+        ListSets: { set: sets },
+      },
+    };
+
+    return output(obj);
+  } else {
+    return invalidOaiRequest(
+      "badRequest",
+      "An error occurred processing the ListSets request",
+      response.statusCode
+    );
+  }
+};
+
 module.exports = {
   getRecord,
   identify,
   listIdentifiers,
   listMetadataFormats,
   listRecords,
+  listSets,
 };

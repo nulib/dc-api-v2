@@ -24,7 +24,16 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
 
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      let metadata = resultBody.OAI_PMH.GetRecord.metadata["oai_dc:dc"];
+      const header = resultBody.OAI_PMH.GetRecord.header;
+      expect(header)
+        .to.be.an("object")
+        .and.to.deep.include.keys(
+          "identifier",
+          "datestamp",
+          "setSpec",
+          "setName"
+        );
+      const metadata = resultBody.OAI_PMH.GetRecord.metadata["oai_dc:dc"];
       expect(metadata)
         .to.be.an("object")
         .and.to.deep.include.keys(
@@ -82,6 +91,38 @@ describe("Oai routes", () => {
 
     it("supports the ListRecords verb", async () => {
       const body = "verb=ListRecords&metadataPrefix=oai_dc";
+      mock
+        .post("/dc-v2-work/_search?scroll=2m")
+        .reply(200, helpers.testFixture("mocks/scroll.json"));
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody.OAI_PMH.ListRecords.record)
+        .to.be.an("array")
+        .and.to.have.lengthOf(12);
+    });
+
+    it("validates 'from' and 'until' parameters", async () => {
+      const body =
+        "verb=ListRecords&metadataPrefix=oai_dc&from=INVALID_DATE&until=INVALID_DATE";
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(400);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+        "badArgument"
+      );
+      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffffZ'"
+      );
+    });
+
+    it("supports 'from' and 'until' parameters in ListRecords and ListIdentifiers verbs", async () => {
+      const body =
+        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.791570Z&until=2022-11-22T06:16:13.791572Z";
       mock
         .post("/dc-v2-work/_search?scroll=2m")
         .reply(200, helpers.testFixture("mocks/scroll.json"));
@@ -227,14 +268,11 @@ describe("Oai routes", () => {
             ],
           },
         },
-        sort: [{ create_date: "desc" }],
+        sort: [{ create_date: "asc" }],
       };
       mock
         .post("/dc-v2-work/_search", query)
-        .reply(
-          200,
-          helpers.testFixture("mocks/search-earliest-create-date.json")
-        );
+        .reply(200, helpers.testFixture("mocks/search-earliest-record.json"));
       const event = helpers
         .mockEvent("GET", "/oai")
         .queryParams({ verb: "Identify", metadataPrefix: "oai_dc" })
@@ -248,7 +286,9 @@ describe("Oai routes", () => {
         "2022-11-22T20:36:00.581418Z"
       );
       expect(identifyElement.deletedRecord._text).to.eq("no");
-      expect(identifyElement.granularity._text).to.eq("YYYY-MM-DDThh:mm:ssZ");
+      expect(identifyElement.granularity._text).to.eq(
+        "YYYY-MM-DDThh:mm:ss.ffffffZ"
+      );
     });
 
     it("supports the ListRecords verb", async () => {
@@ -268,18 +308,41 @@ describe("Oai routes", () => {
         .to.have.lengthOf(12);
     });
 
-    it("does not support the ListSets verb", async () => {
+    it("supports the ListSets verb", async () => {
+      mock
+        .post("/dc-v2-collection/_search")
+        .reply(200, helpers.testFixture("mocks/oai-sets.json"));
       const event = helpers
         .mockEvent("GET", "/oai")
-        .queryParams({ verb: "ListSets", metadataPrefix: "oai_dc" })
+        .queryParams({ verb: "ListSets" })
         .render();
       const result = await handler(event);
-      expect(result.statusCode).to.eq(401);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody.OAI_PMH.ListSets.set)
+        .to.be.an("array")
+        .and.to.have.lengthOf(3);
+    });
+
+    it("handles ListSets errors", async () => {
+      mock
+        .post("/dc-v2-collection/_search")
+        .reply(500, helpers.testFixture("mocks/oai-sets.json"));
+      const event = helpers
+        .mockEvent("GET", "/oai")
+        .queryParams({ verb: "ListSets" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(500);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
       expect(resultBody.OAI_PMH.error._attributes).to.include({
-        code: "noSetHierarchy",
+        code: "badRequest",
       });
+      expect(resultBody.OAI_PMH.error._text).to.eq(
+        "An error occurred processing the ListSets request"
+      );
     });
 
     it("supports the ListIdentifiers verb", async () => {
@@ -399,7 +462,7 @@ describe("Oai routes", () => {
         "badRequest"
       );
       expect(resultBody.OAI_PMH.error["_text"]).to.eq(
-        "An error occurred processing the ListRecords request"
+        "An error occurred processing the ListIdentifiers request"
       );
     });
 

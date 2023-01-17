@@ -1,0 +1,44 @@
+{
+  "took": 1,
+  "timed_out": false,
+  "_shards": { "total": 1, "successful": 1, "skipped": 0, "failed": 0 },
+  "hits": {
+    "total": { "value": 43, "relation": "eq" },
+    "max_score": null,
+    "hits": [
+      {
+        "_index": "dc-v2-collection-1673551116148",
+        "_type": "_doc",
+        "_id": "1c2e2200-c12d-4c7f-8b87-a935c349898a",
+        "_score": null,
+        "_source": {
+          "id": "1c2e2200-c12d-4c7f-8b87-a935c349898a",
+          "title": "16th-Early 20th Century Maps of Africa"
+        },
+        "sort": ["16th-Early 20th Century Maps of Africa"]
+      },
+      {
+        "_index": "dc-v2-collection-1673551116148",
+        "_type": "_doc",
+        "_id": "c4f30015-88b5-4291-b3a6-8ac9b7c7069c",
+        "_score": null,
+        "_source": {
+          "id": "c4f30015-88b5-4291-b3a6-8ac9b7c7069c",
+          "title": "Alexander Hesler Photograph Collection"
+        },
+        "sort": ["Alexander Hesler Photograph Collection"]
+      },
+      {
+        "_index": "dc-v2-collection-1673551116148",
+        "_type": "_doc",
+        "_id": "30d59215-8f2b-470d-967b-5a721fa366b7",
+        "_score": null,
+        "_source": {
+          "id": "30d59215-8f2b-470d-967b-5a721fa366b7",
+          "title": "Ann C. Gunter Slide Collection"
+        },
+        "sort": ["Ann C. Gunter Slide Collection"]
+      }
+    ]
+  }
+}
