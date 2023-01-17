@@ -78,9 +78,9 @@ jobs:
         run: poetry run mkdocs build --clean
         working-directory: ./docs
       - name: Determine correct deploy domain for environment
-        run: sed -i s/rdc\\.library\\.northwestern\\.edu/${ZONE}/g docs/site/spec/openapi.*
+        run: sed -i s/API_HOST/${HOSTNAME}/g docs/site/spec/openapi.*
         env:
-          ZONE: ${{ secrets.HostedZone }}
+          HOSTNAME: ${{ secrets.Hostname }}.${{ secrets.HostedZone }}
       - name: Generate JSON API
         uses: openapi-generators/openapitools-generator-action@v1
         with:
@@ -88,6 +88,6 @@ jobs:
           openapi-file: docs/site/spec/openapi.yaml
           command-args: -o docs/site/spec
       - name: Copy to S3
-        run: aws s3 sync --delete docs/site/ s3://dcapi-docs.${ZONE}/
+        run: aws s3 sync --delete docs/site/ s3://api-docs.${ZONE}/
         env:
           ZONE: ${{ secrets.HostedZone }}

@@ -463,7 +463,7 @@ Resources:
   docsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "dcapi-docs.${CustomDomainZone}"
+      BucketName: !Sub "api-docs.${CustomDomainZone}"
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html

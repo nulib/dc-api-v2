@@ -1,5 +1,5 @@
 site_name: "NUL Digital Collections API"
-site_url: https://dcapi.rdc.library.northwestern.edu/api/v2/
+site_url: https://api.dc.library.northwestern.edu/api/v2/
 use_directory_urls: true 
 theme:
   name: material
