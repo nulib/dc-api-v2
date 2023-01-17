@@ -24,7 +24,16 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
 
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      let metadata = resultBody.OAI_PMH.GetRecord.metadata["oai_dc:dc"];
+      const header = resultBody.OAI_PMH.GetRecord.header;
+      expect(header)
+        .to.be.an("object")
+        .and.to.deep.include.keys(
+          "identifier",
+          "datestamp",
+          "setSpec",
+          "setName"
+        );
+      const metadata = resultBody.OAI_PMH.GetRecord.metadata["oai_dc:dc"];
       expect(metadata)
         .to.be.an("object")
         .and.to.deep.include.keys(
@@ -299,18 +308,41 @@ describe("Oai routes", () => {
         .to.have.lengthOf(12);
     });
 
-    it("does not support the ListSets verb", async () => {
+    it("supports the ListSets verb", async () => {
+      mock
+        .post("/dc-v2-collection/_search")
+        .reply(200, helpers.testFixture("mocks/oai-sets.json"));
       const event = helpers
         .mockEvent("GET", "/oai")
-        .queryParams({ verb: "ListSets", metadataPrefix: "oai_dc" })
+        .queryParams({ verb: "ListSets" })
         .render();
       const result = await handler(event);
-      expect(result.statusCode).to.eq(401);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody.OAI_PMH.ListSets.set)
+        .to.be.an("array")
+        .and.to.have.lengthOf(3);
+    });
+
+    it("handles ListSets errors", async () => {
+      mock
+        .post("/dc-v2-collection/_search")
+        .reply(500, helpers.testFixture("mocks/oai-sets.json"));
+      const event = helpers
+        .mockEvent("GET", "/oai")
+        .queryParams({ verb: "ListSets" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(500);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
       expect(resultBody.OAI_PMH.error._attributes).to.include({
-        code: "noSetHierarchy",
+        code: "badRequest",
       });
+      expect(resultBody.OAI_PMH.error._text).to.eq(
+        "An error occurred processing the ListSets request"
+      );
     });
 
     it("supports the ListIdentifiers verb", async () => {

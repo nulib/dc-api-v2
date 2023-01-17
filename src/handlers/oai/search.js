@@ -64,4 +64,27 @@ async function oaiSearch(dates) {
   };
 }
 
-module.exports = { earliestRecord, oaiSearch };
+async function oaiSets() {
+  const body = {
+    size: 10000,
+    _source: ["id", "title"],
+    query: {
+      bool: {
+        must: [
+          { term: { api_model: "Collection" } },
+          { term: { published: true } },
+          { term: { visibility: "Public" } },
+        ],
+      },
+    },
+    sort: [{ title: "asc" }],
+  };
+
+  const esResponse = await search(
+    modelsToTargets(["collections"]),
+    JSON.stringify(body)
+  );
+  return esResponse;
+}
+
+module.exports = { earliestRecord, oaiSearch, oaiSets };

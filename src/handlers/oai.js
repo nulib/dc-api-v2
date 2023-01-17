@@ -5,6 +5,7 @@ const {
   listIdentifiers,
   listMetadataFormats,
   listRecords,
+  listSets,
 } = require("./oai/verbs");
 const { invalidOaiRequest } = require("./oai/xml-transformer");
 const { wrap } = require("./middleware");
@@ -72,29 +73,13 @@ exports.handler = wrap(async (event) => {
     case "Identify":
       return await identify(url);
     case "ListIdentifiers":
-      return await listIdentifiers(
-        url,
-        event,
-        metadataPrefix,
-        dates,
-        resumptionToken
-      );
+      return await listIdentifiers(url, metadataPrefix, dates, resumptionToken);
     case "ListMetadataFormats":
       return await listMetadataFormats(url);
     case "ListRecords":
-      return await listRecords(
-        url,
-        event,
-        metadataPrefix,
-        dates,
-        resumptionToken
-      );
+      return await listRecords(url, metadataPrefix, dates, resumptionToken);
     case "ListSets":
-      return invalidOaiRequest(
-        "noSetHierarchy",
-        "This repository does not support Sets",
-        401
-      );
+      return await listSets(url, resumptionToken);
     default:
       return invalidOaiRequest("badVerb", "Illegal OAI verb");
   }
