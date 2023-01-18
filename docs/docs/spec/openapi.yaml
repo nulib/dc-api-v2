@@ -24,9 +24,10 @@ tags:
       Endpoints for searching the index.
   - name: OAI-PMH
     description: >
-      Minimal endpoint implementing the Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH).
+      Endpoint implementing the Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH).
       As OAI-PMH is not a REST protocol, it is difficult to represent using OpenAPI/Swagger documentation.
       For full documentation and examples, please see the [official specification](https://www.openarchives.org/pmh/).
+      Note: all 'from' and 'until' query parameters are required to follow the format: 'YYYY:MM:DDThh:mm:ss.ffffffZ'. If you do not need nanosecond precision for your request, then pad the date with zero values, e.g. '2023-01-13T00:00:00.000000Z'
 paths:
   /collections:
     get:
@@ -195,7 +196,7 @@ paths:
         - OAI-PMH
       parameters:
         - name: verb
-          description: All OAI-PMH verbs are supported with the exception of `ListSets`
+          description: All OAI-PMH verbs are supported.
           in: query
           required: true
           schema:
@@ -206,10 +207,12 @@ paths:
               - ListIdentifiers
               - ListMetadataFormats
               - ListRecords
+              - ListSets
         - name: identifier
           description: Required for `GetRecord` requests
           in: query
           required: false
+          example: d75a851f-b773-4bdf-baec-62a8ec974126
           schema:
             type: string
         - name: metadataPrefix
@@ -220,6 +223,27 @@ paths:
             type: string
             enum:
               - oai_dc
+        - name: from
+          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+          in: query
+          required: false
+          example: 2023-01-01T08:12:23.561029Z
+          schema:
+            type: string
+        - name: until
+          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+          in: query
+          required: false
+          example: 2023-01-12T12:03:59.224831Z
+          schema:
+            type: string
+        - name: set
+          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a collection id.
+          in: query
+          required: false
+          example: c4f30015-88b5-4291-b3a6-8ac9b7c7069c
+          schema:
+            type: string
         - name: resumptionToken
           description: Exclusive parameter for retrieving additional results
           in: query
@@ -245,16 +269,25 @@ paths:
               type: object
               properties:
                 verb:
-                  description: All OAI-PMH verbs are supported with the exception of `ListSets`
+                  description: All OAI-PMH verbs are supported
                   type: string
                 identifier:
                   description: Required for `GetRecord` requests
                   type: string
                 metadataPrefix:
-                  description: Required for `ListIdentifiers`, `ListRecords`, and `GetRecord` requests
+                  description: Required for `ListIdentifiers`, `ListRecords`, and `GetRecord` requests. The only supported value is `"oai_dc"` currently.
                   type: string
                 resumptionToken:
                   description: Exclusive parameter for retrieving additional results
+                  type: string
+                from:
+                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+                  type: string
+                until:
+                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+                  type: string
+                set:
+                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a collection id.
                   type: string
       responses:
         200:
