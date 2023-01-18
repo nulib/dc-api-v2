@@ -1,0 +1,100 @@
+{
+  "took": 29,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 1,
+      "relation": "eq"
+    },
+    "max_score": null,
+    "hits": [
+      {
+        "_index": "dc-v2-work-1673550300442",
+        "_type": "_doc",
+        "_id": "c6b8a744-aa8a-4437-b885-175f3816f9cd",
+        "_score": null,
+        "_source": {
+          "folder_names": [],
+          "catalog_key": [],
+          "related_url": [],
+          "batch_ids": [],
+          "legacy_identifier": [],
+          "publisher": [],
+          "creator": [],
+          "work_type": "Image",
+          "accession_number": "Accession:inu-test",
+          "date_created": [],
+          "genre": [],
+          "box_name": [],
+          "abstract": [],
+          "modified_date": "2022-11-22T06:16:12.323005Z",
+          "keywords": [],
+          "description": [],
+          "location": [],
+          "preservation_level": "Level 1",
+          "box_number": ["2"],
+          "cultural_context": [],
+          "caption": [],
+          "rights_holder": [],
+          "physical_description_material": [],
+          "title": "Test Collection",
+          "collection": {
+            "description": "Test Description",
+            "id": "c4f30015-88b5-4291-b3a6-8ac9b7c7069c",
+            "title": "Test Collection"
+          },
+          "source": [],
+          "scope_and_contents": [],
+          "ingest_project": {},
+          "thumbnail": "https://dcapi.test.library.northwestern.edu/works/c6b8a744-aa8a-4437-b885-175f3816f9cd/thumbnail",
+          "identifier": [],
+          "physical_description_size": [],
+          "ark": "ark:/test/test",
+          "file_sets": [],
+          "related_material": [],
+          "language": [],
+          "api_link": "https://dcapi.test.library.northwestern.edu/works/c6b8a744-aa8a-4437-b885-175f3816f9cd",
+          "alternate_title": [],
+          "series": [],
+          "api_model": "Work",
+          "id": "c6b8a744-aa8a-4437-b885-175f3816f9cd",
+          "project": {},
+          "published": true,
+          "rights_statement": {
+            "id": "http://rightsstatements.org/vocab/NoC-US/1.0/",
+            "label": "No Copyright - United States"
+          },
+          "notes": [],
+          "visibility": "Public",
+          "table_of_contents": [],
+          "indexed_at": "2023-01-12T19:05:00.626875",
+          "representative_file_set": {
+            "aspect_ratio": 1.59402,
+            "id": "a04e4a28-340f-46cb-aca2-9e7f5713ae84",
+            "url": "https://iiif.test.rdc.library.northwestern.edu/iiif/2/dev/a04e4a28-340f-46cb-aca2-9e7f5713ae84"
+          },
+          "library_unit": "",
+          "subject": [],
+          "status": "Done",
+          "ingest_sheet": {},
+          "technique": [],
+          "folder_numbers": [],
+          "license": null,
+          "terms_of_use": "",
+          "provenance": [],
+          "iiif_manifest": "https://dcapi.rdc-staging.library.northwestern.edu/works/c6b8a744-aa8a-4437-b885-175f3816f9cd?as=iiif",
+          "style_period": [],
+          "create_date": "2021-03-16T16:22:09.679863Z",
+          "csv_metadata_update_jobs": []
+        },
+        "sort": [1669097772323]
+      }
+    ]
+  }
+}
