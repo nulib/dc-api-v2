@@ -27,29 +27,29 @@ async function earliestRecord() {
   return responseBody?.hits?.hits[0]?._source?.create_date;
 }
 
-async function oaiSearch(dates) {
-  let rangeQuery = { range: { modified_date: {} } };
-
-  if (dates.from) {
-    rangeQuery.range.modified_date.gt = dates.from;
-  }
-
-  if (dates.until) {
-    rangeQuery.range.modified_date.lt = dates.until;
-  }
-
-  const body = {
-    size: 1000,
-    query: {
-      bool: {
-        must: [
-          { term: { api_model: "Work" } },
-          { term: { published: true } },
-          { term: { visibility: "Public" } },
-          rangeQuery,
-        ],
+async function oaiSearch(dates, set, size = 1000) {
+  const range = {
+    range: {
+      modified_date: {
+        ...(dates.from && { gt: dates.from }),
+        ...(dates.until && { lt: dates.until }),
       },
     },
+  };
+  const query = {
+    bool: {
+      must: [
+        { term: { api_model: "Work" } },
+        { term: { published: true } },
+        { term: { visibility: "Public" } },
+        range,
+      ],
+      ...(set && { must: [{ term: { "collection.id": set } }] }),
+    },
+  };
+  const body = {
+    size,
+    query,
     sort: [{ modified_date: "asc" }],
   };
 
@@ -58,6 +58,7 @@ async function oaiSearch(dates) {
     JSON.stringify(body),
     { scroll: "2m" }
   );
+
   return {
     ...esResponse,
     expiration: new Date(new Date().getTime() + 2 * 60000).toISOString(),
