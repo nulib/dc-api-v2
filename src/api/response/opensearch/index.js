@@ -36,9 +36,7 @@ async function transformMany(responseBody, pager) {
 }
 
 async function paginationInfo(responseBody, pager) {
-  let { format, options, ...pageInfo } = await pager.pageInfo(
-    responseBody.hits.total.value
-  );
+  let { ...pageInfo } = await pager.pageInfo(responseBody.hits.total.value);
 
   return pageInfo;
 }

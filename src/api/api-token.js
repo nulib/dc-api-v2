@@ -25,7 +25,7 @@ class ApiToken {
     }
   }
 
-  // manipulation – always return `this` for chaining
+  // manipulation – always return `this` for chaining
 
   user(user) {
     this.token = {

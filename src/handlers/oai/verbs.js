@@ -301,7 +301,7 @@ const listSets = async (url) => {
     const responseBody = JSON.parse(response.body);
     const hits = responseBody.hits.hits;
 
-    sets = hits.map((hit) => {
+    const sets = hits.map((hit) => {
       const collection = hit._source;
       return { setSpec: collection.id, setName: collection.title };
     });

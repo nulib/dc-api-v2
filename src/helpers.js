@@ -108,7 +108,8 @@ function encodeToken(event, response) {
     );
 
     response.cookies =
-      response.hasOwnProperty("cookies") && _.isArray(response.cookies)
+      Object.prototype.hasOwnProperty.call(response, "cookies") &&
+      _.isArray(response.cookies)
         ? response.cookies
         : [];
     response.cookies.push(newCookie);

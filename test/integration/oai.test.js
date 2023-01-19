@@ -3,7 +3,6 @@
 const chai = require("chai");
 const expect = chai.expect;
 const convert = require("xml-js");
-const nock = require("nock");
 chai.use(require("chai-http"));
 
 const { handler } = requireSource("handlers/oai");

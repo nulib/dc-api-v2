@@ -6,7 +6,6 @@ const {
   buildImageResourceId,
   buildImageService,
   isAudioVideo,
-  isImage,
 } = require("./presentation-api/items");
 const { metadataLabelFields } = require("./presentation-api/metadata");
 

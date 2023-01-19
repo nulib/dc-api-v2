@@ -17,13 +17,13 @@ const wrap = function (handler) {
   return async (event, context) => {
     let response;
     try {
-      event = _processRequest(event);
+      event = __processRequest(event);
       response = await handler(event, context);
     } catch (error) {
       await Honeybadger.notifyAsync(error);
       response = _convertErrorToResponse(error);
     }
-    return _processResponse(event, response);
+    return __processResponse(event, response);
   };
 };
 
@@ -43,7 +43,7 @@ const _convertErrorToResponse = function (error) {
   }
 };
 
-const _processRequest = function (event) {
+const __processRequest = function (event) {
   if (event.__processRequest) return event;
   let result = maybeUseProxiedIp(event);
   result = stubEventMembers(event);
@@ -54,21 +54,21 @@ const _processRequest = function (event) {
   result.__processRequest = true;
 
   Honeybadger.setContext({ event: result });
-  if (!!process.env.DEBUG) console.log(result);
+  if (process.env.DEBUG) console.log(result);
   return result;
 };
 
-const _processResponse = function (event, response) {
+const __processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
-  if (!!process.env.DEBUG) console.log(result);
+  if (process.env.DEBUG) console.log(result);
   return result;
 };
 
 module.exports = {
   wrap,
-  _processRequest,
-  _processResponse,
+  __processRequest,
+  __processResponse,
   __Honeybadger: Honeybadger,
 };

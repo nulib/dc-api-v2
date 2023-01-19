@@ -10,7 +10,8 @@ function requireSource(module) {
   return require(absolute);
 }
 
-const { _processRequest } = requireSource("handlers/middleware");
+const { __processRequest } = requireSource("handlers/middleware");
+
 function saveEnvironment() {
   const env = Object.assign({}, process.env);
 
@@ -84,7 +85,7 @@ global.helpers = {
   encodedFixture,
   testFixture,
   cookieValue,
-  preprocess: _processRequest,
+  preprocess: __processRequest,
 };
 
 global.requireSource = requireSource;

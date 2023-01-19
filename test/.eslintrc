@@ -1,0 +1,6 @@
+{
+  "globals": {
+    "helpers": true,
+    "requireSource": true
+  }
+}
