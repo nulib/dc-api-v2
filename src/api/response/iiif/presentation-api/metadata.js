@@ -109,7 +109,7 @@ function metadataLabelFields(source) {
     },
     {
       label: "Subject",
-      value: source.subject.map((item) => item.label_with_role),
+      value: source.subject.map((item) => item.label),
     },
     {
       label: "Table of Contents",
