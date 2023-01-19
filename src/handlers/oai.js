@@ -49,6 +49,7 @@ exports.handler = wrap(async (event) => {
     resumptionToken = event.queryStringParameters?.resumptionToken;
     from = event.queryStringParameters?.from;
     until = event.queryStringParameters?.until;
+    set = event.queryStringParameters?.set;
   } else {
     const body = new URLSearchParams(event.body);
     verb = body.get("verb");
@@ -57,6 +58,7 @@ exports.handler = wrap(async (event) => {
     resumptionToken = body.get("resumptionToken");
     from = body.get("from");
     until = body.get("until");
+    set = body.get("set");
   }
 
   const dates = { from, until };
@@ -73,11 +75,23 @@ exports.handler = wrap(async (event) => {
     case "Identify":
       return await identify(url);
     case "ListIdentifiers":
-      return await listIdentifiers(url, metadataPrefix, dates, resumptionToken);
+      return await listIdentifiers(
+        url,
+        metadataPrefix,
+        dates,
+        set,
+        resumptionToken
+      );
     case "ListMetadataFormats":
       return await listMetadataFormats(url);
     case "ListRecords":
-      return await listRecords(url, metadataPrefix, dates, resumptionToken);
+      return await listRecords(
+        url,
+        metadataPrefix,
+        dates,
+        set,
+        resumptionToken
+      );
     case "ListSets":
       return await listSets(url, resumptionToken);
     default:

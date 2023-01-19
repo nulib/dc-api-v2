@@ -40,7 +40,7 @@ function header(work) {
     };
   }
 
-  return { header: fields };
+  return fields;
 }
 
 function transform(work) {
@@ -66,7 +66,7 @@ function transform(work) {
     },
   };
 
-  return { ...header(work), ...metadata };
+  return { header: { ...header(work) }, ...metadata };
 }
 
 const getRecord = async (url, id) => {
@@ -129,7 +129,13 @@ const identify = async (url) => {
   return output(obj);
 };
 
-const listIdentifiers = async (url, metadataPrefix, dates, resumptionToken) => {
+const listIdentifiers = async (
+  url,
+  metadataPrefix,
+  dates,
+  set,
+  resumptionToken
+) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -139,8 +145,7 @@ const listIdentifiers = async (url, metadataPrefix, dates, resumptionToken) => {
   const response =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
       ? await scroll(resumptionToken)
-      : await oaiSearch(dates);
-  let headers = [];
+      : await oaiSearch(dates, set);
   let resumptionTokenElement;
 
   if (response.statusCode == 200) {
@@ -152,8 +157,8 @@ const listIdentifiers = async (url, metadataPrefix, dates, resumptionToken) => {
       await deleteScroll(scrollId);
       scrollId = "";
     }
-    headers = hits.map((hit) => header(hit._source));
 
+    const headers = hits.map((hit) => header(hit._source));
     resumptionTokenElement = {
       _attributes: {
         expirationDate: response.expiration,
@@ -172,7 +177,7 @@ const listIdentifiers = async (url, metadataPrefix, dates, resumptionToken) => {
           _text: url,
         },
         ListIdentifiers: {
-          header: headers,
+          headers: { header: headers },
           resumptionToken: resumptionTokenElement,
         },
       },
@@ -219,7 +224,13 @@ const listMetadataFormats = (url) => {
   return output(obj);
 };
 
-const listRecords = async (url, metadataPrefix, dates, resumptionToken) => {
+const listRecords = async (
+  url,
+  metadataPrefix,
+  dates,
+  set,
+  resumptionToken
+) => {
   if (!metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
@@ -229,7 +240,7 @@ const listRecords = async (url, metadataPrefix, dates, resumptionToken) => {
   const response =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
       ? await scroll(resumptionToken)
-      : await oaiSearch(dates);
+      : await oaiSearch(dates, set);
   let records = [];
   let resumptionTokenElement;
 

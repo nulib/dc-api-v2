@@ -4,9 +4,14 @@ const chai = require("chai");
 const expect = chai.expect;
 const { handler } = require("../../src/handlers/oai");
 const convert = require("xml-js");
+const nock = require("nock");
 chai.use(require("chai-http"));
 
-const xmlOpts = { compact: true, alwaysChildren: true };
+const xmlOpts = {
+  compact: true,
+  alwaysChildren: true,
+  alwaysArray: ["headers"],
+};
 
 describe("Oai routes", () => {
   helpers.saveEnvironment();
@@ -377,6 +382,31 @@ describe("Oai routes", () => {
       expect(resultBody.OAI_PMH.error._text).to.eq(
         "Missing required metadataPrefix argument"
       );
+    });
+
+    it("supports the 'set' parameter", async () => {
+      mock
+        .post("/dc-v2-work/_search?scroll=2m")
+        .reply(
+          200,
+          helpers.testFixture("mocks/oai-list-identifiers-sets.json")
+        );
+      const event = helpers
+        .mockEvent("GET", "/oai")
+        .queryParams({
+          verb: "ListIdentifiers",
+          metadataPrefix: "oai_dc",
+          set: "c4f30015-88b5-4291-b3a6-8ac9b7c7069c",
+        })
+        .render();
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody.OAI_PMH.ListIdentifiers.headers)
+        .to.be.an("array")
+        .to.have.lengthOf(1);
     });
 
     it("uses an empty resumptionToken to tell harvesters that list requests are complete", async () => {
