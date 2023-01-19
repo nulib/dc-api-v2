@@ -9,7 +9,7 @@ describe("Doc retrieval routes", () => {
   const mock = helpers.mockIndex();
 
   describe("GET /works/{id}", () => {
-    const { handler } = require("../../src/handlers/get-work-by-id");
+    const { handler } = requireSource("handlers/get-work-by-id");
 
     it("retrieves a single work", async () => {
       mock
@@ -87,7 +87,7 @@ describe("Doc retrieval routes", () => {
   });
 
   describe("GET /collections/{id}", () => {
-    const { handler } = require("../../src/handlers/get-collection-by-id");
+    const { handler } = requireSource("handlers/get-collection-by-id");
 
     it("retrieves a single collection", async () => {
       mock
@@ -112,7 +112,7 @@ describe("Doc retrieval routes", () => {
   });
 
   describe("GET /file-sets/{id}", () => {
-    const { handler } = require("../../src/handlers/get-file-set-by-id");
+    const { handler } = requireSource("handlers/get-file-set-by-id");
 
     it("retrieves a single file-set", async () => {
       mock

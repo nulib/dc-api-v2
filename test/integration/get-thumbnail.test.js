@@ -1,9 +1,10 @@
 "use strict";
 
 const chai = require("chai");
-const ApiToken = require("../../src/api/api-token");
 const expect = chai.expect;
-const { handler } = require("../../src/handlers/get-thumbnail");
+
+const ApiToken = requireSource("api/api-token");
+const { handler } = requireSource("handlers/get-thumbnail");
 
 function expectCorsHeaders(result) {
   expect(result.headers["Access-Control-Allow-Credentials"]).to.eq("true");

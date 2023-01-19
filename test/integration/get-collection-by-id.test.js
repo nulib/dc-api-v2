@@ -2,15 +2,16 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
+
+const RequestPipeline = requireSource("api/request/pipeline");
 
 describe("Retrieve collection by id", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
   describe("GET /collections/{id}", () => {
-    const { handler } = require("../../src/handlers/get-collection-by-id");
+    const { handler } = requireSource("handlers/get-collection-by-id");
 
     it("retrieves a single collection link document", async () => {
       mock

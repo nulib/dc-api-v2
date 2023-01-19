@@ -1,9 +1,10 @@
 "use strict";
 
-const transformer = require("../../../../../src/api/response/iiif/manifest");
 const chai = require("chai");
 const expect = chai.expect;
-const { dcApiEndpoint, dcUrl } = require("../../../../../src/environment");
+
+const { dcApiEndpoint, dcUrl } = requireSource("environment");
+const transformer = requireSource("api/response/iiif/manifest");
 
 describe("Image Work as IIIF Manifest response transformer", () => {
   function getMetadataValueByLabel(metadataArray, targetLabel) {
@@ -114,7 +115,7 @@ describe("Image Work as IIIF Manifest response transformer", () => {
   });
 
   it("excludes Preservation and Supplemental filesets", async () => {
-    const { source, manifest } = await setup();
+    const { manifest } = await setup();
     manifest.items.forEach((canvas) => {
       expect(canvas.id).not.contains(["preservation", "supplemental"]);
     });

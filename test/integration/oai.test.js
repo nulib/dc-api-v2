@@ -2,10 +2,11 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const { handler } = require("../../src/handlers/oai");
 const convert = require("xml-js");
 const nock = require("nock");
 chai.use(require("chai-http"));
+
+const { handler } = requireSource("handlers/oai");
 
 const xmlOpts = {
   compact: true,

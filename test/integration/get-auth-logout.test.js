@@ -3,8 +3,9 @@
 const chai = require("chai");
 const expect = chai.expect;
 const nock = require("nock");
-const getAuthLogoutHandler = require("../../src/handlers/get-auth-logout");
-const ApiToken = require("../../src/api/api-token");
+
+const getAuthLogoutHandler = requireSource("handlers/get-auth-logout");
+const ApiToken = requireSource("api/api-token");
 
 describe("auth logout", function () {
   helpers.saveEnvironment();

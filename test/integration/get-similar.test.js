@@ -2,9 +2,10 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const { handler } = require("../../src/handlers/get-similar");
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
+
+const { handler } = requireSource("handlers/get-similar");
+const RequestPipeline = requireSource("api/request/pipeline");
 
 describe("Similar routes", () => {
   helpers.saveEnvironment();

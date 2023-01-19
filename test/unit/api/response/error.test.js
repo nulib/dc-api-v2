@@ -1,6 +1,7 @@
-const errorTransformer = require("../../../../src/api/response/error");
 const chai = require("chai");
 const expect = chai.expect;
+
+const errorTransformer = requireSource("api/response/error");
 
 describe("The error response", () => {
   it("Transforms a missing work response", async () => {

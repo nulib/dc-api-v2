@@ -1,9 +1,10 @@
 "use strict";
 
-const ApiToken = require("../../src/api/api-token");
 const chai = require("chai");
 const expect = chai.expect;
 chai.use(require("chai-http"));
+
+const ApiToken = requireSource("api/api-token");
 
 describe("Authorize a file set by id", () => {
   process.env.API_TOKEN_SECRET = "abc123";
@@ -12,7 +13,7 @@ describe("Authorize a file set by id", () => {
   const mock = helpers.mockIndex();
 
   describe("GET /file-sets/{id}/authorization", () => {
-    const { handler } = require("../../src/handlers/get-file-set-auth");
+    const { handler } = requireSource("handlers/get-file-set-auth");
 
     it("authorizes a public, published file set with no token", async () => {
       mock

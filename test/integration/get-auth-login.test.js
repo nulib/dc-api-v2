@@ -3,7 +3,8 @@
 const chai = require("chai");
 const expect = chai.expect;
 const nock = require("nock");
-const getAuthLoginHandler = require("../../src/handlers/get-auth-login");
+
+const getAuthLoginHandler = requireSource("handlers/get-auth-login");
 
 describe("auth login", function () {
   helpers.saveEnvironment();
