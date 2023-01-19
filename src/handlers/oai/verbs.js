@@ -29,7 +29,7 @@ const oaiAttributes = {
 function header(work) {
   let fields = {
     identifier: work.id,
-    datestamp: work.create_date,
+    datestamp: work.modified_date,
   };
 
   if (Object.keys(work.collection).length > 0) {
