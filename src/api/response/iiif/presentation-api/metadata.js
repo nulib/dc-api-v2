@@ -92,6 +92,10 @@ function metadataLabelFields(source) {
       value: source.rights_holder,
     },
     {
+      label: "Rights Statement",
+      value: formatSingleValuedField(source.rights_statement?.label),
+    },
+    {
       label: "Scope and Contents",
       value: source.scope_and_contents,
     },
