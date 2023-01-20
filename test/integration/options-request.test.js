@@ -2,7 +2,8 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const optionsHandler = require("../../src/handlers/options-request");
+
+const optionsHandler = requireSource("handlers/options-request");
 
 describe("OPTIONS handler", async () => {
   const event = helpers

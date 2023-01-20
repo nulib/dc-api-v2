@@ -1,9 +1,10 @@
 "use strict";
 
-const RequestPipeline = require("../../../../src/api/request/pipeline");
 const chai = require("chai");
 const expect = chai.expect;
-const ApiToken = require("../../../../src/api/api-token");
+
+const ApiToken = requireSource("api/api-token");
+const RequestPipeline = requireSource("api/request/pipeline");
 
 describe("RequestPipeline", () => {
   helpers.saveEnvironment();

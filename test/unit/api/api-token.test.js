@@ -1,9 +1,10 @@
 "use strict";
 
-const ApiToken = require("../../../src/api/api-token");
 const chai = require("chai");
 const expect = chai.expect;
 const jwt = require("jsonwebtoken");
+
+const ApiToken = requireSource("api/api-token");
 
 describe("ApiToken", function () {
   this.beforeEach(() => {});

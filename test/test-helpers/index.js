@@ -1,9 +1,14 @@
-const { _processRequest } = require("../../src/handlers/middleware");
 const fs = require("fs");
 const nock = require("nock");
 const path = require("path");
 const EventBuilder = require("./event-builder.js");
 
+function requireSource(module) {
+  const absolute = path.resolve(__dirname, "../../src", module);
+  return require(absolute);
+}
+
+const { _processRequest } = requireSource("handlers/middleware");
 function saveEnvironment() {
   const env = Object.assign({}, process.env);
 
@@ -79,3 +84,5 @@ global.helpers = {
   cookieValue,
   preprocess: _processRequest,
 };
+
+global.requireSource = requireSource;

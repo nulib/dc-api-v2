@@ -1,9 +1,10 @@
 "use strict";
 
-const transformer = require("../../../../../src/api/response/iiif/collection");
-const { Paginator } = require("../../../../../src/api/pagination");
 const chai = require("chai");
 const expect = chai.expect;
+
+const transformer = requireSource("api/response/iiif/collection");
+const { Paginator } = requireSource("api/pagination");
 
 describe("IIIF Collection response transformer", () => {
   let pager;

@@ -2,8 +2,9 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const searchHandlers = require("../../src/handlers/search");
-const RequestPipeline = require("../../src/api/request/pipeline");
+
+const searchHandlers = requireSource("handlers/search");
+const RequestPipeline = requireSource("api/request/pipeline");
 
 chai.use(require("chai-http"));
 

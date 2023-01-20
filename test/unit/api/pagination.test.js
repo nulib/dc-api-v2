@@ -1,8 +1,9 @@
 "use strict";
 
-const { decodeSearchToken, Paginator } = require("../../../src/api/pagination");
 const chai = require("chai");
 const expect = chai.expect;
+
+const { decodeSearchToken, Paginator } = requireSource("api/pagination");
 
 describe("Paginator", function () {
   const requestBody = {

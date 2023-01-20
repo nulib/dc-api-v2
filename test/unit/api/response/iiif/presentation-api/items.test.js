@@ -1,8 +1,9 @@
 "use strict";
 
-const items = require("../../../../../../src/api/response/iiif/presentation-api/items");
 const chai = require("chai");
 const expect = chai.expect;
+
+const items = requireSource("api/response/iiif/presentation-api/items");
 
 describe("IIIF response presentation API items helpers", () => {
   const accessImage = {

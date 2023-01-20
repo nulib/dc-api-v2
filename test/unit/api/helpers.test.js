@@ -1,5 +1,10 @@
 "use strict";
 
+const chai = require("chai");
+const expect = chai.expect;
+const jwt = require("jsonwebtoken");
+
+const ApiToken = requireSource("api/api-token");
 const {
   baseUrl,
   decodeEventBody,
@@ -8,11 +13,7 @@ const {
   normalizeHeaders,
   objectifyCookies,
   stubEventMembers,
-} = require("../../../src/helpers");
-const chai = require("chai");
-const expect = chai.expect;
-const ApiToken = require("../../../src/api/api-token");
-const jwt = require("jsonwebtoken");
+} = requireSource("helpers");
 
 describe("helpers", () => {
   describe("baseUrl()", () => {

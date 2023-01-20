@@ -1,8 +1,9 @@
 "use strict";
 
-const models = require("../../../../src/api/request/models");
 const chai = require("chai");
 const expect = chai.expect;
+
+const models = requireSource("api/request/models");
 
 describe("models", () => {
   helpers.saveEnvironment();

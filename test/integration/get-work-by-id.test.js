@@ -2,16 +2,16 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
-const ApiToken = require("../../src/api/api-token");
+
+const ApiToken = requireSource("api/api-token");
 
 describe("Retrieve work by id", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
   describe("GET /works/{id}", () => {
-    const { handler } = require("../../src/handlers/get-work-by-id");
+    const { handler } = requireSource("handlers/get-work-by-id");
 
     it("retrieves a single work document", async () => {
       mock

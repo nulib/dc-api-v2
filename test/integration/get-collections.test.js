@@ -2,9 +2,10 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const getCollectionsHandler = require("../../src/handlers/get-collections");
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
+
+const getCollectionsHandler = requireSource("handlers/get-collections");
+const RequestPipeline = requireSource("api/request/pipeline");
 
 describe("Collections route", () => {
   helpers.saveEnvironment();

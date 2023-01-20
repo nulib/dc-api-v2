@@ -3,14 +3,15 @@
 const chai = require("chai");
 const expect = chai.expect;
 chai.use(require("chai-http"));
-const ApiToken = require("../../src/api/api-token");
+
+const ApiToken = requireSource("api/api-token");
 
 describe("Retrieve shared link by id", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
   describe("GET /shared-links/{id}", () => {
-    const { handler } = require("../../src/handlers/get-shared-link-by-id");
+    const { handler } = requireSource("handlers/get-shared-link-by-id");
 
     it("retrieves a single shared link document", async () => {
       process.env.API_TOKEN_SECRET = "abc123";

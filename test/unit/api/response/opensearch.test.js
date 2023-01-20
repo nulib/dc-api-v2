@@ -1,9 +1,10 @@
 "use strict";
 
-const transformer = require("../../../../src/api/response/opensearch");
-const { Paginator } = require("../../../../src/api/pagination");
 const chai = require("chai");
 const expect = chai.expect;
+
+const transformer = requireSource("api/response/opensearch");
+const { Paginator } = requireSource("api/pagination");
 
 describe("OpenSearch response transformer", () => {
   let pager;

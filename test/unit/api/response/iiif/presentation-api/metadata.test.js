@@ -1,11 +1,11 @@
 "use strict";
 
-const {
-  formatSingleValuedField,
-  metadataLabelFields,
-} = require("../../../../../../src/api/response/iiif/presentation-api/metadata");
 const chai = require("chai");
 const expect = chai.expect;
+
+const { formatSingleValuedField, metadataLabelFields } = requireSource(
+  "api/response/iiif/presentation-api/metadata"
+);
 
 describe("IIIF response presentation API metadata helpers", () => {
   const response = {
