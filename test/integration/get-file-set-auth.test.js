@@ -92,7 +92,7 @@ describe("Authorize a file set by id", () => {
       expect(result.statusCode).to.eq(204);
     });
 
-    it("authorizes an restricted file set if the user is in a Reading Room", async () => {
+    it("authorizes a restricted file set if the user is in a Reading Room", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
         .reply(200, helpers.testFixture("mocks/fileset-restricted-1234.json"));

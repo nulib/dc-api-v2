@@ -4,6 +4,7 @@ const {
   decodeToken,
   encodeToken,
   ensureCharacterEncoding,
+  maybeUseProxiedIp,
   normalizeHeaders,
   objectifyCookies,
   stubEventMembers,
@@ -26,12 +27,14 @@ const wrap = function (handler) {
 
 const _processRequest = function (event) {
   if (event.__processRequest) return event;
-  let result = stubEventMembers(event);
+  let result = maybeUseProxiedIp(event);
+  result = stubEventMembers(event);
   result = normalizeHeaders(event);
   result = objectifyCookies(result);
   result = decodeEventBody(result);
   result = decodeToken(result);
   result.__processRequest = true;
+  if (!!process.env.DEBUG) console.log("request", result);
   return result;
 };
 
@@ -39,7 +42,7 @@ const _processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
-  if (process.env.DEBUG) console.log(result);
+  if (!!process.env.DEBUG) console.log("response", result);
   return result;
 };
 
