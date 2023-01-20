@@ -11,6 +11,7 @@
     "@aws-sdk/node-http-handler": "^3.127.0",
     "@aws-sdk/protocol-http": "^3.127.0",
     "@aws-sdk/signature-v4": "^3.130.0",
+    "@honeybadger-io/js": "^4.9.3",
     "axios": ">=0.21.1",
     "cookie": "^0.5.0",
     "http-status-codes": "^2.2.0",

@@ -1,6 +1,7 @@
 const { HttpRequest } = require("@aws-sdk/protocol-http");
 const { awsFetch } = require("../aws/fetch");
 const { elasticsearchEndpoint, prefix } = require("../environment");
+const Honeybadger = require("../honeybadger-setup");
 
 async function getCollection(id, opts) {
   return getDocument("dc-v2-collection", id, opts);
@@ -19,6 +20,7 @@ async function getSharedLink(id, opts) {
 }
 
 async function getDocument(index, id, opts = {}) {
+  Honeybadger.addBreadcrumb("Retrieving document", { metadata: { index, id } });
   const request = initRequest(`/${prefix(index)}/_doc/${id}`);
   let response = await awsFetch(request);
   if (response.statusCode === 200) {
@@ -66,6 +68,7 @@ function initRequest(path) {
 }
 
 async function search(targets, body, optionsQuery = {}) {
+  Honeybadger.addBreadcrumb("Searching", { metadata: { targets, body } });
   const endpoint = elasticsearchEndpoint();
 
   const request = new HttpRequest({

@@ -2,6 +2,7 @@ const { dcApiEndpoint, apiTokenSecret } = require("../environment");
 const axios = require("axios").default;
 const cookie = require("cookie");
 const { wrap } = require("./middleware");
+const Honeybadger = require("../honeybadger-setup");
 
 /**
  * Performs NUSSO login
@@ -39,6 +40,7 @@ exports.handler = wrap(async (event) => {
       },
     };
   } catch (error) {
+    await Honeybadger.notifyAsync(error, { tags: ["auth", "upstream"] });
     console.error("NUSSO request error", error);
     return {
       statusCode: 401,

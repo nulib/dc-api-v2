@@ -1,4 +1,5 @@
 const { wrap } = require("./middleware");
+const Honeybadger = require("../honeybadger-setup");
 
 /**
  * Whoami - validates JWT and returns user info, or issues an anonymous
@@ -13,6 +14,7 @@ exports.handler = wrap(async (event) => {
       body: JSON.stringify(token.userInfo()),
     };
   } catch (error) {
+    await Honeybadger.notifyAsync(error);
     return {
       statusCode: 401,
       body: "Error verifying API token: " + error.message,

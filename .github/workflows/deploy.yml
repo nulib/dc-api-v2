@@ -34,7 +34,15 @@ jobs:
           aws-region: us-east-1
       - run: ln -s .tfvars/dc-api/samconfig.toml .
       - run: sam build
-      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --config-env $CONFIG_ENV
+      - run: | 
+          sam deploy 
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --config-env $CONFIG_ENV \
+            --config-file ./samconfig.toml \
+            --parameter-overrides HoneybadgerRevision=$HONEYBADER_REVISION
+        env:
+          HONEYBADGER_REVISION: ${{ github.sha }}
   docs-changed:
     runs-on: ubuntu-latest
     outputs:
