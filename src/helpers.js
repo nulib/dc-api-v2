@@ -199,8 +199,15 @@ function objectifyCookies(event) {
 
 function isFromReadingRoom(event) {
   const AllowedIPs = (process.env.READING_ROOM_IPS || "").split(/\s*,\s*/);
-  const sourceIp = event?.requestContext?.http?.sourceIp;
+  const sourceIp = event.requestContext?.http?.sourceIp;
   return AllowedIPs.includes(sourceIp);
+}
+
+function maybeUseProxiedIp(event) {
+  if (!!process.env.USE_PROXIED_IP && event.headers?.["x-client-ip"]) {
+    event.requestContext.http.sourceIp = event.headers["x-client-ip"];
+  }
+  return event;
 }
 
 function stubEventMembers(event) {
@@ -221,6 +228,7 @@ module.exports = {
   effectivePath,
   ensureCharacterEncoding,
   isFromReadingRoom,
+  maybeUseProxiedIp,
   normalizeHeaders,
   objectifyCookies,
   stubEventMembers,

@@ -198,6 +198,9 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-auth.handler
       Description: Authorizes access to a file set.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
       Policies:
         Version: 2012-10-17
         Statement:
