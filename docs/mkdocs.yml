@@ -1,11 +1,23 @@
 site_name: "NUL Digital Collections API"
 site_url: https://api.dc.library.northwestern.edu/api/v2/
-use_directory_urls: true 
+use_directory_urls: true
+nav:
+  - Overview: "index.md"
+  - Protocol for Metadata Harvesting (OAI-PMH): "oai.md"
+  - OpenApi Specification: "spec.md"
 theme:
   name: material
+  custom_dir: overrides
+  icon:
+    logo: nul-logo
+  features:
+    - navigation.sections
+    - header.autohide
+    - content.code.copy
+    - content.tabs.link
 extra_css:
-- css/fonts.css
-- css/overrides.css
+  - css/fonts.css
+  - css/overrides.css
 repo_name: "nulib/dc-api-v2"
 repo_url: "https://github.com/nulib/dc-api-v2"
 edit_uri: blob/main/docs/docs/
@@ -19,10 +31,22 @@ markdown_extensions:
   - def_list
   - footnotes
   - smarty
+  - attr_list
+  - md_in_html
+  - pymdownx.superfences
   - pymdownx.details
   - pymdownx.inlinehilite
   - pymdownx.mark
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.tilde
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
   - toc:
       permalink: true
+      baselevel: 2
