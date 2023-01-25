@@ -34,7 +34,7 @@ const _processRequest = function (event) {
   result = decodeEventBody(result);
   result = decodeToken(result);
   result.__processRequest = true;
-  if (!!process.env.DEBUG) console.log("request", result);
+  console.log("request", result);
   return result;
 };
 
@@ -42,7 +42,7 @@ const _processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
-  if (!!process.env.DEBUG) console.log("response", result);
+  console.log("response", result);
   return result;
 };
 
