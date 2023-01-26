@@ -221,6 +221,9 @@ Resources:
     Properties:
       Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
       Policies:
         Version: 2012-10-17
         Statement:
