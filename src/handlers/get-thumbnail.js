@@ -31,7 +31,8 @@ function validateRequest(event) {
 }
 
 const getWorkThumbnail = async (id, aspect, size, event) => {
-  const allowPrivate = (allowUnpublished = event.userToken.hasEntitlement(id));
+  const allowUnpublished = event.userToken.hasEntitlement(id);
+  const allowPrivate = allowUnpublished || event.userToken.isReadingRoom();
 
   const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
 

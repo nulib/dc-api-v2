@@ -178,6 +178,22 @@ describe("Thumbnail routes", () => {
       expect(result.statusCode).to.eq(404);
     });
 
+    it("returns 200 if the work is private and the user is in the reading room", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
+      mock
+        .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+      const renderedEvent = event.render();
+
+      process.env.READING_ROOM_IPS = renderedEvent.requestContext.http.sourceIp;
+      const result = await handler(renderedEvent);
+      expect(result.statusCode).to.eq(200);
+    });
+
     it("returns 404 if the work is unpublished", async () => {
       mock
         .get("/dc-v2-work/_doc/1234")
