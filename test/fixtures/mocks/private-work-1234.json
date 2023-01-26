@@ -8,6 +8,10 @@
     "id": "1234",
     "api_model": "Work",
     "published": true,
-    "visibility": "Private"
+    "visibility": "Private",
+    "representative_file_set": {
+      "fileSetId": "5678",
+      "url": "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678"
+    }
   }
 }
