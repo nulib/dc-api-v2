@@ -204,7 +204,6 @@ function isFromReadingRoom(event) {
 }
 
 function maybeUseProxiedIp(event) {
-  console.log("event", event);
   if (!!process.env.USE_PROXIED_IP && event.headers?.["x-client-ip"]) {
     event.requestContext.http.sourceIp = event.headers["x-client-ip"];
   }

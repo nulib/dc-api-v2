@@ -10,19 +10,37 @@ const {
   stubEventMembers,
 } = require("../helpers");
 
+const Honeybadger = require("../honeybadger-setup");
+const { StatusCodes } = require("http-status-codes");
+
 const wrap = function (handler) {
-  return async (event) => {
+  return async (event, context) => {
+    let response;
     try {
       event = _processRequest(event);
-      const response = await handler(event);
-      return _processResponse(event, response);
+      response = await handler(event, context);
     } catch (error) {
-      console.error("error", error);
-      return {
-        statusCode: 400,
-      };
+      await Honeybadger.notifyAsync(error);
+      response = _convertErrorToResponse(error);
     }
+    return _processResponse(event, response);
   };
+};
+
+const _convertErrorToResponse = function (error) {
+  if (error.response && error.response.status) {
+    return {
+      statusCode: error.response.status,
+      headers: error.response.headers,
+      body: error.response.body,
+    };
+  } else {
+    return {
+      statusCode: StatusCodes.BAD_REQUEST,
+      headers: { "content-type": "text/plain" },
+      body: error.message,
+    };
+  }
 };
 
 const _processRequest = function (event) {
@@ -34,7 +52,9 @@ const _processRequest = function (event) {
   result = decodeEventBody(result);
   result = decodeToken(result);
   result.__processRequest = true;
-  console.log("request", result);
+
+  Honeybadger.setContext({ event: result });
+  if (!!process.env.DEBUG) console.log(result);
   return result;
 };
 
@@ -42,8 +62,13 @@ const _processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
-  console.log("response", result);
+  if (!!process.env.DEBUG) console.log(result);
   return result;
 };
 
-module.exports = { wrap, _processRequest, _processResponse };
+module.exports = {
+  wrap,
+  _processRequest,
+  _processResponse,
+  __Honeybadger: Honeybadger,
+};
