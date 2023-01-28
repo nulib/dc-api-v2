@@ -18,7 +18,7 @@ function validModels(models, format) {
 }
 
 function isAllowed(model) {
-  return mapTargets.hasOwnProperty(model);
+  return Object.prototype.hasOwnProperty.call(mapTargets, model);
 }
 
 function modelsToTargets(models) {

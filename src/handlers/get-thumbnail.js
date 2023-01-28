@@ -34,7 +34,10 @@ const getWorkThumbnail = async (id, aspect, size, event) => {
   const allowUnpublished = event.userToken.hasEntitlement(id);
   const allowPrivate = allowUnpublished || event.userToken.isReadingRoom();
 
-  const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
+  const esResponse = await getWork(id, {
+    allowPrivate,
+    allowUnpublished,
+  });
 
   if (esResponse.statusCode != 200) {
     return opensearchResponse.transform(esResponse);

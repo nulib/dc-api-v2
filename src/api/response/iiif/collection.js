@@ -27,7 +27,7 @@ async function buildCollection(responseBody, pageInfo) {
     },
   } = pageInfo;
 
-  result = {
+  let result = {
     "@context": ["http://iiif.io/api/presentation/3/context.json"],
     id: collectionId(pageInfo),
     type: "Collection",
