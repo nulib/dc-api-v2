@@ -82,7 +82,7 @@ describe("Retrieve collection by id", () => {
         .mockEvent("GET", "/collections/{id}")
         .pathParams({ id: "" })
         .render();
-      console.log(event);
+
       const result = await handler(event);
       expect(result.statusCode).to.eq(301);
       expect(result).to.have.header(
