@@ -4,6 +4,8 @@ Honeybadger.configure({
   apiKey: process.env.HONEYBADGER_API_KEY || "DEVELOPMENT_MODE",
   environment: process.env.HONEYBADGER_ENV || "development",
   revision: process.env.HONEYBADGER_REVISION,
+  enableUncaught: !process.env.HONEYBADGER_DISABLED,
+  enableUnhandledRejection: !process.env.HONEYBADGER_DISABLED,
 });
 
 Honeybadger.beforeNotify((notice) => {

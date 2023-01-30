@@ -3,6 +3,7 @@ const nock = require("nock");
 const path = require("path");
 const EventBuilder = require("./event-builder.js");
 
+process.env.HONEYBADGER_DISABLED = "true";
 process.env.HONEYBADGER_ENV = "test";
 
 function requireSource(module) {

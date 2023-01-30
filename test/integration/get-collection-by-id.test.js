@@ -76,5 +76,15 @@ describe("Retrieve collection by id", () => {
       expect(resultBody.type).to.eq("Collection");
       expect(resultBody.label.none[0]).to.eq("Collection Title");
     });
+
+    it("redirects to /collections when id is missing or empty", async () => {
+      const event = helpers
+        .mockEvent("GET", "/collections/{id}")
+        .pathParams({ id: "" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(301);
+      expect(result).to.have.header("location", "/collections");
+    });
   });
 });
