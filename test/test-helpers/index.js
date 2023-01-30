@@ -42,6 +42,7 @@ function mockIndex() {
   });
 
   afterEach(function () {
+    nock.cleanAll();
     mock.removeAllListeners();
   });
 
