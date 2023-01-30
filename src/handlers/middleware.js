@@ -20,7 +20,9 @@ const wrap = function (handler) {
       event = __processRequest(event);
       response = await handler(event, context);
     } catch (error) {
-      await Honeybadger.notifyAsync(error);
+      if (Honeybadger.config.enableUncaught) {
+        await Honeybadger.notifyAsync(error);
+      }
       response = _convertErrorToResponse(error);
     }
     return __processResponse(event, response);

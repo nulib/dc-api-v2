@@ -25,10 +25,23 @@ const getIiifCollectionById = async (event) => {
   });
 };
 
+const isEmpty = (string) => {
+  return string === undefined || string === null || string === "";
+};
+
 /**
  * Get a colletion by id
  */
 exports.handler = wrap(async (event) => {
+  if (isEmpty(event.pathParameters.id)) {
+    return {
+      statusCode: 301,
+      headers: {
+        location: "/collections",
+      },
+    };
+  }
+
   return event.queryStringParameters?.as === "iiif"
     ? getIiifCollectionById(event)
     : getCollectionById(event);
