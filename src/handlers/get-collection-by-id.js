@@ -1,6 +1,7 @@
-const { wrap } = require("./middleware");
-const { getCollection } = require("../api/opensearch");
+const { baseUrl } = require("../helpers");
 const { doSearch } = require("./search-runner");
+const { getCollection } = require("../api/opensearch");
+const { wrap } = require("./middleware");
 const opensearchResponse = require("../api/response/opensearch");
 
 const getCollectionById = async (event) => {
@@ -37,7 +38,7 @@ exports.handler = wrap(async (event) => {
     return {
       statusCode: 301,
       headers: {
-        location: "/collections",
+        location: baseUrl(event) + "collections",
       },
     };
   }
