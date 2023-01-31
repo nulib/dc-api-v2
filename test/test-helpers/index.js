@@ -17,6 +17,8 @@ const TestEnvironment = {
 
 for (const v in TestEnvironment) delete process.env[v];
 
+let SavedEnvironments = [];
+
 function requireSource(module) {
   const absolute = path.resolve(__dirname, "../../src", module);
   return require(absolute);
@@ -25,14 +27,13 @@ function requireSource(module) {
 const { __processRequest } = requireSource("handlers/middleware");
 
 function saveEnvironment() {
-  const env = { ...process.env };
-
   beforeEach(function () {
+    SavedEnvironments.push({ ...process.env });
     for (const v in TestEnvironment) process.env[v] = TestEnvironment[v];
   });
 
   afterEach(function () {
-    process.env = { ...env };
+    process.env = { ...SavedEnvironments.pop() };
   });
 }
 

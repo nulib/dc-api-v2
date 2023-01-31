@@ -17,6 +17,8 @@ const {
 } = requireSource("helpers");
 
 describe("helpers", () => {
+  helpers.saveEnvironment();
+
   describe("baseUrl()", () => {
     it("extracts the base URL from a local event", () => {
       const event = {
@@ -160,8 +162,6 @@ describe("helpers", () => {
   });
 
   describe("isFromReadingRoom()", () => {
-    helpers.saveEnvironment();
-
     it("knows when a request is coming from a reading room IP", () => {
       const event = helpers.mockEvent("GET", "/search").render();
       expect(isFromReadingRoom(event)).to.be.false;

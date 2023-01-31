@@ -1,6 +1,6 @@
 const sortJson = require("sort-json");
 
-module.exports = class {
+class EventBuilder {
   constructor(method, route) {
     const now = new Date();
     this._method = method;
@@ -42,49 +42,63 @@ module.exports = class {
   }
 
   body(body) {
-    switch (typeof body) {
-      case "string":
-        this._event.body = body;
-        break;
-      case "undefined":
-        this._event.body = "";
-        break;
-      case "object":
-        this._event.body = JSON.stringify(body);
-        break;
-    }
-    return this;
+    return this.update((copy) => {
+      switch (typeof body) {
+        case "string":
+          copy._event.body = body;
+          break;
+        case "undefined":
+          copy._event.body = "";
+          break;
+        case "object":
+          copy._event.body = JSON.stringify(body);
+          break;
+      }
+    });
   }
 
   headers(headers) {
-    Object.assign(this._event.headers, headers);
-    return this;
+    return this.update((copy) => {
+      Object.assign(copy._event.headers, headers);
+    });
   }
 
   pathParams(params) {
-    this._pathParams = params;
-    return this;
+    return this.update((copy) => {
+      copy._pathParams = params;
+    });
   }
 
   queryParams(params) {
-    this._queryParams = params;
-    return this;
+    return this.update((copy) => {
+      copy._queryParams = params;
+    });
   }
 
   stageVariables(vars) {
-    this._event.stageVariables = vars;
-    return this;
+    return this.update((copy) => {
+      copy._event.stageVariables = vars;
+    });
   }
 
   base64Encode() {
-    this._base64Encode = true;
-    return this;
+    return this.update((copy) => {
+      copy._base64Encode = true;
+    });
   }
 
   cookie(name, value) {
-    if (!this._event.cookies) this._event.cookies = [];
-    this._event.cookies.push(`${name}=${encodeURIComponent(value)}`);
-    return this;
+    return this.update((copy) => {
+      if (!copy._event.cookies) copy._event.cookies = [];
+      copy._event.cookies.push(`${name}=${encodeURIComponent(value)}`);
+    });
+  }
+
+  update(func) {
+    let result = new EventBuilder();
+    result = Object.assign(result, this);
+    func(result);
+    return result;
   }
 
   render() {
@@ -121,4 +135,6 @@ module.exports = class {
 
     return sortJson(result);
   }
-};
+}
+
+module.exports = EventBuilder;
