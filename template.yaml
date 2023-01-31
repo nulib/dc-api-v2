@@ -94,12 +94,18 @@ Resources:
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /auth/callback
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/callback
+            Method: HEAD
   getAuthLoginFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -110,7 +116,7 @@ Resources:
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
@@ -126,7 +132,7 @@ Resources:
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
@@ -142,7 +148,7 @@ Resources:
           NUSSO_API_KEY: !Ref NussoApiKey
           NUSSO_BASE_URL: !Ref NussoBaseUrl
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
@@ -162,12 +168,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /collections
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections
+            Method: HEAD
   getCollectionByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -182,12 +194,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /collections/{id}
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections/{id}
+            Method: HEAD
   getFileSetByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -202,12 +220,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}
+            Method: HEAD
   getFileSetAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -225,12 +249,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}/authorization
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/authorization
+            Method: HEAD
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -248,12 +278,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /works/{id}
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}
+            Method: HEAD
   getThumbnailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -269,18 +305,30 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        CollectionApi:
+        CollectionApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /collections/{id}/thumbnail
             Method: GET
-        WorkApi:
+        CollectionApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /collections/{id}/thumbnail
+            Method: HEAD
+        WorkApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /works/{id}/thumbnail
             Method: GET
+        WorkApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/thumbnail
+            Method: HEAD
   getSimilarFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -296,12 +344,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        WorkApi:
+        WorkApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /works/{id}/similar
             Method: GET
+        WorkApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/similar
+            Method: HEAD
   searchPostFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -342,18 +396,30 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        SearchApi:
+        SearchApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /search
             Method: GET
-        SearchWithModelsApi:
+        SearchApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /search
+            Method: HEAD
+        SearchWithModelsApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /search/{models}
             Method: GET
+        SearchWithModelsApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /search/{models}
+            Method: HEAD
   optionsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -381,12 +447,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        Api:
+        ApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /shared-links/{id}
             Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /shared-links/{id}
+            Method: HEAD
   oaiFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -402,12 +474,18 @@ Resources:
               - es:ESHttp*
             Resource: "*"
       Events:
-        GetApi:
+        GetApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /oai
             Method: GET
+        GetApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /oai
+            Method: HEAD
         PostApi:
           Type: HttpApi
           Properties:
@@ -466,12 +544,18 @@ Resources:
         Variables:
           REDIRECT_TO: /docs/v2/index.html
       Events:
-        RedirectApi:
+        RedirectApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref rootApi
             Path: /
             Method: GET
+        RedirectApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref rootApi
+            Path: /
+            Method: HEAD
 
   # Documentation
   docsMapping:

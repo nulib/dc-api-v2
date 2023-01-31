@@ -1,5 +1,6 @@
 const {
   addCorsHeaders,
+  addEtag,
   decodeEventBody,
   decodeToken,
   encodeToken,
@@ -63,6 +64,7 @@ const __processRequest = function (event) {
 
 const __processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
+  result = addEtag(event, result);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
   debug(result);
