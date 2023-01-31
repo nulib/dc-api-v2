@@ -4,15 +4,26 @@ const { getCollection } = require("../api/opensearch");
 const { wrap } = require("./middleware");
 const opensearchResponse = require("../api/response/opensearch");
 
-const getCollectionById = async (event) => {
+const getOpts = (event) => {
   const id = event.pathParameters.id;
-  const esResponse = await getCollection(id);
+
+  const allowPrivate =
+    event.userToken.isReadingRoom() || event.userToken.hasEntitlement(id);
+  const allowUnpublished = event.userToken.hasEntitlement(id);
+  return { allowPrivate, allowUnpublished };
+};
+
+const getCollectionById = async (event) => {
+  const esResponse = await getCollection(
+    event.pathParameters.id,
+    getOpts(event)
+  );
   return await opensearchResponse.transform(esResponse);
 };
 
 const getIiifCollectionById = async (event) => {
   const id = event.pathParameters.id;
-  const esResponse = await getCollection(id);
+  const esResponse = await getCollection(id, getOpts(event));
   const collection = JSON.parse(esResponse.body)?._source;
   if (!collection) return { statusCode: 404, body: "Not Found" };
   const parameterOverrides = { ...event.queryStringParameters };
