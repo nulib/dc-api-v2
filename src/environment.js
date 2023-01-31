@@ -1,4 +1,9 @@
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const PackageInfo = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "package.json"))
+);
 
 function apiToken() {
   const token = {
@@ -15,6 +20,14 @@ function apiTokenName() {
 
 function apiTokenSecret() {
   return process.env.API_TOKEN_SECRET;
+}
+
+function appInfo() {
+  return {
+    name: PackageInfo.name,
+    description: PackageInfo.description,
+    version: PackageInfo.version,
+  };
 }
 
 function dcApiEndpoint() {
@@ -43,6 +56,7 @@ module.exports = {
   apiToken,
   apiTokenName,
   apiTokenSecret,
+  appInfo,
   dcApiEndpoint,
   dcUrl,
   elasticsearchEndpoint,
