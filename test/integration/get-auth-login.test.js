@@ -3,7 +3,8 @@
 const chai = require("chai");
 const expect = chai.expect;
 const nock = require("nock");
-const getAuthLoginHandler = require("../../src/handlers/get-auth-login");
+
+const getAuthLoginHandler = requireSource("handlers/get-auth-login");
 
 describe("auth login", function () {
   helpers.saveEnvironment();
@@ -12,7 +13,7 @@ describe("auth login", function () {
     process.env.NUSSO_BASE_URL = "https://nusso-base.com/";
     process.env.NUSSO_API_KEY = "abc123";
 
-    const _scope = nock(process.env.NUSSO_BASE_URL)
+    nock(process.env.NUSSO_BASE_URL)
       .get("/get-ldap-redirect-url")
       .reply(200, {
         data: { redirecturl: "https://test-redirect.com" },

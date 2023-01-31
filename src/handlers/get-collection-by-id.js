@@ -1,6 +1,7 @@
-const { wrap } = require("./middleware");
-const { getCollection } = require("../api/opensearch");
+const { baseUrl } = require("../helpers");
 const { doSearch } = require("./search-runner");
+const { getCollection } = require("../api/opensearch");
+const { wrap } = require("./middleware");
 const opensearchResponse = require("../api/response/opensearch");
 
 const getCollectionById = async (event) => {
@@ -25,10 +26,23 @@ const getIiifCollectionById = async (event) => {
   });
 };
 
+const isEmpty = (string) => {
+  return string === undefined || string === null || string === "";
+};
+
 /**
  * Get a colletion by id
  */
 exports.handler = wrap(async (event) => {
+  if (isEmpty(event.pathParameters.id)) {
+    return {
+      statusCode: 301,
+      headers: {
+        location: baseUrl(event) + "collections",
+      },
+    };
+  }
+
   return event.queryStringParameters?.as === "iiif"
     ? getIiifCollectionById(event)
     : getCollectionById(event);

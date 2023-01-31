@@ -21,6 +21,9 @@ Globals:
         DC_URL: !Ref DcUrl
         ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
         ENV_PREFIX: !Ref EnvironmentPrefix
+        HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
+        HONEYBADGER_ENV: !Ref HoneybadgerEnv
+        HONEYBADGER_REVISION: !Ref HoneybadgerRevision
         READING_ROOM_IPS: !Ref ReadingRoomIPs
 Parameters:
   ApiTokenName:
@@ -50,6 +53,18 @@ Parameters:
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
+    Default: ""
+  HoneybadgerApiKey:
+    Type: String
+    Description: Honeybadger API Key
+    Default: ""
+  HoneybadgerEnv:
+    Type: String
+    Description: Honeybadger Environment
+    Default: ""
+  HoneybadgerRevision:
+    Type: String
+    Description: Honeybadger Revision
     Default: ""
   NussoApiKey:
     Type: String
@@ -198,6 +213,9 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-auth.handler
       Description: Authorizes access to a file set.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
       Policies:
         Version: 2012-10-17
         Statement:
@@ -218,6 +236,9 @@ Resources:
     Properties:
       Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
       Policies:
         Version: 2012-10-17
         Statement:

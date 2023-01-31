@@ -26,7 +26,7 @@ async function awsFetch(request) {
     response.body.on("data", function (chunk) {
       responseBody += chunk;
     });
-    response.body.on("end", function (chunk) {
+    response.body.on("end", function (_chunk) {
       resolve({ ...returnValue, body: responseBody });
     });
   });

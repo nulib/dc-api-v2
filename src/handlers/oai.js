@@ -10,15 +10,6 @@ const {
 const { invalidOaiRequest } = require("./oai/xml-transformer");
 const { wrap } = require("./middleware");
 
-const allowedVerbs = [
-  "GetRecord",
-  "Identify",
-  "ListIdentifiers",
-  "ListMetadataFormats",
-  "ListRecords",
-  "ListSets",
-];
-
 function invalidDateParameters(verb, dates) {
   if (!["ListRecords", "ListIdentifiers"].includes(verb)) return [];
 
@@ -41,7 +32,7 @@ function invalidDateParameters(verb, dates) {
  */
 exports.handler = wrap(async (event) => {
   const url = `${baseUrl(event)}oai`;
-  let verb, identifier, metadataPrefix, resumptionToken;
+  let verb, identifier, metadataPrefix, resumptionToken, from, until, set;
   if (event.requestContext.http.method === "GET") {
     verb = event.queryStringParameters?.verb;
     identifier = event.queryStringParameters?.identifier;

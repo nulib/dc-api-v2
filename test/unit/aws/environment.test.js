@@ -1,9 +1,9 @@
 "use strict";
 
-const environment = require("../../../src/environment");
-
 const chai = require("chai");
 const expect = chai.expect;
+
+const environment = requireSource("environment");
 
 describe("environment", function () {
   helpers.saveEnvironment();

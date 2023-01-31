@@ -27,7 +27,7 @@ async function earliestRecord() {
   return responseBody?.hits?.hits[0]?._source?.create_date;
 }
 
-async function oaiSearch(dates, set, size = 1000) {
+async function oaiSearch(dates, set, size = 250) {
   const range = {
     range: {
       modified_date: {

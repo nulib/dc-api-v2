@@ -2,7 +2,8 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const defaultHandler = require("../../src/handlers/default-request");
+
+const defaultHandler = requireSource("handlers/default-request");
 
 describe("$default handler", async () => {
   const event = helpers

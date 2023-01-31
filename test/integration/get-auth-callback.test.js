@@ -3,8 +3,9 @@
 const chai = require("chai");
 const expect = chai.expect;
 const nock = require("nock");
-const getAuthCallbackHandler = require("../../src/handlers/get-auth-callback");
-const ApiToken = require("../../src/api/api-token");
+
+const getAuthCallbackHandler = requireSource("handlers/get-auth-callback");
+const ApiToken = requireSource("api/api-token");
 
 describe("auth callback", function () {
   helpers.saveEnvironment();

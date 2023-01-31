@@ -92,6 +92,10 @@ function metadataLabelFields(source) {
       value: source.rights_holder,
     },
     {
+      label: "Rights Statement",
+      value: formatSingleValuedField(source.rights_statement?.label),
+    },
+    {
       label: "Scope and Contents",
       value: source.scope_and_contents,
     },
@@ -109,7 +113,7 @@ function metadataLabelFields(source) {
     },
     {
       label: "Subject",
-      value: source.subject.map((item) => item.label_with_role),
+      value: source.subject.map((item) => item.label),
     },
     {
       label: "Table of Contents",

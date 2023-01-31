@@ -1,18 +1,20 @@
 "use strict";
 
+const chai = require("chai");
+const expect = chai.expect;
+const jwt = require("jsonwebtoken");
+
+const ApiToken = requireSource("api/api-token");
 const {
   baseUrl,
   decodeEventBody,
   decodeToken,
   isFromReadingRoom,
+  maybeUseProxiedIp,
   normalizeHeaders,
   objectifyCookies,
   stubEventMembers,
-} = require("../../../src/helpers");
-const chai = require("chai");
-const expect = chai.expect;
-const ApiToken = require("../../../src/api/api-token");
-const jwt = require("jsonwebtoken");
+} = requireSource("helpers");
 
 describe("helpers", () => {
   describe("baseUrl()", () => {
@@ -165,6 +167,38 @@ describe("helpers", () => {
       expect(isFromReadingRoom(event)).to.be.false;
       process.env.READING_ROOM_IPS = event.requestContext.http.sourceIp;
       expect(isFromReadingRoom(event)).to.be.true;
+    });
+  });
+
+  describe("maybeUseProxiedIp()", () => {
+    it("uses the original IP if USE_PROXIED_IP is not set", () => {
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .headers({ "x-client-ip": "123.123.123.123" })
+        .render();
+      expect(maybeUseProxiedIp(event)).to.nested.include({
+        "requestContext.http.sourceIp": "10.9.8.7",
+      });
+    });
+
+    it("uses the original IP if the x-client-ip header is not set", () => {
+      const event = helpers.mockEvent("GET", "/search").render();
+      process.env.USE_PROXIED_IP = "true";
+      expect(maybeUseProxiedIp(event)).to.nested.include({
+        "requestContext.http.sourceIp": "10.9.8.7",
+      });
+    });
+
+    it("uses the x-client-ip header if it is present and USE_PROXIED_IP is set", () => {
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .headers({ "x-client-ip": "123.123.123.123" })
+        .render();
+      process.env.USE_PROXIED_IP = "true";
+      const subject = maybeUseProxiedIp(event);
+      expect(subject).to.nested.include({
+        "requestContext.http.sourceIp": "123.123.123.123",
+      });
     });
   });
 

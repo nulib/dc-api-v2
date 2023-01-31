@@ -4,38 +4,63 @@ const {
   decodeToken,
   encodeToken,
   ensureCharacterEncoding,
+  maybeUseProxiedIp,
   normalizeHeaders,
   objectifyCookies,
   stubEventMembers,
 } = require("../helpers");
 
+const Honeybadger = require("../honeybadger-setup");
+const { StatusCodes } = require("http-status-codes");
+
 const wrap = function (handler) {
-  return async (event) => {
+  return async (event, context) => {
+    let response;
     try {
-      event = _processRequest(event);
-      const response = await handler(event);
-      return _processResponse(event, response);
+      event = __processRequest(event);
+      response = await handler(event, context);
     } catch (error) {
-      console.error("error", error);
-      return {
-        statusCode: 400,
-      };
+      if (Honeybadger.config.enableUncaught) {
+        await Honeybadger.notifyAsync(error);
+      }
+      response = _convertErrorToResponse(error);
     }
+    return __processResponse(event, response);
   };
 };
 
-const _processRequest = function (event) {
+const _convertErrorToResponse = function (error) {
+  if (error.response && error.response.status) {
+    return {
+      statusCode: error.response.status,
+      headers: error.response.headers,
+      body: error.response.body,
+    };
+  } else {
+    return {
+      statusCode: StatusCodes.BAD_REQUEST,
+      headers: { "content-type": "text/plain" },
+      body: error.message,
+    };
+  }
+};
+
+const __processRequest = function (event) {
   if (event.__processRequest) return event;
-  let result = stubEventMembers(event);
+  let result = maybeUseProxiedIp(event);
+  result = stubEventMembers(event);
   result = normalizeHeaders(event);
   result = objectifyCookies(result);
   result = decodeEventBody(result);
   result = decodeToken(result);
   result.__processRequest = true;
+
+  Honeybadger.setContext({ event: result });
+  if (process.env.DEBUG) console.log(result);
   return result;
 };
 
-const _processResponse = function (event, response) {
+const __processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
@@ -43,4 +68,9 @@ const _processResponse = function (event, response) {
   return result;
 };
 
-module.exports = { wrap, _processRequest, _processResponse };
+module.exports = {
+  wrap,
+  __processRequest,
+  __processResponse,
+  __Honeybadger: Honeybadger,
+};

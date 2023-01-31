@@ -1,8 +1,17 @@
-const { _processRequest } = require("../../src/handlers/middleware");
 const fs = require("fs");
 const nock = require("nock");
 const path = require("path");
 const EventBuilder = require("./event-builder.js");
+
+process.env.HONEYBADGER_DISABLED = "true";
+process.env.HONEYBADGER_ENV = "test";
+
+function requireSource(module) {
+  const absolute = path.resolve(__dirname, "../../src", module);
+  return require(absolute);
+}
+
+const { __processRequest } = requireSource("handlers/middleware");
 
 function saveEnvironment() {
   const env = Object.assign({}, process.env);
@@ -33,6 +42,7 @@ function mockIndex() {
   });
 
   afterEach(function () {
+    nock.cleanAll();
     mock.removeAllListeners();
   });
 
@@ -77,5 +87,7 @@ global.helpers = {
   encodedFixture,
   testFixture,
   cookieValue,
-  preprocess: _processRequest,
+  preprocess: __processRequest,
 };
+
+global.requireSource = requireSource;

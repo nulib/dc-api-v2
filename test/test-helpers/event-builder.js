@@ -5,10 +5,11 @@ module.exports = class {
     const now = new Date();
     this._method = method;
     this._route = route;
+
     this._event = {
       version: "2.0",
       routeKey: `${method} ${route}`,
-      rawPath: `/v2/${route}`,
+      rawPath: `/v2${route}`,
       rawQueryString: "",
       headers: {
         Host: "api.test.library.northwestern.edu",
@@ -23,7 +24,7 @@ module.exports = class {
         domainPrefix: "api",
         http: {
           method: method,
-          path: `/v2/${route}`,
+          path: `/v2${route}`,
           protocol: "HTTP/1.1",
           sourceIp: "10.9.8.7",
           userAgent: "Mocha Test",

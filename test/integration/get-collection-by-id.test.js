@@ -2,15 +2,16 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
+
+const RequestPipeline = requireSource("api/request/pipeline");
 
 describe("Retrieve collection by id", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
   describe("GET /collections/{id}", () => {
-    const { handler } = require("../../src/handlers/get-collection-by-id");
+    const { handler } = requireSource("handlers/get-collection-by-id");
 
     it("retrieves a single collection link document", async () => {
       mock
@@ -74,6 +75,20 @@ describe("Retrieve collection by id", () => {
       const resultBody = JSON.parse(result.body);
       expect(resultBody.type).to.eq("Collection");
       expect(resultBody.label.none[0]).to.eq("Collection Title");
+    });
+
+    it("redirects to /collections when id is missing or empty", async () => {
+      const event = helpers
+        .mockEvent("GET", "/collections/{id}")
+        .pathParams({ id: "" })
+        .render();
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(301);
+      expect(result).to.have.header(
+        "location",
+        "https://api.test.library.northwestern.edu/api/v2/collections"
+      );
     });
   });
 });

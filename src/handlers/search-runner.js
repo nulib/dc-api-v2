@@ -126,11 +126,11 @@ const responseFormat = async (event) => {
     const token = event.queryStringParameters.searchToken;
 
     try {
-      request = await decodeSearchToken(token);
+      const request = await decodeSearchToken(token);
+      return request.format;
     } catch (err) {
       return invalidRequest("searchToken is invalid");
     }
-    return request.format;
   }
 };
 

@@ -1,9 +1,10 @@
 "use strict";
 
-const ApiToken = require("../../src/api/api-token");
 const chai = require("chai");
 const expect = chai.expect;
 chai.use(require("chai-http"));
+
+const ApiToken = requireSource("api/api-token");
 
 describe("Authorize a file set by id", () => {
   process.env.API_TOKEN_SECRET = "abc123";
@@ -12,7 +13,7 @@ describe("Authorize a file set by id", () => {
   const mock = helpers.mockIndex();
 
   describe("GET /file-sets/{id}/authorization", () => {
-    const { handler } = require("../../src/handlers/get-file-set-auth");
+    const { handler } = requireSource("handlers/get-file-set-auth");
 
     it("authorizes a public, published file set with no token", async () => {
       mock
@@ -91,7 +92,7 @@ describe("Authorize a file set by id", () => {
       expect(result.statusCode).to.eq(204);
     });
 
-    it("authorizes an restricted file set if the user is in a Reading Room", async () => {
+    it("authorizes a restricted file set if the user is in a Reading Room", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
         .reply(200, helpers.testFixture("mocks/fileset-restricted-1234.json"));

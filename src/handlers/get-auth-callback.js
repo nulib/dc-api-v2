@@ -2,6 +2,7 @@ const axios = require("axios").default;
 const cookie = require("cookie");
 const { wrap } = require("./middleware");
 const ApiToken = require("../api/api-token");
+const Honeybadger = require("../honeybadger-setup");
 
 const BAD_DIRECTORY_SEARCH_FAULT =
   /Reason: ResponseCode 404 is treated as error/;
@@ -67,6 +68,7 @@ async function redeemSsoToken(event) {
       ) {
         return redeemForNetIdOnly(netid);
       }
+      await Honeybadger.notifyAsync(err, { tags: ["auth", "upstream"] });
       console.error(err.response.data);
       return null;
     }

@@ -2,9 +2,10 @@
 
 const chai = require("chai");
 const expect = chai.expect;
-const { handler } = require("../../src/handlers/get-similar");
-const RequestPipeline = require("../../src/api/request/pipeline");
 chai.use(require("chai-http"));
+
+const { handler } = requireSource("handlers/get-similar");
+const RequestPipeline = requireSource("api/request/pipeline");
 
 describe("Similar routes", () => {
   helpers.saveEnvironment();
@@ -62,7 +63,7 @@ describe("Similar routes", () => {
   });
 
   it("paginates results using provided size and page number", async () => {
-    let mocked = mock
+    mock
       .post(
         "/dc-v2-work/_search",
         makeQuery({
