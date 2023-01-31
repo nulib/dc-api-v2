@@ -7,10 +7,13 @@ chai.use(require("chai-http"));
 const ApiToken = requireSource("api/api-token");
 
 describe("Authorize a file set by id", () => {
-  process.env.API_TOKEN_SECRET = "abc123";
-  process.env.API_TOKEN_NAME = "dcapiTEST";
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
+
+  beforeEach(() => {
+    process.env.API_TOKEN_SECRET = "abc123";
+    process.env.API_TOKEN_NAME = "dcapiTEST";
+  });
 
   describe("GET /file-sets/{id}/authorization", () => {
     const { handler } = requireSource("handlers/get-file-set-auth");

@@ -21,6 +21,7 @@
     "@openapitools/openapi-generator-cli": "^2.5.2",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
+    "choma": "^1.2.1",
     "eslint": "^8.32.0",
     "eslint-plugin-json": "^3.1.0",
     "husky": "^8.0.3",
@@ -42,9 +43,12 @@
     },
     "root": true,
     "rules": {
-      "no-unused-vars": ["error", {
-        "argsIgnorePattern": "^_"
-      }]
+      "no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ]
     }
   }
 }

@@ -10,6 +10,7 @@ const RequestPipeline = requireSource("api/request/pipeline");
 describe("Similar routes", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
+
   let baseEvent = helpers
     .mockEvent("GET", "/works/{id}/similar")
     .pathParams({ id: 1234 });
