@@ -2,10 +2,12 @@
 
 const chai = require("chai");
 const expect = chai.expect;
+chai.use(require("chai-http"));
 const jwt = require("jsonwebtoken");
 
 const ApiToken = requireSource("api/api-token");
 const {
+  addEtag,
   baseUrl,
   decodeEventBody,
   decodeToken,
@@ -18,6 +20,64 @@ const {
 
 describe("helpers", () => {
   helpers.saveEnvironment();
+
+  describe("addEtag()", () => {
+    it("adds an ETag header", () => {
+      const event = { httpMethod: "GET" };
+      const response = {
+        statusCode: 200,
+        headers: {
+          "content-type": "text/plain",
+        },
+        body: "This is the response you are looking for.",
+      };
+
+      const result = addEtag(event, { ...response });
+
+      expect(result.headers).to.include({
+        ETag: "5f411b3e5077492f7b7cff50bc44edfa",
+      });
+      expect(result.body).to.eq(response.body);
+    });
+
+    it("does not add an ETag header if there is no body", () => {
+      const event = {
+        httpMethod: "GET",
+      };
+      const response = {
+        statusCode: 204,
+      };
+
+      const result = addEtag(event, {
+        ...response,
+      });
+
+      expect(result).not.to.have.nested.property("headers.ETag");
+      expect(result).not.to.have.property("body");
+    });
+
+    it("removes the body from responses to HEAD requests", () => {
+      const event = {
+        httpMethod: "HEAD",
+      };
+      const response = {
+        statusCode: 200,
+        headers: {
+          "content-type": "text/plain",
+        },
+        body: "This is the response you are looking for.",
+      };
+
+      const result = addEtag(event, {
+        ...response,
+      });
+
+      expect(result.headers).to.include({
+        ETag: "5f411b3e5077492f7b7cff50bc44edfa",
+      });
+      expect(result).not.to.have.property("body");
+    });
+  });
 
   describe("baseUrl()", () => {
     it("extracts the base URL from a local event", () => {

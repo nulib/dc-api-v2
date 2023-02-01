@@ -4,6 +4,7 @@ const gatewayRe = /execute-api.[a-z]+-[a-z]+-\d+.amazonaws.com/;
 const { apiTokenName } = require("./environment");
 const ApiToken = require("./api/api-token");
 const cookie = require("cookie");
+const crypto = require("crypto");
 const _ = require("lodash");
 
 const AcceptableHeaders = [
@@ -49,6 +50,18 @@ function addCorsHeaders(event, response) {
   };
   if (!response.headers) response.headers = {};
   Object.assign(response.headers, corsHeaders);
+  return response;
+}
+
+function addEtag(event, response) {
+  if (!response.body) return response;
+
+  if (!response.headers) response.headers = {};
+  response.headers.ETag = crypto
+    .createHash("md5")
+    .update(response.body)
+    .digest("hex");
+  if (event.httpMethod === "HEAD") delete response.body;
   return response;
 }
 
@@ -222,6 +235,7 @@ function stubEventMembers(event) {
 
 module.exports = {
   addCorsHeaders,
+  addEtag,
   baseUrl,
   decodeEventBody,
   decodeToken,
