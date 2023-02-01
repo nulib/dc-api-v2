@@ -1,3 +1,4 @@
+const { appInfo } = require("../../../environment");
 const { transformError } = require("../error");
 
 async function transform(response, pager) {
@@ -16,7 +17,10 @@ async function transformOne(responseBody) {
     headers: {
       "content-type": "application/json",
     },
-    body: JSON.stringify({ data: responseBody._source, info: {} }),
+    body: JSON.stringify({
+      data: responseBody._source,
+      info: appInfo(),
+    }),
   };
 }
 
@@ -29,7 +33,7 @@ async function transformMany(responseBody, pager) {
     body: JSON.stringify({
       data: extractSource(responseBody.hits.hits),
       pagination: await paginationInfo(responseBody, pager),
-      info: {},
+      info: appInfo(),
       aggregations: responseBody.aggregations,
     }),
   };
