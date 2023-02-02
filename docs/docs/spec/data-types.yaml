@@ -711,8 +711,8 @@ components:
         - date_created
         - description
         - file_sets
-        - folder_names
-        - folder_numbers
+        - folder_name
+        - folder_number
         - genre
         - id
         - identifier
