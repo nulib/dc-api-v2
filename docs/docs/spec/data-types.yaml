@@ -466,12 +466,12 @@ components:
           description: File sets associated with the resource
           items:
             $ref: "#/components/schemas/FileSetBase"
-        folder_names:
+        folder_name:
           type: array
           description: Name of the containing folder.
           items:
             type: string
-        folder_numbers:
+        folder_number:
           type: array
           description: Number of the containing folder.
           items:
