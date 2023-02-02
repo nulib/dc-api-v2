@@ -61,11 +61,13 @@ components:
         - keywords
         - modified_date
         - published
+        - representative_image
         - thumbnail
         - title
         - visibility
     CollectionRepresentativeImage:
       type: object
+      nullable: true
       properties:
         work_id:
           type: string
@@ -190,6 +192,7 @@ components:
               format: date-time
             digests:
               type: object
+              nullable: true
               additionalProperties:
                 type: string
             description:
@@ -197,6 +200,7 @@ components:
               nullable: true
             extracted_metadata:
               type: object
+              nullable: true
               additional_properties: true
             indexed_at:
               type: string
@@ -218,6 +222,8 @@ components:
             - api_model
             - create_date
             - description
+            - digests
+            - extracted_metadata
             - indexed_at
             - modified_date
             - published
@@ -234,6 +240,7 @@ components:
         - Supplemental
     GenericIdLabel:
       type: object
+      nullable: true
       properties:
         id:
           type: string
@@ -319,6 +326,7 @@ components:
         - Resource Guide
     RepresentativeFileSet:
       type: object
+      nullable: true
       description: Information about the representative image for the resource
       properties:
         aspect_ratio:
@@ -412,6 +420,7 @@ components:
             type: string
         collection:
           type: object
+          nullable: true
           description: The parent collection of the resource
           properties:
             id:
@@ -503,6 +512,7 @@ components:
           desciption: Date/time of last index
         ingest_project:
           type: object
+          nullable: true
           description: Associated ingest project
           properties:
             id:
@@ -515,6 +525,7 @@ components:
             - title
         ingest_sheet:
           type: object
+          nullable: true
           description: Associated ingest sheet
           properties:
             id:
@@ -580,6 +591,7 @@ components:
           $ref: "#/components/schemas/PreservationLevel"
         project:
           type: object
+          nullable: true
           description: Project related information
           properties:
             desc:
@@ -600,6 +612,13 @@ components:
             task_number:
               type: string
               nullable: true
+          required:
+            - desc
+            - cycle
+            - manager
+            - name
+            - proposer
+            - task_number
         provenance:
           type: array
           description: Location of Physical Object // will also include messy dates. Information about the provenance, such as origin, ownership and custodial history (chain of custody), of a resource.
@@ -703,6 +722,7 @@ components:
         - box_number
         - caption
         - catalog_key
+        - collection
         - contributor
         - create_date
         - creator
@@ -718,10 +738,13 @@ components:
         - identifier
         - iiif_manifest
         - indexed_at
+        - ingest_project
+        - ingest_sheet
         - keywords
         - language
         - legacy_identifier
         - library_unit
+        - license
         - location
         - modified_date
         - notes
@@ -734,7 +757,9 @@ components:
         - publisher
         - related_material
         - related_url
+        - representative_file_set
         - rights_holder
+        - rights_statement
         - scope_and_contents
         - series
         - source
