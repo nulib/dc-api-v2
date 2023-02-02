@@ -1,5 +1,6 @@
 const {
   addCorsHeaders,
+  addEtag,
   decodeEventBody,
   decodeToken,
   encodeToken,
@@ -10,6 +11,7 @@ const {
   stubEventMembers,
 } = require("../helpers");
 
+const debug = require("debug")("api.middleware");
 const Honeybadger = require("../honeybadger-setup");
 const { StatusCodes } = require("http-status-codes");
 
@@ -56,15 +58,16 @@ const __processRequest = function (event) {
   result.__processRequest = true;
 
   Honeybadger.setContext({ event: result });
-  if (process.env.DEBUG) console.log(result);
+  debug(result);
   return result;
 };
 
 const __processResponse = function (event, response) {
   let result = addCorsHeaders(event, response);
+  result = addEtag(event, result);
   result = encodeToken(event, result);
   result = ensureCharacterEncoding(result, "UTF-8");
-  if (process.env.DEBUG) console.log(result);
+  debug(result);
   return result;
 };
 

@@ -27,6 +27,7 @@ describe("OpenSearch response transformer", () => {
 
     const body = JSON.parse(result.body);
     expect(body.data).to.be.an("object");
+    expect(body.info).to.include.key("version");
     expect(body).not.to.include.key("pagination");
   });
 
@@ -40,6 +41,7 @@ describe("OpenSearch response transformer", () => {
 
     const body = JSON.parse(result.body);
     expect(body.data).to.be.an("array");
+    expect(body.info).to.include.key("version");
     expect(body).to.include.key("pagination");
     expect(body.pagination).to.include.keys([
       "query_url",

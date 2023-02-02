@@ -1,0 +1,750 @@
+openapi: 3.0.1
+components:
+  schemas:
+    Collection:
+      type: object
+      properties:
+        admin_email:
+          type: string
+          nullable: true
+        api_link:
+          type: string
+        api_model:
+          type: string
+        create_date:
+          type: string
+          format: date-time
+        description:
+          type: string
+          nullable: true
+        featured:
+          type: boolean
+        finding_aid_url:
+          type: string
+          nullable: true
+          format: uri
+        id:
+          type: string
+          format: uuuid
+        indexed_at:
+          type: string
+          format: date-time
+          nullable: true
+        keywords:
+          type: array
+          items:
+            type: string
+        modified_date:
+          type: string
+          format: date-time
+        published:
+          type: boolean
+        representative_image:
+          $ref: "#/components/schemas/CollectionRepresentativeImage"
+        thumbnail:
+          type: string
+          format: uri
+        title:
+          type: string
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+      required:
+        - admin_email
+        - api_link
+        - api_model
+        - create_date
+        - description
+        - featured
+        - finding_aid_url
+        - id
+        - indexed_at
+        - keywords
+        - modified_date
+        - published
+        - thumbnail
+        - title
+        - visibility
+    CollectionRepresentativeImage:
+      type: object
+      properties:
+        work_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+      required:
+        - work_id
+        - url
+    ControlledTerm:
+      type: object
+      properties:
+        id:
+          type: string
+        facet:
+          type: string
+        label:
+          type: string
+        variants:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - facet
+        - label
+        - variants
+    ControlledTermWithRole:
+      type: object
+      properties:
+        id:
+          type: string
+        facet:
+          type: string
+        label:
+          type: string
+        label_with_role:
+          type: string
+        role:
+          type: string
+        variants:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - facet
+        - label
+        - label_with_role
+        - role
+        - variants
+    FileSetBase:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        duration:
+          type: number
+          nullable: true
+        height:
+          type: number
+          nullable: true
+        label:
+          type: string
+        mime_type:
+          type: string
+          nullable: true
+        original_filename:
+          type: string
+          nullable: true
+        poster_offset:
+          type: number
+          nullable: true
+        rank:
+          type: number
+        representative_image_url:
+          type: string
+          format: uri
+          nullable: true
+        role:
+          $ref: "#/components/schemas/FileSetRole"
+        streaming_url:
+          type: string
+          nullable: true
+          format: uri
+        webvtt:
+          type: string
+          format: uri
+          nullable: true
+        width:
+          type: number
+          nullable: true
+      required:
+        - id
+        - duration
+        - height
+        - label
+        - mime_type
+        - original_filename
+        - poster_offset
+        - rank
+        - role
+        - representative_image_url
+        - streaming_url
+        - webvtt
+        - width
+    FileSet:
+      allOf:
+        - $ref: "#/components/schemas/FileSetBase"
+        - type: object
+          properties:
+            accession_number:
+              type: string
+            api_link:
+              type: string
+            api_model:
+              type: string
+            create_date:
+              type: string
+              format: date-time
+            digests:
+              type: object
+              additionalProperties:
+                type: string
+            description:
+              type: string
+              nullable: true
+            extracted_metadata:
+              type: object
+              additional_properties: true
+            indexed_at:
+              type: string
+              nullable: true
+            modified_date:
+              type: string
+              format: date-time
+            published:
+              type: boolean
+            visibility:
+              $ref: "#/components/schemas/Visibility"
+            work_id:
+              format: uuid
+              type: string
+              nullable: true
+          required:
+            - accession_number
+            - api_link
+            - api_model
+            - create_date
+            - description
+            - indexed_at
+            - modified_date
+            - published
+            - visibility
+            - work_id
+    FileSetRole:
+      nullable: true
+      description: Role of the file set
+      type: string
+      enum:
+        - Access
+        - Auxiliary
+        - Preservation
+        - Supplemental
+    GenericIdLabel:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+      required:
+        - id
+        - label
+    LibraryUnit:
+      nullable: true
+      description: NUL Library Unit
+      type: string
+      enum:
+        - Special Collections
+        - Faculty Collections
+        - Government and Geographic Information Collection
+        - Herskovits Library
+        - Music Library
+        - Transportation Library
+        - University Archives
+        - University Main Library
+    NoteType:
+      description: The type of the note
+      type: string
+      enum:
+        - Awards,
+        - Bibliographical/Historical Note
+        - Creation/Production Credits
+        - General Note
+        - Lanugage Note
+        - Local Note
+        - Performers
+        - Statement of Responsibility
+        - Venue/Event Date
+    PaginationInfo:
+      type: object
+      description: Pagination info for the current response
+      properties:
+        next_url:
+          type: string
+          description: Full URL to the next page of results
+        prev_url:
+          type: string
+          description: Full URL to the previous page of results
+        query_url:
+          type: string
+          description: Base URL to repeat this query for a given page
+        search_token:
+          type: string
+          required: false
+          description: Tokenized query to use in subsequent GET requests
+        current_page:
+          type: integer
+          description: Index of current page of results
+        limit:
+          type: integer
+          description: Number of results per page
+        offset:
+          type: integer
+          description: Starting index of first result on the current page
+        total_hits:
+          type: integer
+          description: Total number of results
+        total_pages:
+          type: integer
+          description: Total number of result pages
+    PreservationLevel:
+      nullable: true
+      description: The preservation workflow applied to the resource
+      type: string
+      enum:
+        - Level 1
+        - Level 2
+        - Level 3
+    RelatedUrlLabel:
+      nullable: true
+      description: Type of related resource
+      type: string
+      enum:
+        - Finding Aid
+        - Hathi Trust
+        - Related Information
+        - Resource Guide
+    RepresentativeFileSet:
+      type: object
+      description: Information about the representative image for the resource
+      properties:
+        aspect_ratio:
+          type: number
+        id:
+          type: string
+          format: uuid
+          nullable: true
+        url:
+          type: string
+          format: uri
+      required:
+        - aspect_ratio
+        - url
+    Status:
+      nullable: true
+      description: Preservation status of the resource
+      type: string
+      enum:
+        - Not Started
+        - In Progress
+        - Done
+    Visibility:
+      nullable: true
+      description: The access level of the resource
+      type: string
+      enum:
+        - Private
+        - Institution
+        - Public
+    WorkType:
+      nullable: true
+      description: The media type of the resource
+      type: string
+      enum:
+        - Audio
+        - Image
+        - Video
+    Work:
+      type: object
+      description: A single work response
+      properties:
+        abstract:
+          type: array
+          description: A summary of the resource
+          items:
+            type: string
+        accession_number:
+          type: string
+          required: true
+          description: Accession number for the work. Serves as basis for the filename.
+        alternate_title:
+          type: array
+          items:
+            type: string
+        api_link:
+          type: string
+          nullable: true
+          description: DC API url
+        api_model:
+          type: string
+          nullable: true
+          description: Type of resource. (Work, FileSet, Collection)
+        ark:
+          type: string
+          description: Archival Resource Key (ARK)
+        batch_ids:
+          type: array
+          description: Associated batch update operations
+          items:
+            type: string
+        box_name:
+          type: array
+          description: Physical box name. Sometimes used with Distinctive Collections materials.
+          items:
+            type: string
+        box_number:
+          type: array
+          description: Physical box number. Sometimes used with Distinctive Collections materials.
+          items:
+            type: string
+        caption:
+          type: array
+          description: The caption for a resource.
+          items:
+            type: string
+        catalog_key:
+          type: array
+          description: Alma bibliographic ID.
+          items:
+            type: string
+        collection:
+          type: object
+          description: The parent collection of the resource
+          properties:
+            id:
+              type: string
+              description: UUID of the collection
+            description:
+              type: string
+              nullable: true
+              description: Description of the collection
+            title:
+              type: string
+              description: Title of the collection
+          required:
+            - id
+            - title
+        contributor:
+          type: array
+          description: An entity responsible for making contributions to the resource
+          items:
+            $ref: "#/components/schemas/ControlledTermWithRole"
+        create_date:
+          type: string
+          format: date-time
+          description: The creation date of the record in the repository.
+        creator:
+          type: array
+          description: An entity primarily responsible for making the resource
+          items:
+            $ref: "#/components/schemas/ControlledTerm"
+        csv_metadata_update_jobs:
+          type: array
+          description: Associated csv metadata update operations
+          items:
+            type: string
+        cultural_context:
+          type: array
+          description: The cultural context of the resource.
+          items:
+            type: string
+        date_created:
+          type: array
+          description: A point or a period of time associatied with an event in the lifecycle of the resource.
+          items:
+            type: string
+        description:
+          type: array
+          description: An account of the resource
+          items:
+            type: string
+        file_sets:
+          type: array
+          description: File sets associated with the resource
+          items:
+            $ref: "#/components/schemas/FileSetBase"
+        folder_name:
+          type: array
+          description: Name of the containing folder.
+          items:
+            type: string
+        folder_number:
+          type: array
+          description: Number of the containing folder.
+          items:
+            type: string
+        genre:
+          type: array
+          description: Describes what the original object is, not what it is about.
+          items:
+            $ref: "#/components/schemas/ControlledTerm"
+        id:
+          type: string
+          format: uuid
+          required: true
+          description: UUID for the work record in the repository
+        identifier:
+          type: array
+          description: Identifiers for the object
+          items:
+            type: string
+        iiif_manifest:
+          type: string
+          format: uri
+          nullable: true
+          desciption: IIIF url manifest for the work
+        indexed_at:
+          type: string
+          format: date-time
+          nullable: true
+          desciption: Date/time of last index
+        ingest_project:
+          type: object
+          description: Associated ingest project
+          properties:
+            id:
+              type: string
+              format: uuid
+            title:
+              type: string
+          required:
+            - id
+            - title
+        ingest_sheet:
+          type: object
+          description: Associated ingest sheet
+          properties:
+            id:
+              type: string
+              format: uuid
+            title:
+              type: string
+          required:
+            - id
+            - title
+        keywords:
+          type: array
+          description: Keywords or tags used to describe this content.
+          items:
+            type: string
+        language:
+          type: array
+          description: A language of the resource.
+          items:
+            $ref: "#/components/schemas/ControlledTerm"
+        legacy_identifier:
+          type: array
+          description: PIDs from previous repository.
+          items:
+            type: string
+        library_unit:
+          $ref: "#/components/schemas/LibraryUnit"
+        license:
+          description: Creative Commons licenses
+          $ref: "#/components/schemas/GenericIdLabel"
+        location:
+          type: array
+          description: Place of publication.
+          items:
+            $ref: "#/components/schemas/ControlledTerm"
+        modified_date:
+          type: string
+          format: date-time
+          description: Date resource last modified in repository
+        notes:
+          type: array
+          items:
+            type: object
+            properties:
+              note:
+                type: string
+              type:
+                $ref: "#/components/schemas/NoteType"
+            required:
+              - note
+              - type
+        physical_description_material:
+          type: array
+          description: The material or physical carrier of the resource.
+          items:
+            type: string
+        physical_description_size:
+          type: array
+          description: The size or duration of the resource.
+          items:
+            type: string
+        preservation_level:
+          $ref: "#/components/schemas/PreservationLevel"
+        project:
+          type: object
+          description: Project related information
+          properties:
+            desc:
+              type: string
+              nullable: true
+            cycle:
+              type: string
+              nullable: true
+            manager:
+              type: string
+              nullable: true
+            name:
+              type: string
+              nullable: true
+            proposer:
+              type: string
+              nullable: true
+            task_number:
+              type: string
+              nullable: true
+        provenance:
+          type: array
+          description: Location of Physical Object // will also include messy dates. Information about the provenance, such as origin, ownership and custodial history (chain of custody), of a resource.
+          items:
+            type: string
+        published:
+          type: boolean
+          description: Resource is available on Digital Collections.
+        publisher:
+          type: array
+          description: An entity responsible for making the resource available.
+          items:
+            type: string
+        related_url:
+          type: array
+          description: URL of a related resource.
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+              label:
+                $ref: "#/components/schemas/RelatedUrlLabel"
+            required:
+              - url
+              - label
+        representative_file_set:
+          $ref: "#/components/schemas/RepresentativeFileSet"
+        rights_holder:
+          type: array
+          description: A person or organization owning or managing rights over the resource.
+          items:
+            type: string
+        rights_statement:
+          description: Expresses the copyright status of the resource.
+          $ref: "#/components/schemas/GenericIdLabel"
+        scope_and_contents:
+          type: array
+          description: Sometimes used with Distincitive Collections materials
+          items:
+            type: string
+        series:
+          type: array
+          description: Sometimes used with Distincitive Collections materials. Used for archival series and subseries information.
+          items:
+            type: string
+        source:
+          type: array
+          description: A related resource from which the described resource is derived. Source of digital object - book, journal, etc. Follow Chicago Manual of Style for citation.
+          items:
+            type: string
+        status:
+          $ref: "#/components/schemas/Status"
+        style_period:
+          type: array
+          description: A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work.
+          items:
+            $ref: "#/components/schemas/ControlledTerm"
+        subject:
+          type: array
+          description: A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work.
+          items:
+            $ref: "#/components/schemas/ControlledTermWithRole"
+        table_of_contents:
+          type: array
+          description: Used to provide the titles of separate works or parts of a resource. Information provided may also contain statements of responsibility or other sequential designations.
+          items:
+            type: string
+        technique:
+          type: array
+          description: A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work.
+          items:
+            $ref: "#/components/schemas/ControlledTerm"
+        terms_of_use:
+          type: string
+          nullable: true
+          description: Terms of use of resource.
+        thumbnail:
+          type: string
+          format: uri
+          nullable: true
+          description: Url of thumbnail image.
+        title:
+          type: string
+          nullable: true
+          description: A name given to the resource
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        work_type:
+          $ref: "#/components/schemas/WorkType"
+      required:
+        - abstract
+        - accession_number
+        - alternate_title
+        - api_link
+        - api_model
+        - ark
+        - batch_ids
+        - box_name
+        - box_number
+        - caption
+        - catalog_key
+        - contributor
+        - create_date
+        - creator
+        - csv_metadata_update_jobs
+        - cultural_context
+        - date_created
+        - description
+        - file_sets
+        - folder_name
+        - folder_number
+        - genre
+        - id
+        - identifier
+        - iiif_manifest
+        - indexed_at
+        - keywords
+        - language
+        - legacy_identifier
+        - library_unit
+        - location
+        - modified_date
+        - notes
+        - physical_description_material
+        - physical_description_size
+        - preservation_level
+        - project
+        - provenance
+        - published
+        - publisher
+        - related_material
+        - related_url
+        - rights_holder
+        - scope_and_contents
+        - series
+        - source
+        - status
+        - style_period
+        - subject
+        - table_of_contents
+        - technique
+        - terms_of_use
+        - thumbnail
+        - title
+        - visibility
+        - work_type

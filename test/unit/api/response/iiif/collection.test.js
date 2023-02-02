@@ -7,6 +7,8 @@ const transformer = requireSource("api/response/iiif/collection");
 const { Paginator } = requireSource("api/pagination");
 
 describe("IIIF Collection response transformer", () => {
+  helpers.saveEnvironment();
+
   let pager;
   beforeEach(() => {
     pager = new Paginator(

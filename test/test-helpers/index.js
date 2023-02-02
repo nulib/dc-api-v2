@@ -6,6 +6,19 @@ const EventBuilder = require("./event-builder.js");
 process.env.HONEYBADGER_DISABLED = "true";
 process.env.HONEYBADGER_ENV = "test";
 
+const TestEnvironment = {
+  API_TOKEN_SECRET: "abc123",
+  API_TOKEN_NAME: "dcapiTEST",
+  DC_URL: "https://thisisafakedcurl",
+  DC_API_ENDPOINT: "https://thisisafakeapiurl",
+  NUSSO_BASE_URL: "https://nusso-base.com/",
+  NUSSO_API_KEY: "abc123",
+};
+
+for (const v in TestEnvironment) delete process.env[v];
+
+let SavedEnvironments = [];
+
 function requireSource(module) {
   const absolute = path.resolve(__dirname, "../../src", module);
   return require(absolute);
@@ -14,19 +27,13 @@ function requireSource(module) {
 const { __processRequest } = requireSource("handlers/middleware");
 
 function saveEnvironment() {
-  const env = Object.assign({}, process.env);
-
   beforeEach(function () {
-    process.env.API_TOKEN_SECRET = "abc123";
-    process.env.API_TOKEN_NAME = "dcapiTEST";
-    process.env.DC_URL = "https://thisisafakedcurl";
-    process.env.DC_API_ENDPOINT = "https://thisisafakeapiurl";
-    process.env.NUSSO_BASE_URL = "https://nusso-base.com/";
-    process.env.NUSSO_API_KEY = "abc123";
+    SavedEnvironments.push({ ...process.env });
+    for (const v in TestEnvironment) process.env[v] = TestEnvironment[v];
   });
 
   afterEach(function () {
-    process.env = env;
+    process.env = { ...SavedEnvironments.pop() };
   });
 }
 
