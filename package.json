@@ -1,6 +1,6 @@
 {
   "name": "dc-api-build",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.4",
   "description": "NUL Digital Collections API Build Environment",
   "repository": "https://github.com/nulib/dc-api-v2",
   "author": "nulib",

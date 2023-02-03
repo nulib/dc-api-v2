@@ -71,13 +71,14 @@ components:
       properties:
         work_id:
           type: string
+          nullable: true
           format: uuid
         url:
           type: string
           format: uri
       required:
-        - work_id
         - url
+        - work_id
     ControlledTerm:
       type: object
       properties:
