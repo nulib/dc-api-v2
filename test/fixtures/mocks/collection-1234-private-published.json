@@ -11,7 +11,8 @@
     "published": true,
     "visibility": "Private",
     "representative_image": {
-      "work_id": "1234"
+      "work_id": "1234",
+      "url": "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678"
     }
   }
 }
