@@ -30,21 +30,32 @@ function validateRequest(event) {
   return { id, aspect, size };
 }
 
-const getWorkThumbnail = async (id, aspect, size, event) => {
+const getThumbnail = async (id, aspect, size, event) => {
   const allowUnpublished = event.userToken.hasEntitlement(id);
   const allowPrivate = allowUnpublished || event.userToken.isReadingRoom();
 
-  const esResponse = await getWork(id, {
-    allowPrivate,
-    allowUnpublished,
-  });
-
-  if (esResponse.statusCode != 200) {
-    return opensearchResponse.transform(esResponse);
+  let esResponse;
+  let body;
+  let iiif_base;
+  if (event.rawPath.match(/\/collections\//)) {
+    esResponse = await getCollection(id, {
+      allowPrivate,
+      allowUnpublished,
+    });
+    if (esResponse.statusCode != 200)
+      return { error: await opensearchResponse.transform(esResponse) };
+    body = JSON.parse(esResponse.body);
+    iiif_base = body?._source?.representative_image?.url;
+  } else {
+    esResponse = await getWork(id, {
+      allowPrivate,
+      allowUnpublished,
+    });
+    if (esResponse.statusCode != 200)
+      return { error: await opensearchResponse.transform(esResponse) };
+    body = JSON.parse(esResponse.body);
+    iiif_base = body?._source?.representative_file_set?.url;
   }
-
-  const body = JSON.parse(esResponse.body);
-  const iiif_base = body?._source?.representative_file_set?.url;
 
   if (!iiif_base) {
     return {
@@ -89,39 +100,13 @@ const getWorkThumbnail = async (id, aspect, size, event) => {
   };
 };
 
-const getParameters = async (event) => {
-  const { id, aspect, size } = validateRequest(event);
-  if (event.rawPath.match(/\/collections\//)) {
-    const esResponse = await getCollection(id);
-    if (esResponse.statusCode != 200) {
-      return { error: await opensearchResponse.transform(esResponse) };
-    }
-
-    const body = JSON.parse(esResponse.body);
-    const workId = body?._source?.representative_image?.work_id;
-    return { id: workId, aspect, size };
-  } else {
-    return { id, aspect, size };
-  }
-};
-
 /**
  * A simple function to proxy a Collection or Work thumbnail from the IIIF server
  */
 exports.handler = wrap(async (event) => {
   try {
-    const { id, aspect, size, error } = await getParameters(event);
-    if (error) {
-      return error;
-    } else if (!id) {
-      return {
-        statusCode: 404,
-        headers: { "content-type": "text/plain" },
-        body: "Not Found",
-      };
-    } else {
-      return await getWorkThumbnail(id, aspect, size, event);
-    }
+    const { id, aspect, size } = validateRequest(event);
+    return await getThumbnail(id, aspect, size, event);
   } catch (err) {
     return {
       statusCode: 400,

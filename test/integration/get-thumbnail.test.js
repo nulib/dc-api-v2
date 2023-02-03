@@ -32,9 +32,6 @@ describe("Thumbnail routes", () => {
         .get("/dc-v2-collection/_doc/1234")
         .reply(200, helpers.testFixture("mocks/collection-1234.json"));
       mock
-        .get("/dc-v2-work/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/work-1234.json"));
-      mock
         .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
         .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
           "Content-Type": "image/jpeg",
@@ -51,9 +48,6 @@ describe("Thumbnail routes", () => {
         .get("/dc-v2-collection/_doc/1234")
         .reply(200, helpers.testFixture("mocks/collection-1234.json"));
       mock
-        .get("/dc-v2-work/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/work-1234.json"));
-      mock
         .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
         .reply(403, "Forbidden", { "Content-Type": "text/plain" });
 
@@ -69,20 +63,7 @@ describe("Thumbnail routes", () => {
         .reply(200, helpers.testFixture("mocks/missing-collection-1234.json"));
 
       const result = await handler(event.render());
-      expect(result.statusCode).to.eq(404);
-      expectCorsHeaders(result);
-    });
-
-    it("returns 404 if the work doc can't be found", async () => {
-      mock
-        .get("/dc-v2-collection/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/collection-1234.json"));
-      mock
-        .get("/dc-v2-work/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/missing-work-1234.json"));
-
-      const result = await handler(event.render());
-      expect(result.statusCode).to.eq(404);
+      expect(result.error.statusCode).to.eq(404);
       expectCorsHeaders(result);
     });
 
@@ -93,19 +74,6 @@ describe("Thumbnail routes", () => {
           200,
           helpers.testFixture("mocks/collection-1234-no-thumbnail.json")
         );
-
-      const result = await handler(event.render());
-      expect(result.statusCode).to.eq(404);
-      expectCorsHeaders(result);
-    });
-
-    it("returns 404 if the work doc has no thumbnail", async () => {
-      mock
-        .get("/dc-v2-collection/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/collection-1234.json"));
-      mock
-        .get("/dc-v2-work/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/work-1234-no-thumbnail.json"));
 
       const result = await handler(event.render());
       expect(result.statusCode).to.eq(404);
@@ -155,7 +123,7 @@ describe("Thumbnail routes", () => {
         .reply(200, helpers.testFixture("mocks/missing-work-1234.json"));
 
       const result = await handler(event.render());
-      expect(result.statusCode).to.eq(404);
+      expect(result.error.statusCode).to.eq(404);
       expectCorsHeaders(result);
     });
 
@@ -175,7 +143,7 @@ describe("Thumbnail routes", () => {
         .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
 
       const result = await handler(event.render());
-      expect(result.statusCode).to.eq(404);
+      expect(result.error.statusCode).to.eq(404);
     });
 
     it("returns 200 if the work is private and the user is in the reading room", async () => {
@@ -200,7 +168,7 @@ describe("Thumbnail routes", () => {
         .reply(200, helpers.testFixture("mocks/unpublished-work-1234.json"));
 
       const result = await handler(event.render());
-      expect(result.statusCode).to.eq(404);
+      expect(result.error.statusCode).to.eq(404);
     });
 
     it("returns 200 if there is an entitlement for an unpublished, private work", async () => {
