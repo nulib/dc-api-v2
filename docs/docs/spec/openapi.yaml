@@ -2,10 +2,10 @@ openapi: 3.0.1
 info:
   title: Northwestern University Libraries Digital Collections API
   description: >
-    This is full Markdown intro text. This API drives the [Northwestern University Libraries Digital 
+    This API provides direct access to the data that drives the [Northwestern University Libraries Digital 
     Collections](https://dc.library.northwestern.edu) site.
 
-    I can even put line breaks in it. I can also link back to the [main documentation](..).
+    Please visit the [documentation](..) for more information.
   version: 2.0.0
   contact:
     name: NUL Repository Team
