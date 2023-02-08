@@ -24,10 +24,11 @@ describe("IIIF response presentation API metadata helpers", () => {
   it("metadataLabelFields(source)", () => {
     const metadata = metadataLabelFields(source);
     expect(Array.isArray(metadata)).to.be;
-    expect(metadata.length).to.eq(29);
+    expect(metadata.length).to.eq(28);
     metadata.forEach((item) => {
       expect(item.label).to.be.a("string");
       expect(item.value).to.be.an("array");
+      expect(item.label).to.not.contain("Keyword");
     });
   });
 });
