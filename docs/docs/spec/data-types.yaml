@@ -250,6 +250,20 @@ components:
       required:
         - id
         - label
+    Info:
+      description: Global DC API properties
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        required:
+          - description
+          - name
+          - version
     LibraryUnit:
       nullable: true
       description: NUL Library Unit
