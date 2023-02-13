@@ -126,3 +126,5 @@ components:
           description: An array of response documents
         pagination:
           $ref: "./data-types.yaml#/components/schemas/PaginationInfo"
+        info:
+          $ref: "./data-types.yaml#/components/schemas/Info"
