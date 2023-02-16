@@ -127,6 +127,8 @@ components:
         id:
           type: string
           format: uuid
+        accession_number:
+          type: string
         duration:
           type: number
           nullable: true
@@ -165,6 +167,7 @@ components:
           nullable: true
       required:
         - id
+        - accession_number
         - duration
         - height
         - label
@@ -182,8 +185,6 @@ components:
         - $ref: "#/components/schemas/FileSetBase"
         - type: object
           properties:
-            accession_number:
-              type: string
             api_link:
               type: string
             api_model:
@@ -218,7 +219,6 @@ components:
               type: string
               nullable: true
           required:
-            - accession_number
             - api_link
             - api_model
             - create_date
@@ -260,10 +260,10 @@ components:
           type: string
         version:
           type: string
-        required:
-          - description
-          - name
-          - version
+      required:
+        - description
+        - name
+        - version
     LibraryUnit:
       nullable: true
       description: NUL Library Unit
