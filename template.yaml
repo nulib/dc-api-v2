@@ -568,7 +568,7 @@ Resources:
   docsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "api-docs.${CustomDomainZone}"
+      BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
