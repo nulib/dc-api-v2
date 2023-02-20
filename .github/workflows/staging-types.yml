@@ -10,6 +10,9 @@ jobs:
   Push-To-Types-Repo-Staging:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     environment: staging
     env:
       TARGET_BRANCH: "staging"
