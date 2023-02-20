@@ -482,12 +482,12 @@ components:
             type: string
         description:
           type: array
-          description: An account of the resource
+          description: An account of the resource.
           items:
             type: string
         file_sets:
           type: array
-          description: File sets associated with the resource
+          description: File sets associated with the resource.
           items:
             $ref: "#/components/schemas/FileSetBase"
         folder_name:
