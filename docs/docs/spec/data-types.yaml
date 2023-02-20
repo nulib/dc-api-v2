@@ -292,7 +292,7 @@ components:
         - Venue/Event Date
     PaginationInfo:
       type: object
-      description: Pagination info for the current response
+      description: Pagination info for the current response.
       properties:
         next_url:
           type: string
