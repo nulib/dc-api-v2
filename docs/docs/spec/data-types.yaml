@@ -509,7 +509,7 @@ components:
           type: string
           format: uuid
           required: true
-          description: UUID for the work record in the repository
+          description: UUID for the work record in the repository.
         identifier:
           type: array
           description: Identifiers for the object
