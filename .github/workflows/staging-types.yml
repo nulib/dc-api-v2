@@ -40,7 +40,7 @@ jobs:
         working-directory: "${{ env.TMP_SRCDIR }}"
         run: |
           npm ci
-          npx openapi-typescript data-types.yaml --output schema.ts
+          npx openapi-typescript docs/docs/spec/data-types.yaml --output schema.ts
       - name: Checkout dcapi-types
         uses: actions/checkout@v3
         with:
