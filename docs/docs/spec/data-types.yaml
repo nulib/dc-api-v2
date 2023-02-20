@@ -281,7 +281,7 @@ components:
       description: The type of the note
       type: string
       enum:
-        - Awards,
+        - Awards
         - Bibliographical/Historical Note
         - Creation/Production Credits
         - General Note
