@@ -87,4 +87,16 @@ describe("Paginator", function () {
     const url = new URL(result.query_url);
     expect(url.searchParams.get("size")).to.eq("5");
   });
+
+  it("does not include options by default", async () => {
+    pager.options = { queryStringParameters: { size: 5 } };
+    const result = await pager.pageInfo(1275);
+    expect(result).not.to.have.key("options");
+  });
+
+  it("includes options on request", async () => {
+    pager.options = { queryStringParameters: { size: 5 } };
+    const result = await pager.pageInfo(1275, { includeOptions: true });
+    expect(result.options).to.have.key("queryStringParameters");
+  });
 });
