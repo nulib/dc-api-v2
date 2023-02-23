@@ -56,7 +56,7 @@ jobs:
         uses: tj-actions/changed-files@v29.0.2
         with:
           files: |
-            .github/workflows/docs.yaml
+            .github/workflows/deploy.yaml
             docs/*
   publish-docs:
     needs: docs-changed
@@ -96,6 +96,7 @@ jobs:
           openapi-file: docs/site/spec/openapi.yaml
           command-args: -o docs/site/spec
       - name: Copy to S3
-        run: aws s3 sync --delete docs/site/ s3://api-docs.${ZONE}/
+        run: aws s3 sync --delete docs/site/ s3://${HOST}-docs.${ZONE}/
         env:
+          HOST: ${{ secrets.Hostname }}
           ZONE: ${{ secrets.HostedZone }}
