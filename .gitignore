@@ -215,3 +215,4 @@ $RECYCLE.BIN/
 /samconfig.toml
 /env.json
 /env.*.json
+/*.parameters
