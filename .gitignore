@@ -216,3 +216,4 @@ $RECYCLE.BIN/
 /env.json
 /env.*.json
 /*.parameters
+/schemas
