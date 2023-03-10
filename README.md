@@ -69,6 +69,25 @@ Use the [https-proxy](https://github.com/nulib/aws-developer-environment#conveni
 https-proxy start 3002 3000
 ```
 
+## Deploying the API manually
+- Symlink the `*.parameters` file you need from `tfvars/dc-api/` to the application root
+- Set your `CONFIG_ENV` and `HONEYBADGER_REVISION` environment variables
+- Run `sam deploy`
+
+```sh
+# staging environment example:
+
+ln -s ~/environment/tfvars/dc-api/staging.parameters .
+CONFIG_ENV=staging
+HONEYBADGER_REVISION=$(git rev-parse HEAD)
+sam deploy \
+  --no-confirm-changeset \
+  --no-fail-on-empty-changeset \
+  --config-env $CONFIG_ENV \
+  --config-file ./samconfig.toml \
+  --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION")
+```
+
 ## Writing Documentation
 
 API documentation is automatically regenerated and deployed on pushes to the staging and production branches. The documentation is in two parts:
