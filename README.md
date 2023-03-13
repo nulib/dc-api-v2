@@ -81,8 +81,6 @@ ln -s ~/environment/tfvars/dc-api/staging.parameters .
 CONFIG_ENV=staging
 HONEYBADGER_REVISION=$(git rev-parse HEAD)
 sam deploy \
-  --no-confirm-changeset \
-  --no-fail-on-empty-changeset \
   --config-env $CONFIG_ENV \
   --config-file ./samconfig.toml \
   --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION")
