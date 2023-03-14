@@ -129,6 +129,9 @@ components:
           format: uuid
         accession_number:
           type: string
+        description:
+          type: string
+          nullable: true
         duration:
           type: number
           nullable: true
@@ -168,6 +171,7 @@ components:
       required:
         - id
         - accession_number
+        - description
         - duration
         - height
         - label
@@ -197,9 +201,6 @@ components:
               nullable: true
               additionalProperties:
                 type: string
-            description:
-              type: string
-              nullable: true
             extracted_metadata:
               type: object
               nullable: true
@@ -222,7 +223,6 @@ components:
             - api_link
             - api_model
             - create_date
-            - description
             - digests
             - extracted_metadata
             - indexed_at
