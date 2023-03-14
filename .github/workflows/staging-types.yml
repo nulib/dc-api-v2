@@ -35,7 +35,7 @@ jobs:
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
         with:
-          path: "${{ env.TMP_SRCDIR }}/package.json"
+          path: "${{ env.TMP_SRCDIR }}"
       - name: Generate Typescript file
         working-directory: "${{ env.TMP_SRCDIR }}"
         run: |

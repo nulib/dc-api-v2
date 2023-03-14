@@ -1,0 +1,84 @@
+on:
+  pull_request_target:
+    types:
+      - closed
+    branches:
+      - "main"
+    paths:
+      - "docs/docs/spec/data-types.yaml"
+jobs:
+  Push-To-Types-Repo-Production:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: production
+    env:
+      TARGET_BRANCH: "main"
+      TMP_SRCDIR: "./source"
+      TMP_DSTDIR: "./dest"
+      TMP_REPODEVDIR: "./repodev"
+      GH_TOKEN: ${{secrets.GH_TOKEN}}
+    steps:
+      - run: |
+          echo PR with changes to datatypes.yml was merged into staging
+      - name: Checkout dc-api-v2
+        uses: actions/checkout@v3
+        with:
+          path: "${{ env.TMP_SRCDIR }}"
+      - uses: actions/setup-node@v3
+        with:
+          cache-dependency-path: "${{ env.TMP_SRCDIR }}/package-lock.json"
+          node-version: 16.x
+          cache: "npm"
+      - name: Set short git commit SHA
+        working-directory: "${{ env.TMP_SRCDIR }}"
+        id: short-sha
+        run: |
+          echo "short-sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+      - name: get-api-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
+        with:
+          path: "${{ env.TMP_SRCDIR }}"
+      - name: Generate Typescript file
+        working-directory: "${{ env.TMP_SRCDIR }}"
+        run: |
+          npm ci
+          npx openapi-typescript docs/docs/spec/data-types.yaml --output schema.ts
+      - name: Checkout nulib/dcapi-types
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.TMP_DSTDIR }}
+          ref: ${{ env.TARGET_BRANCH }}
+          repository: "nulib/dcapi-types"
+          token: ${{env.GH_TOKEN}}
+      - run: mv -f "${{ env.TMP_SRCDIR }}/schema.ts" "${{ env.TMP_DSTDIR }}/schema.ts"
+        shell: bash
+      - working-directory: "${{ env.TMP_DSTDIR }}"
+        run: |
+          git checkout -b dcapi-${{ steps.vars.outputs.short-sha }}
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add .
+          git commit -m "nulib/dc-api-v2 v${{ steps.package-version.outputs.current-version}} release"
+          git push origin HEAD
+        shell: bash
+      - name: Open nulib/dcapi-client PR
+        id: open-types-pr
+        working-directory: "${{ env.TMP_DSTDIR }}"
+        run: |
+          echo 'pr=$(gh pr create --base main --title "Update types for DC API release v${{ steps.package-version.outputs.current-version}}" --body "A new version of `nulib/dc-api-v2` has been released. Please review changes and release a new version of the types package if needed." --reviewer adamjarling --reviewer mathewjordan)' >> $GITHUB_OUTPUT
+            - name: Checkout dcapi-types
+      - name: Checkout nulib/repodev_planning_and_docs
+        uses: actions/checkout@v3
+        with:
+          path: "${{env.TMP_REPODEVDIR}}"
+          repository: "nulib/repodev_planning_and_docs"
+          token: ${{env.GH_TOKEN}}
+      - name: Open issue in nulib/repodev_planning_and_docs
+        working-directory: "${{env.TMP_REPODEVDIR}}"
+        run: |
+          gh issue create -t "Update nulib/dcapi-types for API release v${{ steps.package-version.outputs.current-version}}" -b "Review PR: ${{ steps.open-types-pr.outputs.pr}} and release nulib/dcapi-types if needed." -a adamjarling,mathewjordan -l "digital collections" -l "front end"
+        shell: bash
