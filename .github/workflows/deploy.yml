@@ -4,6 +4,8 @@ on:
     branches:
       - deploy/staging
       - main
+concurrency:
+  group: ${{ github.ref }}
 env:
   CONFIG_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 jobs:
