@@ -48,7 +48,7 @@ jobs:
         working-directory: "${{ env.TMP_SRCDIR }}"
         run: |
           npm ci
-          npx openapi-typescript docs/docs/spec/data-types.yaml --output schema.ts
+          npx openapi-typescript docs/docs/spec/data-types.yaml --output schemas.ts
       - name: Checkout nulib/dcapi-types
         uses: actions/checkout@v3
         with:
@@ -56,7 +56,7 @@ jobs:
           ref: ${{ env.TARGET_BRANCH }}
           repository: "nulib/dcapi-types"
           token: ${{env.GH_TOKEN}}
-      - run: mv -f "${{ env.TMP_SRCDIR }}/schema.ts" "${{ env.TMP_DSTDIR }}/schema.ts"
+      - run: mv -f "${{ env.TMP_SRCDIR }}/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
         shell: bash
       - working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
