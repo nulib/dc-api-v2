@@ -6,6 +6,7 @@ on:
       - "main"
     paths:
       - "docs/docs/spec/data-types.yaml"
+      - ".github/flags/deploy-data-types"
 jobs:
   Push-To-Types-Repo-Production:
     if: github.event.pull_request.merged == true
@@ -70,7 +71,6 @@ jobs:
         working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
           echo 'pr=$(gh pr create --base main --title "Update types for DC API release v${{ steps.package-version.outputs.current-version}}" --body "A new version of `nulib/dc-api-v2` has been released. Please review changes and release a new version of the types package if needed." --reviewer adamjarling --reviewer mathewjordan)' >> $GITHUB_OUTPUT
-            - name: Checkout dcapi-types
       - name: Checkout nulib/repodev_planning_and_docs
         uses: actions/checkout@v3
         with:
