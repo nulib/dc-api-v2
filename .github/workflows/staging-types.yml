@@ -41,14 +41,14 @@ jobs:
         working-directory: "${{ env.TMP_SRCDIR }}"
         run: |
           npm ci
-          npx openapi-typescript docs/docs/spec/data-types.yaml --output schema.ts
+          npx openapi-typescript docs/docs/spec/data-types.yaml --output schemas.ts
       - name: Checkout dcapi-types
         uses: actions/checkout@v3
         with:
           path: ${{ env.TMP_DSTDIR }}
           ref: ${{ env.TARGET_BRANCH }}
           repository: ${{env.TYPES_REPO}}
-      - run: mv -f "${{ env.TMP_SRCDIR }}/schema.ts" "${{ env.TMP_DSTDIR }}/schema.ts"
+      - run: mv -f "${{ env.TMP_SRCDIR }}/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
         shell: bash
       - name: Set GitHub Deploy Key
         uses: webfactory/ssh-agent@v0.5.3
