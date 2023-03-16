@@ -1,6 +1,14 @@
 name: Run Tests
 on:
-  - push
+  push:
+    paths:
+      - ".github/workflows/build.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - "test/**"
+      - "template.yaml"
+  workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
