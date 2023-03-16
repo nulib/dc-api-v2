@@ -127,6 +127,11 @@ components:
         id:
           type: string
           format: uuid
+        accession_number:
+          type: string
+        description:
+          type: string
+          nullable: true
         duration:
           type: number
           nullable: true
@@ -165,6 +170,8 @@ components:
           nullable: true
       required:
         - id
+        - accession_number
+        - description
         - duration
         - height
         - label
@@ -182,8 +189,6 @@ components:
         - $ref: "#/components/schemas/FileSetBase"
         - type: object
           properties:
-            accession_number:
-              type: string
             api_link:
               type: string
             api_model:
@@ -196,9 +201,6 @@ components:
               nullable: true
               additionalProperties:
                 type: string
-            description:
-              type: string
-              nullable: true
             extracted_metadata:
               type: object
               nullable: true
@@ -218,11 +220,9 @@ components:
               type: string
               nullable: true
           required:
-            - accession_number
             - api_link
             - api_model
             - create_date
-            - description
             - digests
             - extracted_metadata
             - indexed_at
@@ -250,6 +250,20 @@ components:
       required:
         - id
         - label
+    Info:
+      description: Global DC API properties
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+      required:
+        - description
+        - name
+        - version
     LibraryUnit:
       nullable: true
       description: NUL Library Unit
@@ -267,7 +281,7 @@ components:
       description: The type of the note
       type: string
       enum:
-        - Awards,
+        - Awards
         - Bibliographical/Historical Note
         - Creation/Production Credits
         - General Note
@@ -278,7 +292,7 @@ components:
         - Venue/Event Date
     PaginationInfo:
       type: object
-      description: Pagination info for the current response
+      description: Pagination info for the current response.
       properties:
         next_url:
           type: string
@@ -468,12 +482,12 @@ components:
             type: string
         description:
           type: array
-          description: An account of the resource
+          description: An account of the resource.
           items:
             type: string
         file_sets:
           type: array
-          description: File sets associated with the resource
+          description: File sets associated with the resource.
           items:
             $ref: "#/components/schemas/FileSetBase"
         folder_name:
@@ -495,7 +509,7 @@ components:
           type: string
           format: uuid
           required: true
-          description: UUID for the work record in the repository
+          description: UUID for the work record in the repository.
         identifier:
           type: array
           description: Identifiers for the object

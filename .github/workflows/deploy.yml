@@ -4,6 +4,8 @@ on:
     branches:
       - deploy/staging
       - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 env:
   CONFIG_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 jobs:
@@ -33,6 +35,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
           aws-region: us-east-1
       - run: ln -s .tfvars/dc-api/samconfig.toml .
+      - run: ln -s .tfvars/dc-api/$CONFIG_ENV.parameters .
       - run: sam build
       - run: | 
           sam deploy \
@@ -40,7 +43,7 @@ jobs:
             --no-fail-on-empty-changeset \
             --config-env $CONFIG_ENV \
             --config-file ./samconfig.toml \
-            --parameter-overrides HoneybadgerRevision=$HONEYBADGER_REVISION
+            --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION")
         env:
           HONEYBADGER_REVISION: ${{ github.sha }}
   docs-changed:
@@ -56,7 +59,7 @@ jobs:
         uses: tj-actions/changed-files@v29.0.2
         with:
           files: |
-            .github/workflows/docs.yaml
+            .github/workflows/deploy.yaml
             docs/*
   publish-docs:
     needs: docs-changed
@@ -96,6 +99,7 @@ jobs:
           openapi-file: docs/site/spec/openapi.yaml
           command-args: -o docs/site/spec
       - name: Copy to S3
-        run: aws s3 sync --delete docs/site/ s3://api-docs.${ZONE}/
+        run: aws s3 sync --delete docs/site/ s3://${HOST}-docs.${ZONE}/
         env:
+          HOST: ${{ secrets.Hostname }}
           ZONE: ${{ secrets.HostedZone }}

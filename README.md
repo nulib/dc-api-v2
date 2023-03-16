@@ -69,6 +69,24 @@ Use the [https-proxy](https://github.com/nulib/aws-developer-environment#conveni
 https-proxy start 3002 3000
 ```
 
+## Deploying the API manually
+
+- Symlink the `*.parameters` file you need from `tfvars/dc-api/` to the application root
+- Set your `CONFIG_ENV` and `HONEYBADGER_REVISION` environment variables
+- Run `sam deploy`
+
+```sh
+# staging environment example:
+
+ln -s ~/environment/tfvars/dc-api/staging.parameters .
+CONFIG_ENV=staging
+HONEYBADGER_REVISION=$(git rev-parse HEAD)
+sam deploy \
+  --config-env $CONFIG_ENV \
+  --config-file ./samconfig.toml \
+  --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION")
+```
+
 ## Writing Documentation
 
 API documentation is automatically regenerated and deployed on pushes to the staging and production branches. The documentation is in two parts:
@@ -102,7 +120,16 @@ For an in-depth look, or to learn how to define things for which there aren't go
 #### Build Artifacts
 
 `openapi.html` renders the Swagger UI directly from the unmodified `openapi.yaml`. In addition, the build process generates a JSON copy of the spec using the [OpenAPI Generator CLI](https://openapi-generator.tech). In order to make sure the spec is valid before checking it in, run:
+
 ```shell
 npm run validate-spec
 ```
+
 This check is also part of the CI test workflow, so an invalid spec file will cause the branch to fail CI.
+
+## DC API Typescript NPM package
+
+Typescript types for the schemas (Works, Collections, FileSets) are automatically published to the [nulib/dcapi-types](https://github.com/nulib/dcapi-types) repo on deploys.
+
+- If a deploy to the `deploy/staging` branch contains changes to the `docs/docs/spec/data-types.yaml` file, new types are generated and a commit is made to the `staging` branch of `nulib/dcapi`. This is intended to be for local testing by NUL devs against the private staging API.
+- If a deploy to production (`main` branch) contains changes to the `docs/docs/spec/data-types.yaml` file, new types are generated and a PR is opened into the `main` branch of `nulib/dcapi-types`. Also, an issue is created in `nulib/repodev_planning_and_docs` to review the PR and publish the types package (manually).

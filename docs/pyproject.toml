@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dc-api-v2"
-version = "2.0.0"
+version = "2.0.2"
 description = "Northwestern University Library Digital Collections API Documentation"
 authors = ["Michael B. Klein <michael.klein@northwestern.edu>"]
 

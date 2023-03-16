@@ -54,7 +54,7 @@ class Paginator {
     this.options = options;
   }
 
-  async pageInfo(count) {
+  async pageInfo(count, opts = {}) {
     let url = new URL(this.route, this.baseUrl);
     let searchToken;
 
@@ -91,9 +91,11 @@ class Paginator {
       offset: from(this.body),
       total_hits: count,
       total_pages: maxPage(this.body, count),
-      options: this.options,
       format: this.format,
     };
+    if (opts.includeOptions) {
+      result.options = this.options;
+    }
     if (prev) {
       url.searchParams.set("page", prev);
       result.prev_url = url.toString();
