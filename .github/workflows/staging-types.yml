@@ -7,6 +7,9 @@ on:
       - "deploy/staging"
     paths:
       - "docs/docs/spec/data-types.yaml"
+      - ".github/flags/deploy-data-types"
+      - ".github/workflows/staging-types.yml"
+  workflow_dispatch:
 jobs:
   Push-To-Types-Repo-Staging:
     if: github.event.pull_request.merged == true
