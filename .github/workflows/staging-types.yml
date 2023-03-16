@@ -1,3 +1,4 @@
+name: Generate typescript and push to nulib/dcapi-types@staging
 on:
   pull_request_target:
     types:

@@ -1,3 +1,4 @@
+name: Generate typescript and create PR into nulib/dcapi-types@main
 on:
   pull_request_target:
     types:
@@ -37,7 +38,7 @@ jobs:
         working-directory: "${{ env.TMP_SRCDIR }}"
         id: short-sha
         run: |
-          echo "short-sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
+          echo "value=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
       - name: get-api-version
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
@@ -59,7 +60,7 @@ jobs:
         shell: bash
       - working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
-          git checkout -b dcapi-${{ steps.vars.outputs.short-sha }}
+          git checkout -b dcapi-${{ steps.short-sha.outputs.value }}
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add .
