@@ -58,7 +58,7 @@ describe("Doc retrieval routes", () => {
       expect(result.statusCode).to.eq(404);
     });
 
-    it("404s a private work by default", async () => {
+    it("403's a private work by default", async () => {
       mock
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
@@ -68,7 +68,7 @@ describe("Doc retrieval routes", () => {
         .pathParams({ id: 1234 })
         .render();
       const result = await handler(event);
-      expect(result.statusCode).to.eq(404);
+      expect(result.statusCode).to.eq(403);
     });
 
     it("returns a private work to allowed IPs", async () => {
