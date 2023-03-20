@@ -50,7 +50,7 @@ describe("Retrieve collection by id", () => {
       expect(result.statusCode).to.eq(404);
     });
 
-    it("404's if the collection is private", async () => {
+    it("403's if the collection is private", async () => {
       mock
         .get("/dc-v2-collection/_doc/1234")
         .reply(
@@ -64,7 +64,7 @@ describe("Retrieve collection by id", () => {
         .render();
 
       const result = await handler(event);
-      expect(result.statusCode).to.eq(404);
+      expect(result.statusCode).to.eq(403);
     });
 
     it("200's if the collection is private but the user is in the reading room", async () => {

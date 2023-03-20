@@ -137,13 +137,13 @@ describe("Thumbnail routes", () => {
       expectCorsHeaders(result);
     });
 
-    it("returns 404 if the work is private", async () => {
+    it("returns 403 if the work is private", async () => {
       mock
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
 
       const result = await handler(event.render());
-      expect(result.error.statusCode).to.eq(404);
+      expect(result.error.statusCode).to.eq(403);
     });
 
     it("returns 200 if the work is private and the user is in the reading room", async () => {

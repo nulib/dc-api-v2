@@ -26,18 +26,30 @@ async function getDocument(index, id, opts = {}) {
   if (response.statusCode === 200) {
     const body = JSON.parse(response.body);
 
-    if (index != "shared_links" && !isVisible(body, opts)) {
-      let responseBody = {
-        _index: prefix(index),
-        _type: "_doc",
-        _id: id,
-        found: false,
-      };
-
-      response = {
-        statusCode: 404,
-        body: JSON.stringify(responseBody),
-      };
+    if (index !== "shared_links") {
+      if (!body?.found) {
+        response = {
+          statusCode: 404,
+          body: JSON.stringify({
+            _index: prefix(index),
+            _type: "_doc",
+            _id: id,
+            found: false,
+          }),
+        };
+      } else if (!isVisible(body, opts)) {
+        response = body?._source.published
+          ? { statusCode: 403 }
+          : {
+              statusCode: 404,
+              body: JSON.stringify({
+                _index: prefix(index),
+                _type: "_doc",
+                _id: id,
+                found: false,
+              }),
+            };
+      }
     }
   }
 
@@ -45,7 +57,6 @@ async function getDocument(index, id, opts = {}) {
 }
 
 function isVisible(doc, { allowPrivate, allowUnpublished }) {
-  if (!doc?.found) return false;
   const isAllowedVisibility =
     allowPrivate || doc?._source.visibility !== "Private";
   const isAllowedPublished = allowUnpublished || doc?._source.published;
