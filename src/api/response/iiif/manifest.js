@@ -148,51 +148,52 @@ function transform(response) {
         manifest.setHomepage(homepage);
 
         /** Add partOf */
-        const collectionEndpoint = `${dcApiEndpoint()}/collections/${
-          source.collection.id
-        }`;
-        manifest.setPartOf([
-          {
-            id: `${collectionEndpoint}?as=iiif`,
-            type: "Collection",
-            label: { none: [source.collection.title] },
-            ...(source.collection.description && {
-              summary: {
-                none: [source.collection.description],
-              },
-            }),
-
-            /**
-             * TODO: iiif-builder mangles this property, come back to it
-             */
-            // thumbnail: [
-            //   {
-            //     id: `${collectionEndpoint}/thumbnail`,
-            //     type: "Image",
-            //     width: 300,
-            //     height: 300,
-            //     format: "image/jpeg",
-            //   },
-            // ],
-
-            /**
-             * TODO: iiif-builder cleanses this property and doesn't include it.
-             * Come back to it.
-             */
-            homepage: [
-              {
-                id: `${dcUrl()}/collections/${source.collection.id}`,
-                type: "Text",
-                format: "text/html",
-                label: {
-                  none: [
-                    "Homepage at Northwestern University Libraries Digital Collections",
-                  ],
+        if (source.collection?.id) {
+          const collectionId = source.collection.id;
+          const collectionEndpoint = `${dcApiEndpoint()}/collections/${collectionId}`;
+          manifest.setPartOf([
+            {
+              id: `${collectionEndpoint}?as=iiif`,
+              type: "Collection",
+              label: { none: [source.collection.title] },
+              ...(source.collection.description && {
+                summary: {
+                  none: [source.collection.description],
                 },
-              },
-            ],
-          },
-        ]);
+              }),
+
+              /**
+               * TODO: iiif-builder mangles this property, come back to it
+               */
+              // thumbnail: [
+              //   {
+              //     id: `${collectionEndpoint}/thumbnail`,
+              //     type: "Image",
+              //     width: 300,
+              //     height: 300,
+              //     format: "image/jpeg",
+              //   },
+              // ],
+
+              /**
+               * TODO: iiif-builder cleanses this property and doesn't include it.
+               * Come back to it.
+               */
+              homepage: [
+                {
+                  id: `${dcUrl()}/collections/${collectionId}`,
+                  type: "Text",
+                  format: "text/html",
+                  label: {
+                    none: [
+                      "Homepage at Northwestern University Libraries Digital Collections",
+                    ],
+                  },
+                },
+              ],
+            },
+          ]);
+        }
 
         /** Add logo */
 

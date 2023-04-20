@@ -138,6 +138,26 @@ describe("Image Work as IIIF Manifest response transformer", () => {
       source.file_sets[0].representative_image_url
     );
   });
+
+  it("includes partOf property only if Work has a Collection", async () => {
+    const { manifest } = await setup();
+    expect(manifest).to.have.property("partOf");
+
+    async function setup2() {
+      const response = {
+        statusCode: 200,
+        body: helpers.testFixture("mocks/work-1234-no-collection.json"),
+      };
+      const source = JSON.parse(response.body)._source;
+
+      const result = await transformer.transform(response);
+      expect(result.statusCode).to.eq(200);
+
+      return { source, manifest: JSON.parse(result.body) };
+    }
+    const { manifest: manifest2 } = await setup2();
+    expect(manifest2).to.not.have.property("partOf");
+  });
 });
 
 describe("A/V Work as IIIF Manifest response transformer", () => {

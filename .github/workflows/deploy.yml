@@ -4,6 +4,13 @@ on:
     branches:
       - deploy/staging
       - main
+    paths:
+      - ".github/workflows/deploy.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "src/**"
+      - "template.yaml"
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 env:
