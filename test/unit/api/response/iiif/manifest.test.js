@@ -190,6 +190,7 @@ describe("A/V Work as IIIF Manifest response transformer", () => {
 
     expect(annotation.body.duration).to.eq(5.599);
     expect(annotation.body.type).to.eq("Video");
+    expect(annotation.body.format).to.eq("application/x-mpegurl");
     expect(annotation.body.id).to.eq(source.file_sets[0].streaming_url);
   });
 });
