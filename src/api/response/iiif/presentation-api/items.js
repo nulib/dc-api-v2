@@ -5,10 +5,13 @@ function annotationType(workType) {
 }
 
 function buildAnnotationBody(fileSet, workType) {
+  const bodyType = annotationType(workType);
   const body = {
     id: buildAnnotationBodyId(fileSet, workType),
-    type: annotationType(workType),
-    format: fileSet.mime_type,
+    type: bodyType,
+    format: isAudioVideo(bodyType)
+      ? "application/x-mpegurl"
+      : fileSet.mime_type,
     height: fileSet.height || 100,
     width: fileSet.width || 100,
   };
