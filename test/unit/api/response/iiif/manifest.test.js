@@ -114,6 +114,13 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     );
   });
 
+  it("adds a placeholderCanvas property to Image canvases", async () => {
+    const { manifest } = await setup();
+    const { placeholderCanvas } = manifest.items[0];
+    expect(placeholderCanvas.id).to.eq(`${manifest.items[0].id}/placeholder`);
+    expect(placeholderCanvas.type).to.eq("Canvas");
+  });
+
   it("excludes Preservation and Supplemental filesets", async () => {
     const { manifest } = await setup();
     manifest.items.forEach((canvas) => {
