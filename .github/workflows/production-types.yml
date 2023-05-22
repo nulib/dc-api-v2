@@ -8,7 +8,6 @@ on:
     paths:
       - "docs/docs/spec/data-types.yaml"
       - ".github/flags/deploy-data-types"
-      - ".github/workflows/production-types.yml"
   workflow_dispatch:
 jobs:
   Push-To-Types-Repo-Production:
@@ -26,7 +25,7 @@ jobs:
       GH_TOKEN: ${{secrets.GH_TOKEN}}
     steps:
       - run: |
-          echo PR with changes to datatypes.yml was merged into staging
+          echo PR with changes to datatypes.yml was merged into main
       - name: Checkout dc-api-v2
         uses: actions/checkout@v3
         with:
