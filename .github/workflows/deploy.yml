@@ -11,6 +11,11 @@ on:
       - "src/**"
       - "template.yaml"
   workflow_dispatch:
+    inputs:
+      force_deploy_docs:
+          description: Deploy documentation even if no changes detected
+          type: boolean
+          default: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 env:
@@ -70,7 +75,7 @@ jobs:
             docs/*
   publish-docs:
     needs: docs-changed
-    if: ${{ needs.docs-changed.outputs.result == 'true' }}
+    if: ${{ needs.docs-changed.outputs.result == 'true' || inputs.force_deploy_docs }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
