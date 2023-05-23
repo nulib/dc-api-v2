@@ -1,3 +1,4 @@
+const exp = require("constants");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
@@ -22,11 +23,12 @@ function apiTokenSecret() {
   return process.env.API_TOKEN_SECRET;
 }
 
-function appInfo() {
+function appInfo(options = {}) {
   return {
     name: PackageInfo.name,
     description: PackageInfo.description,
     version: PackageInfo.version,
+    link_expiration: options.expires || null,
   };
 }
 

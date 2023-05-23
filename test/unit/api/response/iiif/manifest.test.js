@@ -114,6 +114,13 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     );
   });
 
+  it("adds a placeholderCanvas property to Image canvases", async () => {
+    const { manifest } = await setup();
+    const { placeholderCanvas } = manifest.items[0];
+    expect(placeholderCanvas.id).to.eq(`${manifest.items[0].id}/placeholder`);
+    expect(placeholderCanvas.type).to.eq("Canvas");
+  });
+
   it("excludes Preservation and Supplemental filesets", async () => {
     const { manifest } = await setup();
     manifest.items.forEach((canvas) => {
@@ -190,6 +197,7 @@ describe("A/V Work as IIIF Manifest response transformer", () => {
 
     expect(annotation.body.duration).to.eq(5.599);
     expect(annotation.body.type).to.eq("Video");
+    expect(annotation.body.format).to.eq("application/x-mpegurl");
     expect(annotation.body.id).to.eq(source.file_sets[0].streaming_url);
   });
 });

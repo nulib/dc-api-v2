@@ -251,11 +251,15 @@ components:
         - id
         - label
     Info:
-      description: Global DC API properties
+      description: Additional Information
       type: object
       properties:
         description:
           type: string
+        link_expiration:
+          type: string
+          format: date-time
+          nullable: true
         name:
           type: string
         version:

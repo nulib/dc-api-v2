@@ -22,7 +22,7 @@ describe("OpenSearch response transformer", () => {
       statusCode: 200,
       body: helpers.testFixture("mocks/work-1234.json"),
     };
-    const result = await transformer.transform(response, pager);
+    const result = await transformer.transform(response, { pager: pager });
     expect(result.statusCode).to.eq(200);
 
     const body = JSON.parse(result.body);
@@ -36,7 +36,7 @@ describe("OpenSearch response transformer", () => {
       statusCode: 200,
       body: helpers.testFixture("mocks/search.json"),
     };
-    const result = await transformer.transform(response, pager);
+    const result = await transformer.transform(response, { pager: pager });
     expect(result.statusCode).to.eq(200);
 
     const body = JSON.parse(result.body);
@@ -60,7 +60,7 @@ describe("OpenSearch response transformer", () => {
       body: helpers.testFixture("mocks/missing-index.json"),
     };
 
-    const result = await transformer.transform(response, pager);
+    const result = await transformer.transform(response, { pager: pager });
     expect(result.statusCode).to.eq(404);
 
     const body = JSON.parse(result.body);
