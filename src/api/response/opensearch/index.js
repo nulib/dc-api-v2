@@ -1,17 +1,17 @@
 const { appInfo } = require("../../../environment");
 const { transformError } = require("../error");
 
-async function transform(response, pager) {
+async function transform(response, options = {}) {
   if (response.statusCode === 200) {
     const responseBody = JSON.parse(response.body);
     return await (responseBody?.hits?.hits
-      ? transformMany(responseBody, pager)
-      : transformOne(responseBody));
+      ? transformMany(responseBody, options)
+      : transformOne(responseBody, options));
   }
   return transformError(response);
 }
 
-async function transformOne(responseBody) {
+async function transformOne(responseBody, options = {}) {
   return {
     statusCode: 200,
     headers: {
@@ -19,12 +19,12 @@ async function transformOne(responseBody) {
     },
     body: JSON.stringify({
       data: responseBody._source,
-      info: appInfo(),
+      info: appInfo(options),
     }),
   };
 }
 
-async function transformMany(responseBody, pager) {
+async function transformMany(responseBody, options) {
   return {
     statusCode: 200,
     headers: {
@@ -32,7 +32,7 @@ async function transformMany(responseBody, pager) {
     },
     body: JSON.stringify({
       data: extractSource(responseBody.hits.hits),
-      pagination: await paginationInfo(responseBody, pager),
+      pagination: await paginationInfo(responseBody, options?.pager),
       info: appInfo(),
       aggregations: responseBody.aggregations,
     }),

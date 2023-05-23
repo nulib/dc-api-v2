@@ -21,10 +21,10 @@ exports.handler = wrap(async (event) => {
   });
   if (workResponse.statusCode !== 200) return invalidRequest("Not Found");
 
-  // add entitlement for the work id
-  // TODO make part of request/response processing
   event.userToken.addEntitlement(workId);
-  return await opensearchResponse.transform(workResponse);
+  return await opensearchResponse.transform(workResponse, {
+    expires: expirationDate,
+  });
 });
 
 const invalidRequest = (message) => {
