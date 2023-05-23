@@ -11,7 +11,7 @@ async function transformSearchResult(response, pager) {
       return await iiifCollectionResponse.transform(response, pager);
     }
 
-    return await opensearchResponse.transform(response, pager);
+    return await opensearchResponse.transform(response, { pager: pager });
   }
   return transformError(response);
 }
