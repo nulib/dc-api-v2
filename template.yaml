@@ -254,6 +254,35 @@ Resources:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}/authorization
             Method: HEAD
+  getWorkAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-work-auth.handler
+      Description: Authorizes access to a work.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/authorization
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/authorization
+            Method: HEAD
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
     Properties:
