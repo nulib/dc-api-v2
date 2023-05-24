@@ -1,0 +1,13 @@
+{
+  "_index": "dev-dc-v2-work",
+  "_type": "_doc",
+  "_id": "1234",
+  "_version": 1,
+  "found": true,
+  "_source": {
+    "id": "1234",
+    "api_model": "Work",
+    "visibility": "Private",
+    "published": true
+  }
+}
