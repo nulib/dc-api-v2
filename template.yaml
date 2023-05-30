@@ -75,13 +75,6 @@ Parameters:
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
-  V1ApiId:
-    Type: String
-    Description: ID of the v1 API to mount on /api/v1
-  V1ApiStage:
-    Type: String
-    Description: Stage name of the v1 API to mount on /api/v1
-    Default: latest
 Resources:
   # V2 API
   getAuthCallbackFunction:
@@ -260,6 +253,35 @@ Resources:
           Properties:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}/authorization
+            Method: HEAD
+  getWorkAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-work-auth.handler
+      Description: Authorizes access to a work.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/authorization
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/authorization
             Method: HEAD
   getWorkByIdFunction:
     Type: AWS::Serverless::Function
@@ -517,16 +539,6 @@ Resources:
         CertificateArn: !Ref CustomDomainCertificateArn
         Route53:
           HostedZoneName: !Sub "${CustomDomainZone}."
-
-  # v1 API Mapping
-  v1Mapping:
-    Type: AWS::ApiGatewayV2::ApiMapping
-    Properties:
-      ApiMappingKey: api/v1
-      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-      ApiId: !Ref V1ApiId
-      Stage: !Ref V1ApiStage
-    DependsOn: dcApi
 
   # root API
   rootApi:
