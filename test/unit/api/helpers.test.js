@@ -300,20 +300,54 @@ describe("helpers", () => {
   });
 
   describe("decodeToken", async () => {
-    it("adds the decoded token to the event", () => {
+    it("identifies a cookie token", () => {
       const token = new ApiToken().user({ uid: "abc123" }).sign();
-
-      const event = helpers
+      let result = helpers
         .mockEvent("GET", "/works/{id}/")
         .pathParams({ id: 1234 })
         .headers({
-          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
+          cookie: `${process.env.API_TOKEN_NAME}=${token}`,
         })
         .render();
-      let result = objectifyCookies(event);
-      result = decodeToken(event);
+      result = objectifyCookies(result);
+      result = decodeToken(result);
       expect(result.userToken.token).to.include({
         sub: "abc123",
+      });
+      expect(result.userToken.token).to.not.have.property("isReadingRoom");
+    });
+    it("identifies a bearer token", () => {
+      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      let result = helpers
+        .mockEvent("GET", "/works/{id}/")
+        .pathParams({ id: 1234 })
+        .headers({
+          authorization: `Bearer ${token}`,
+        })
+        .render();
+      result = objectifyCookies(result);
+      result = decodeToken(result);
+      expect(result.userToken.token).to.include({
+        sub: "abc123",
+      });
+      expect(result.userToken.token).to.not.have.property("isReadingRoom");
+    });
+    it("prioritizes a bearer token over a cookie token", () => {
+      const cookieToken = new ApiToken().user({ uid: "abc123" }).sign();
+      const bearerToken = new ApiToken().user({ uid: "def456" }).sign();
+
+      let result = helpers
+        .mockEvent("GET", "/works/{id}/")
+        .pathParams({ id: 1234 })
+        .headers({
+          authorization: `Bearer ${bearerToken}`,
+          cookie: `${process.env.API_TOKEN_NAME}=${cookieToken}`,
+        })
+        .render();
+      result = objectifyCookies(result);
+      result = decodeToken(result);
+      expect(result.userToken.token).to.include({
+        sub: "def456",
       });
       expect(result.userToken.token).to.not.have.property("isReadingRoom");
     });
@@ -327,16 +361,15 @@ describe("helpers", () => {
         email: "user@example.com",
       };
       const token = jwt.sign(payload, process.env.API_TOKEN_SECRET);
-
-      const event = helpers
+      let result = helpers
         .mockEvent("GET", "/works/{id}/")
         .pathParams({ id: 1234 })
         .headers({
-          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
+          cookie: `${process.env.API_TOKEN_NAME}=${token}`,
         })
         .render();
-      let result = objectifyCookies(event);
-      result = decodeToken(event);
+      result = objectifyCookies(result);
+      result = decodeToken(result);
       expect(result.userToken.token).to.not.include({
         sub: "abc123",
       });

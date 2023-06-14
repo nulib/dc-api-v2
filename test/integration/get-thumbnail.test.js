@@ -198,6 +198,49 @@ describe("Thumbnail routes", () => {
     });
   });
 
+  describe("Superuser", () => {
+    let event;
+
+    beforeEach(() => {
+      const token = new ApiToken().superUser().sign();
+      event = helpers
+        .mockEvent("GET", "/works/{id}/thumbnail")
+        .headers({
+          authorization: `Bearer ${token}`,
+          origin: "https://test.example.edu/",
+        })
+        .pathParams({ id: 1234 });
+    });
+
+    it("retrieves thumbnail even if the work is private", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/private-work-1234.json"));
+      mock
+        .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(200);
+    });
+
+    it("retrieves thumbnail even if the work is unpublished", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/unpublished-work-1234.json"));
+      mock
+        .get("/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(200);
+    });
+  });
+
   describe("QueryString parameters", () => {
     const event = helpers
       .mockEvent("GET", "/works/{id}/thumbnail")

@@ -31,7 +31,8 @@ function validateRequest(event) {
 }
 
 const getThumbnail = async (id, aspect, size, event) => {
-  const allowUnpublished = event.userToken.hasEntitlement(id);
+  const allowUnpublished =
+    event.userToken.isSuperUser() || event.userToken.hasEntitlement(id);
   const allowPrivate = allowUnpublished || event.userToken.isReadingRoom();
 
   let esResponse;

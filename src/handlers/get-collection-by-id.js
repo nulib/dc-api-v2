@@ -8,8 +8,11 @@ const getOpts = (event) => {
   const id = event.pathParameters.id;
 
   const allowPrivate =
-    event.userToken.isReadingRoom() || event.userToken.hasEntitlement(id);
-  const allowUnpublished = event.userToken.hasEntitlement(id);
+    event.userToken.isSuperUser() ||
+    event.userToken.isReadingRoom() ||
+    event.userToken.hasEntitlement(id);
+  const allowUnpublished =
+    event.userToken.isSuperUser() || event.userToken.hasEntitlement(id);
   return { allowPrivate, allowUnpublished };
 };
 
