@@ -2,7 +2,7 @@ name: Run NodeJS Tests
 on:
   push:
     paths:
-      - ".github/workflows/test_node.yml"
+      - ".github/workflows/test-node.yml"
       - "node/**"
   workflow_dispatch:
 defaults:
@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: 16.x
           cache: "npm"
+          cache-dependency-path: 'node/package-lock.json'
       - run: npm ci
       - name: Check code style
         run: npm run lint && npm run prettier
