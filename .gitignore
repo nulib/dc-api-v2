@@ -26,6 +26,14 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+pip-log.txt
+pip-delete-this-directory.txt
+*.py,cover
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
