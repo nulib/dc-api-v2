@@ -6,9 +6,9 @@ on:
       - main
     paths:
       - ".github/workflows/deploy.yml"
-      - "package.json"
-      - "package-lock.json"
-      - "src/**"
+      - "node/package.json"
+      - "node/package-lock.json"
+      - "node/src/**"
       - "template.yaml"
   workflow_dispatch:
     inputs:
