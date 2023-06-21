@@ -2,24 +2,16 @@ name: Deploy
 on:
   push:
     branches:
-      - deploy/staging
+      - deploy/*
       - main
     paths:
       - ".github/workflows/deploy.yml"
-      - "node/package.json"
-      - "node/package-lock.json"
-      - "node/src/**"
+      - "node/*"
+      - "python/*"
       - "template.yaml"
   workflow_dispatch:
-    inputs:
-      force_deploy_docs:
-          description: Deploy documentation even if no changes detected
-          type: boolean
-          default: false
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-env:
-  CONFIG_ENV: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -28,6 +20,17 @@ jobs:
       contents: read
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
+      - name: Set CONFIG_ENV from Branch Name
+        run: |
+          if [[ $BRANCH == 'refs/heads/main' ]]; then
+            echo "CONFIG_ENV=production" >> $GITHUB_ENV
+          else
+            echo "CONFIG_ENV=$(echo $BRANCH | awk -F/ '{print $NF}')" >> $GITHUB_ENV
+          fi
+        env:
+          BRANCH: ${{ github.ref }}
+      - name: Confirm deploy environment
+        run: echo "Deploying to '$CONFIG_ENV' environment"
       - name: Set GitHub Deploy Key
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -58,60 +61,3 @@ jobs:
             --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION")
         env:
           HONEYBADGER_REVISION: ${{ github.sha }}
-  docs-changed:
-    runs-on: ubuntu-latest
-    outputs:
-      result: ${{ steps.changed-files.outputs.any_modified == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
-      - name: Get changed doc files
-        id: changed-files
-        uses: tj-actions/changed-files@v29.0.2
-        with:
-          files: |
-            .github/workflows/deploy.yaml
-            docs/*
-  publish-docs:
-    needs: docs-changed
-    if: ${{ needs.docs-changed.outputs.result == 'true' || inputs.force_deploy_docs }}
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@master
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
-          aws-region: us-east-1
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-      - uses: abatilo/actions-poetry@v2
-        with:
-          poetry-version: 1.4.2
-      - name: Install dependencies
-        run: poetry install
-        working-directory: ./docs
-      - name: Build docs
-        run: poetry run mkdocs build --clean
-        working-directory: ./docs
-      - name: Determine correct deploy domain for environment
-        run: sed -i s/API_HOST/${HOSTNAME}/g docs/site/spec/openapi.*
-        env:
-          HOSTNAME: ${{ secrets.Hostname }}.${{ secrets.HostedZone }}
-      - name: Generate JSON API
-        uses: openapi-generators/openapitools-generator-action@v1
-        with:
-          generator: openapi
-          openapi-file: docs/site/spec/openapi.yaml
-          command-args: -o docs/site/spec
-      - name: Copy to S3
-        run: aws s3 sync --delete docs/site/ s3://${HOST}-docs.${ZONE}/
-        env:
-          HOST: ${{ secrets.Hostname }}
-          ZONE: ${{ secrets.HostedZone }}
