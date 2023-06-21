@@ -1,0 +1,29 @@
+name: Run Python Tests
+on:
+  push:
+    paths:
+      - ".github/workflows/test-python.yml"
+      - "python/**"
+  workflow_dispatch:
+defaults:
+  run:
+    working-directory: ./python
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ci
+      AWS_SECRET_ACCESS_KEY: ci
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache-dependency-path: python/requirements.txt
+      - run: npm ci
+      - name: Check code style
+        run: npm run lint && npm run prettier
+      - name: Run tests
+        run: npm run test:coverage
+      - name: Validate OpenAPI spec
+        run: npm run validate-spec
