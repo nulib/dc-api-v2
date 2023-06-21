@@ -631,6 +631,22 @@ Resources:
             ApiId: !Ref dcApi
             Path: /oai
             Method: POST
+  helloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./python/src
+      Runtime: python3.9
+      Handler: handlers/hello.lambda_handler
+      Environment:
+        Variables:
+          DEFAULT_NAME: "World"
+      Events:
+        GetApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /hello
+            Method: GET
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:
