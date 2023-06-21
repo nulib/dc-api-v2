@@ -15,7 +15,7 @@
     "prettier:fix": "prettier -cw src test",
     "test": "mocha",
     "test:coverage": "nyc npm test",
-    "validate-spec": "openapi-generator-cli validate -i ./docs/docs/spec/openapi.yaml"
+    "validate-spec": "openapi-generator-cli validate -i ../docs/docs/spec/openapi.yaml"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.5.2",

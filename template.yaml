@@ -7,7 +7,7 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    CodeUri: ./src
+    CodeUri: ./node/src
     Runtime: nodejs16.x
     Architectures:
       - x86_64
@@ -631,6 +631,22 @@ Resources:
             ApiId: !Ref dcApi
             Path: /oai
             Method: POST
+  helloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./python/src
+      Runtime: python3.9
+      Handler: handlers/hello.lambda_handler
+      Environment:
+        Variables:
+          DEFAULT_NAME: "World"
+      Events:
+        GetApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /hello
+            Method: GET
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -955,71 +971,71 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: latest
-  rootRedirect:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./redirect
-      Handler: index.handler
-      Timeout: 1
-      Description: Redirects to latest version of docs
-      Environment:
-        Variables:
-          REDIRECT_TO: /docs/v2/index.html
-      Events:
-        RedirectApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref rootApi
-            Path: /
-            Method: GET
-        RedirectApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref rootApi
-            Path: /
-            Method: HEAD
+  # rootRedirect:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: ./redirect
+  #     Handler: index.handler
+  #     Timeout: 1
+  #     Description: Redirects to latest version of docs
+  #     Environment:
+  #       Variables:
+  #         REDIRECT_TO: /docs/v2/index.html
+  #     Events:
+  #       RedirectApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref rootApi
+  #           Path: /
+  #           Method: GET
+  #       RedirectApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref rootApi
+  #           Path: /
+  #           Method: HEAD
 
   # Documentation
-  docsMapping:
-    Type: AWS::ApiGatewayV2::ApiMapping
-    Properties:
-      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-      ApiId: !Ref rootApi
-      Stage: !Ref rootApilatestStage
-    DependsOn: dcApi
-  docsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
-      AccessControl: PublicRead
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: index.html
-  docsBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      PolicyDocument:
-        Id: MyPolicy
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: "*"
-            Action: "s3:GetObject"
-            Resource: !Sub "arn:aws:s3:::${docsBucket}/*"
-      Bucket: !Ref docsBucket
-  docsIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref rootApi
-      IntegrationMethod: GET
-      IntegrationType: HTTP_PROXY
-      IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
-      PayloadFormatVersion: "1.0"
-  docsRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref rootApi
-      AuthorizationType: NONE
-      RouteKey: GET /docs/v2/{proxy+}
-      Target: !Sub "integrations/${docsIntegration}"
+  # docsMapping:
+  #   Type: AWS::ApiGatewayV2::ApiMapping
+  #   Properties:
+  #     DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+  #     ApiId: !Ref rootApi
+  #     Stage: !Ref rootApilatestStage
+  #   DependsOn: dcApi
+  # docsBucket:
+  #   Type: AWS::S3::Bucket
+  #   Properties:
+  #     BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
+  #     AccessControl: PublicRead
+  #     WebsiteConfiguration:
+  #       IndexDocument: index.html
+  #       ErrorDocument: index.html
+  # docsBucketPolicy:
+  #   Type: AWS::S3::BucketPolicy
+  #   Properties:
+  #     PolicyDocument:
+  #       Id: MyPolicy
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: PublicReadForGetBucketObjects
+  #           Effect: Allow
+  #           Principal: "*"
+  #           Action: "s3:GetObject"
+  #           Resource: !Sub "arn:aws:s3:::${docsBucket}/*"
+  #     Bucket: !Ref docsBucket
+  # docsIntegration:
+  #   Type: AWS::ApiGatewayV2::Integration
+  #   Properties:
+  #     ApiId: !Ref rootApi
+  #     IntegrationMethod: GET
+  #     IntegrationType: HTTP_PROXY
+  #     IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
+  #     PayloadFormatVersion: "1.0"
+  # docsRoute:
+  #   Type: AWS::ApiGatewayV2::Route
+  #   Properties:
+  #     ApiId: !Ref rootApi
+  #     AuthorizationType: NONE
+  #     RouteKey: GET /docs/v2/{proxy+}
+  #     Target: !Sub "integrations/${docsIntegration}"
