@@ -42,6 +42,8 @@ jobs:
           ref: main
           path: ".tfvars"
       - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
       - uses: aws-actions/setup-sam@v1
       - name: sam fix https://github.com/aws/aws-sam-cli/issues/4527
         run: $(dirname $(readlink $(which sam)))/pip install --force-reinstall "cryptography==38.0.4"
