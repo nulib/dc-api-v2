@@ -681,12 +681,12 @@ Resources:
           WEAVIATE_API_KEY: !Ref WeaviateApiKey
           WEAVIATE_URL: !Ref WeaviateUrl
       Events:
-        GetApiGet:
+        PostApi:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
             Path: /chat
-            Method: GET
+            Method: POST
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:

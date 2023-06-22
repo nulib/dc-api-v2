@@ -5,6 +5,7 @@ ENV=dev
 
 help:
 	echo "make build          | build the SAM project"
+	echo "make serve          | run the SAM server locally"
 	echo "make clean          | remove all installed dependencies and build artifacts"
 	echo "make deps           | install all dependencies"
 	echo "make link           | create hard links to allow for hot reloading of a built project"
