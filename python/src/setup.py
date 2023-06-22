@@ -1,8 +1,5 @@
 import os
 import weaviate
-from weaviate.util import generate_uuid5
-
-
 
 def connect():
   weaviate_url = os.environ['WEAVIATE_URL']
