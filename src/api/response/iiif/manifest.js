@@ -248,10 +248,14 @@ function transform(response) {
           (fileSet) =>
             fileSet.representative_image_url === thumbnail[0].service[0]["@id"]
         );
-        jsonManifest.items[i].placeholderCanvas = buildPlaceholderCanvas(
-          id,
-          placeholderFileSet
-        );
+
+        // only add the placeholderCanvas property if the fileSet has width and height
+        if (placeholderFileSet.width && placeholderFileSet.height) {
+          jsonManifest.items[i].placeholderCanvas = buildPlaceholderCanvas(
+            id,
+            placeholderFileSet
+          );
+        }
       }
     }
 
