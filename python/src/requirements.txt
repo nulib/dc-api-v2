@@ -2,5 +2,7 @@ langchain~=0.0.208
 nbformat~=5.9.0
 openai~=0.27.8
 pandas~=2.0.2
+pyjwt~=2.6.0
 python-dotenv~=1.0.0
 weaviate-client~=3.19.2
+wheel~=0.40.0
