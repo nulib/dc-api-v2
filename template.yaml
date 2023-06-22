@@ -647,6 +647,19 @@ Resources:
             ApiId: !Ref dcApi
             Path: /hello
             Method: GET
+  chatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./python/src
+      Runtime: python3.9
+      Handler: handlers/chat.handler
+      Events:
+        GetApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /chat
+            Method: GET
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:
