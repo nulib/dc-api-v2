@@ -1,17 +1,19 @@
-from langchain.vectorstores import Weaviate
+import base64
 import json
 import setup
 
 def handler(event, context):
+  question = event.get("body", "")
+  if event.get("isBase64Encoded", False):
+    question = base64.b64decode(question)
+
   params = event.get("queryStringParameters", {})
-  query = params.get("query")
+  index_name = params.get("index", "Work")
+  text_key = params.get("text_key", "title")
+  attributes = params.get("attributes", "identifier,title").split(",")
 
-  CLIENT = setup.connect()
-  index_name = "Work"
-  text_key = "title"
-
-  weaviate = Weaviate(CLIENT, index_name, text_key)
-  result = weaviate.similarity_search_by_text(query=query, additional="certainty")
+  weaviate = setup.weaviate_vector_store(index_name=index_name, text_key=text_key, attributes=attributes)
+  result = weaviate.similarity_search_by_text(query=question, additional="certainty")
 
   return {
     "statusCode": 200,
