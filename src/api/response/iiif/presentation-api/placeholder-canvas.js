@@ -42,7 +42,8 @@ function buildPlaceholderCanvas(id, fileSet, size = 640) {
 }
 
 function getPlaceholderSizes(fileset, size) {
-  const { width, height } = fileset;
+  const width = fileset?.width ?? 100;
+  const height = fileset?.height ?? 100;
   const placeholderWidth = width > size ? size : width;
   const placeholderHeight = Math.floor((placeholderWidth / width) * height);
   return { placeholderWidth, placeholderHeight };

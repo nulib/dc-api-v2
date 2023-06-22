@@ -167,6 +167,41 @@ describe("Image Work as IIIF Manifest response transformer", () => {
   });
 });
 
+describe("Image Work with fileset missing width and height as IIIF Manifest response transformer", () => {
+  async function setup() {
+    const response = {
+      statusCode: 200,
+      body: helpers.testFixture("mocks/work-1234-no-fileset-width-height.json"),
+    };
+    const source = JSON.parse(response.body)._source;
+
+    const result = await transformer.transform(response);
+    expect(result.statusCode).to.eq(200);
+
+    return { source, manifest: JSON.parse(result.body) };
+  }
+
+  it("sets canvas width and height to a default value", async () => {
+    const { manifest } = await setup();
+    const { width, height } = manifest.items[0];
+    expect(width).to.eq(100);
+    expect(height).to.eq(100);
+  });
+
+  it("sets canvas annotation body width and height to a default value", async () => {
+    const { manifest } = await setup();
+    const { width, height } = manifest.items[0].items[0].items[0].body;
+    expect(width).to.eq(100);
+    expect(height).to.eq(100);
+  });
+
+  it("excludes placeholderCanvas property on Image canvases if filset does not have width OR height", async () => {
+    const { manifest } = await setup();
+    const { placeholderCanvas } = manifest.items[0];
+    expect(placeholderCanvas).to.eq(undefined);
+  });
+});
+
 describe("A/V Work as IIIF Manifest response transformer", () => {
   async function setup() {
     const response = {

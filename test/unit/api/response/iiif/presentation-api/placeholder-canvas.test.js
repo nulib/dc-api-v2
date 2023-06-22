@@ -50,17 +50,44 @@ describe("IIIF response presentation API placeholderCanvas helpers", () => {
   });
 
   it("getPlaceholderSizes(fileSet, size)", () => {
-    const fileSet = {
-      width: 3125,
-      height: 2240,
-    };
+    const fileSets = [
+      {
+        width: 3125,
+        height: 2240,
+      },
+      {
+        width: 500,
+        height: 300,
+      },
+      {
+        width: null,
+        height: null,
+      },
+    ];
 
-    const { placeholderHeight, placeholderWidth } = getPlaceholderSizes(
-      fileSet,
-      1000
-    );
+    const expected = [
+      {
+        placeholderWidth: 1000,
+        placeholderHeight: 716,
+      },
+      {
+        placeholderWidth: 500,
+        placeholderHeight: 300,
+      },
+      {
+        placeholderWidth: 100,
+        placeholderHeight: 100,
+      },
+    ];
 
-    expect(placeholderWidth).to.eq(1000);
-    expect(placeholderHeight).to.eq(716);
+    fileSets.forEach(function (fileSet, index) {
+      const { placeholderHeight, placeholderWidth } = getPlaceholderSizes(
+        fileSet,
+        1000
+      );
+
+      expect(placeholderWidth).to.eq(expected[index].placeholderWidth);
+      expect(placeholderHeight).to.eq(expected[index].placeholderHeight);
+    });
   });
 });
