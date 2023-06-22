@@ -32,6 +32,18 @@ Parameters:
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
+  AzureOpenaiApiKey:
+    Type: String
+    Description: Azure OpenAI API Key
+  AzureOpenaiEmbeddingDeploymentId:
+    Type: String
+    Description: Azure OpenAI Embedding Deployment ID
+  AzureOpenaiLlmDeploymentId:
+    Type: String
+    Description: Azure OpenAI LLM Deployment ID
+  AzureOpenaiResourceName:
+    Type: String
+    Description: Azure OpenAI Resource Name
   CustomDomainCertificateArn:
     Type: String
     Description: SSL Certificate for the Custom Domain Name
@@ -75,6 +87,12 @@ Parameters:
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
+  WeaviateApiKey:
+    Type: String
+    Description: Weaviate API Key
+  WeaviateUrl:
+    Type: String
+    Description: Weaviate URL
 Resources:
   # V2 API
   getAuthCallbackFunction:
@@ -536,6 +554,15 @@ Resources:
       CodeUri: ./python/src
       Runtime: python3.9
       Handler: handlers/chat.handler
+      Timeout: 30
+      Environment:
+        Variables:
+          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
+          AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
+          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
+          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
+          WEAVIATE_API_KEY: !Ref WeaviateApiKey
+          WEAVIATE_URL: !Ref WeaviateUrl
       Events:
         GetApiGet:
           Type: HttpApi
