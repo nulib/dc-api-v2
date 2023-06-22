@@ -18,5 +18,5 @@ def handler(event, context):
     "headers": {
       "Content-Type": "application/json"
     },
-    "body": json.dumps([doc.__dict__ for doc in result])
+    "body": json.dumps(result)
   }
