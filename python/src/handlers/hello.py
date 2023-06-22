@@ -1,7 +1,8 @@
 import os
 
 def lambda_handler(event, context):
-  name = event.get("queryStringParameters", {}).get("name", os.getenv("DEFAULT_NAME", "No One"))
+  params = event.get("queryStringParameters", {})
+  name = params.get("name", os.getenv("DEFAULT_NAME", "No One"))
   return {
     "statusCode": 200,
     "headers": {
