@@ -6,8 +6,8 @@ on:
       - main
     paths:
       - ".github/workflows/deploy.yml"
-      - "node/*"
-      - "python/*"
+      - "node/**"
+      - "python/**"
       - "template.yaml"
   workflow_dispatch:
 concurrency:
