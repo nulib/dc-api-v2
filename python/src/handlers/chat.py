@@ -10,10 +10,9 @@ def handler(event, context):
 
   headers = event.get("headers")
   token = headers.get("authorization", headers.get("Authorization", None))
-  print(f"TOKEN: {token}")
+
   if token is None:
     for cookie in event.get("cookies", []):
-      print(f"HAVE A COOKIE: {cookie}")
       [k, v] = cookie.split("=", 1)
       if k == os.getenv("API_TOKEN_NAME"):
         token = v
