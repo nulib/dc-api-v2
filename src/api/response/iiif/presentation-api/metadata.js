@@ -54,6 +54,10 @@ function metadataLabelFields(source) {
       value: source.language.map((item) => item.label),
     },
     {
+      label: "License",
+      value: formatSingleValuedField(source.license?.label),
+    },
+    {
       label: "Location",
       value: source.location?.map((item) => item.label),
     },

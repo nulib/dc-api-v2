@@ -61,6 +61,13 @@ The API will be available at:
 - `http://USER_PREFIX.dev.library.northwestern.edu:3000` (from elsewhere)
   - Don't forget to [open port 3000](https://github.com/nulib/aws-developer-environment#convenience-scripts) if you want to access it remotely
 
+⚠️ Note the above URLs (which point to your local OpenSearch instance) need _full endpoints_ to resolve. For example:
+
+- `http://USER_PREFIX.dev.library.northwestern.edu:3000/search`
+- `http://USER_PREFIX.dev.library.northwestern.edu:3000/collections`
+
+[View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documention](https://api.dc.library.northwestern.edu/)
+
 ## Running the API locally via our AWS dev domain
 
 Use the [https-proxy](https://github.com/nulib/aws-developer-environment#convenience-scripts) script to make the local environment live at: https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:3002/search
@@ -68,6 +75,45 @@ Use the [https-proxy](https://github.com/nulib/aws-developer-environment#conveni
 ```
 https-proxy start 3002 3000
 ```
+
+## Example workflows
+
+### Meadow
+
+View and edit information about a specific Work in the Index.
+
+1. Open a local Meadow instance.
+2. Find an `id` of a Work you'd like to inspect in the API.
+3. View JSON response at `http://USER_PREFIX.dev.library.northwestern.edu:3000/works/[WORK_ID]`
+4. View IIIF Manifest JSON response at `http://USER_PREFIX.dev.library.northwestern.edu:3000/works/[WORK_ID]?as=iiif`
+
+For help debugging/inspecting, JavaScript `console` messages are written to: `dc-api-v2/dc-api.log`
+
+### DC
+
+Develop against changes to the API.
+
+1. Before starting the DC app, temporarily change the port number in `dc-nextjs/server.js` from default `3000` to something like `3003`.
+2. Open the port so it can be accessed in the browser.
+
+```
+sg open all 3003
+```
+
+3. Start the proxy for the API
+
+```
+https-proxy start 3002 3000
+```
+
+4. Point to the proxy URL and start DC app (in your `/environment/dc-nextjs` shell)
+
+```
+export NEXT_PUBLIC_DCAPI_ENDPOINT=https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002
+npm run dev
+```
+
+Access the app in a browser at: https://USER_PREFIX.dev.rdc.library.northwestern.edu:3003/
 
 ## Deploying the API manually
 
