@@ -11,7 +11,7 @@ def handler(event, context):
   headers = event.get("headers")
   token = headers.get("authorization", headers.get("Authorization", None))
   print(f"TOKEN: {token}")
-  if token == None:
+  if token is None:
     for cookie in event.get("cookies", []):
       print(f"HAVE A COOKIE: {cookie}")
       [k, v] = cookie.split("=", 1)
@@ -35,8 +35,11 @@ def handler(event, context):
   text_key = params.get("text_key", "title")
   attributes = params.get("attributes", "identifier,title").split(",")
 
-  weaviate = setup.weaviate_vector_store(index_name=index_name, text_key=text_key, attributes=attributes)
-  result = weaviate.similarity_search_by_text(query=question, additional="certainty")
+  weaviate = setup.weaviate_vector_store(index_name=index_name, 
+                                         text_key=text_key, 
+                                         attributes=attributes)
+  result = weaviate.similarity_search_by_text(query=question, 
+                                              additional="certainty")
 
   return {
     "statusCode": 200,
