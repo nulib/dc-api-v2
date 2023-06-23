@@ -7,24 +7,25 @@ import weaviate
 
 def openai_chat_client():
   deployment = os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")
-  os.getenv("AZURE_OPENAI_RESOURCE_NAME")
-  os.getenv("AZURE_OPENAI_API_KEY")
+  key = os.getenv("AZURE_OPENAI_API_KEY")
+  resource = os.getenv("AZURE_OPENAI_RESOURCE_NAME")
 
-  return AzureChatOpenAI(deployment_name=deployment)
+  return AzureChatOpenAI(deployment_name=deployment, 
+                         openai_api_key=key, 
+                         openai_api_base=f"https://{resource}.openai.azure.com/",
+                         openai_api_version="2023-03-15-preview")
+
 
 def weaviate_vector_store(index_name: str, text_key: str, attributes: List[str] = []):
   weaviate_url = os.environ['WEAVIATE_URL']
   weaviate_api_key = os.environ['WEAVIATE_API_KEY']
-  openai_api_key = os.environ['AZURE_OPENAI_API_KEY']
+  # openai_api_key = os.environ['AZURE_OPENAI_API_KEY']
 
   auth_config = weaviate.AuthApiKey(api_key=weaviate_api_key)
 
   client = weaviate.Client(
       url=weaviate_url,
-      auth_client_secret=auth_config,
-      additional_headers={
-          "X-OpenAI-Api-Key": openai_api_key
-      }
+      auth_client_secret=auth_config
   )
   return Weaviate(client=client, 
                   index_name=index_name, 

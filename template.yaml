@@ -671,7 +671,7 @@ Resources:
       CodeUri: ./python/src
       Runtime: python3.9
       Handler: handlers/chat.handler
-      Timeout: 30
+      Timeout: 300
       Environment:
         Variables:
           AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
