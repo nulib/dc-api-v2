@@ -1,11 +1,9 @@
+# ruff: noqa: E501
 import base64
 import json
 import os
 import setup
 from langchain.chains import RetrievalQAWithSourcesChain
-
-
-
 
 def handler(event, context):
   if not is_authenticated(event):
@@ -42,11 +40,19 @@ def handler(event, context):
   return {
     "statusCode": 200,
     "headers": {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "access-control-allow-methods": "POST, GET",
+      "access-control-allow-credentials": True,
+      "access-control-max-age": 600,
+      "access-control-allow-origin": get_header(event, "Origin", "*"),
+      "access-control-allow-headers": "Accept, Accept-Charset, Accept-Encoding, Accept-Language, Accept-Datetime, Authorization, Cache-Control, Content-Length, Content-Type, Cookie, Date, Expect, Host, If-Match, If-Modified-Since, If-None-Match, If-Range, If-Unmodified-Since, Origin, Pragma, Range, Referer, User-Agent, X-CSRF-Token, X-Forwarded-For, X-Forwarded-Host, X-Forwarded-Port, X-Requested-With"
     },
     "body": json.dumps(response)
   }
 
+def get_header(event, header, default=None):
+  headers = event.get("headers")
+  return headers.get(header, headers.get(header.lower(), default))
 
 def get_param(event, parameter, default):
   params = event.get("queryStringParameters", {})
@@ -61,8 +67,7 @@ def get_query(event):
 
 
 def is_authenticated(event):
-  headers = event.get("headers")
-  token = headers.get("authorization", headers.get("Authorization", None))
+  token = get_header(event, "Authorization")
 
   if token is None:
     for cookie in event.get("cookies", []):
