@@ -33,7 +33,7 @@ def handler(event, context):
   chain = RetrievalQAWithSourcesChain.from_chain_type(
     client, 
     chain_type="stuff", 
-    retriever=weaviate.as_retriever(),
+    retriever=weaviate.as_retriever(search_kwargs=dict(additional="certainty")),
     return_source_documents=True)
 
   response = chain({"question": question})
