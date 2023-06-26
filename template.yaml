@@ -681,6 +681,12 @@ Resources:
           WEAVIATE_API_KEY: !Ref WeaviateApiKey
           WEAVIATE_URL: !Ref WeaviateUrl
       Events:
+        GetApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /chat
+            Method: GET
         PostApi:
           Type: HttpApi
           Properties:
