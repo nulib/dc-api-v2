@@ -100,6 +100,9 @@ Parameters:
   NussoBaseUrl:
     Type: String
     Description: Auth server URL
+  PrototypeUrl:
+    Type: String
+    Description: URL of prototype
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
@@ -649,44 +652,33 @@ Resources:
             ApiId: !Ref dcApi
             Path: /oai
             Method: POST
-  helloWorldFunction:
+  chatWebsocket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./chat/template.yaml
+      Parameters:
+        ApiTokenSecret: !Ref ApiTokenSecret
+        AzureOpenaiApiKey: !Ref AzureOpenaiApiKey
+        AzureOpenaiEmbeddingDeploymentId: !Ref AzureOpenaiEmbeddingDeploymentId
+        AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
+        AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
+        WeaviateApiKey: !Ref WeaviateApiKey
+        WeaviateUrl: !Ref WeaviateUrl
+  chatWebsocketEndpoint:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./python/src
-      Runtime: python3.9
-      Handler: handlers/hello.lambda_handler
+      Handler: handlers/get-chat-endpoint.handler
+      Description: Returns the URI of the chat websocket API.      
       Environment:
         Variables:
-          DEFAULT_NAME: "World"
+          WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
       Events:
         GetApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
-            Path: /hello
+            Path: /chat-endpoint
             Method: GET
-  chatFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./python/src
-      Runtime: python3.9
-      Handler: handlers/chat.handler
-      Timeout: 300
-      Environment:
-        Variables:
-          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
-          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
-          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
-          WEAVIATE_API_KEY: !Ref WeaviateApiKey
-          WEAVIATE_URL: !Ref WeaviateUrl
-      Events:
-        PostApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /chat
-            Method: POST
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:

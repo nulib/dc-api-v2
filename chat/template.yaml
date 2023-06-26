@@ -1,0 +1,237 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Websocket Chat API for dc-api-v2
+Parameters:
+  ApiTokenSecret:
+    Type: String
+    Description: Secret Key for Encrypting JWTs (must match IIIF server)
+  AzureOpenaiApiKey:
+    Type: String
+    Description: Azure OpenAI API Key
+  AzureOpenaiEmbeddingDeploymentId:
+    Type: String
+    Description: Azure OpenAI Embedding Deployment ID
+  AzureOpenaiLlmDeploymentId:
+    Type: String
+    Description: Azure OpenAI LLM Deployment ID
+  AzureOpenaiResourceName:
+    Type: String
+    Description: Azure OpenAI Resource Name
+  WeaviateApiKey:
+    Type: String
+    Description: Weaviate API Key
+  WeaviateUrl:
+    Type: String
+    Description: Weaviate URL
+Resources:
+  ApiGwAccountConfig:
+    Type: "AWS::ApiGateway::Account"
+    Properties:
+      CloudWatchRoleArn: !GetAtt "ApiGatewayLoggingRole.Arn"
+  ApiGatewayLoggingRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+  ChatWebSocket:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ChatWebSocket
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.message"
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      RouteKey: $connect
+      RouteResponseSelectionExpression: '$default'
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      OperationName: ConnectRoute
+      Target: !Sub 'integrations/${ConnectInteg}'
+  ConnectInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      Description: Connect Integration
+      IntegrationType: MOCK
+      RequestTemplates: 
+        "200" : '{"statusCode" : 200}'
+      TemplateSelectionExpression: '200'
+      PassthroughBehavior: 'WHEN_NO_MATCH'
+  ConnectIntegResp:
+    Type: AWS::ApiGatewayV2::IntegrationResponse
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      IntegrationId: !Ref ConnectInteg
+      IntegrationResponseKey: '$default'
+      ResponseTemplates:
+        "200" : '{"statusCode" : 200}'
+  ConnectRouteResponse:
+    Type: AWS::ApiGatewayV2::RouteResponse
+    Properties:
+      RouteId: !Ref ConnectRoute
+      ApiId: !Ref ChatWebSocket
+      RouteResponseKey: $default
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      RouteKey: $disconnect
+      RouteResponseSelectionExpression: '$default'
+      AuthorizationType: NONE
+      OperationName: DisconnectRoute
+      Target: !Sub 'integrations/${DisconnectInteg}'
+  DisconnectInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      Description: Disconnect Integration
+      IntegrationType: MOCK
+      RequestTemplates: 
+        "200" : '{"statusCode" : 200}'
+      TemplateSelectionExpression: '200'
+      PassthroughBehavior: 'WHEN_NO_MATCH'
+  DisconnectIntegResp:
+    Type: AWS::ApiGatewayV2::IntegrationResponse
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      IntegrationId: !Ref DisconnectInteg
+      IntegrationResponseKey: '$default'
+      ResponseTemplates:
+        "200" : '{"statusCode" : 200}'
+  DisconnectRouteResponse:
+    Type: AWS::ApiGatewayV2::RouteResponse
+    Properties:
+      RouteId: !Ref DisconnectRoute
+      ApiId: !Ref ChatWebSocket
+      RouteResponseKey: $default
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      RouteKey: $default
+      RouteResponseSelectionExpression: '$default'
+      AuthorizationType: NONE
+      OperationName: DefaultRoute
+      Target: !Sub 'integrations/${DefaultInteg}'
+  DefaultInteg:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      Description: Default Integration
+      IntegrationType: MOCK
+      RequestTemplates: 
+        "200" : '{"statusCode" : 200}'
+      TemplateSelectionExpression: '200'
+  DefaultIntegResp:
+    Type: AWS::ApiGatewayV2::IntegrationResponse
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      IntegrationId: !Ref DefaultInteg
+      IntegrationResponseKey: $default
+      ResponseTemplates: 
+        "200" : '{"statusCode" : 200, "connectionId" : "$context.connectionId"}'
+      TemplateSelectionExpression: '200'
+  DefaultRouteResponse:
+    Type: AWS::ApiGatewayV2::RouteResponse
+    Properties:
+      RouteId: !Ref DefaultRoute
+      ApiId: !Ref ChatWebSocket
+      RouteResponseKey: $default
+  ChatRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      RouteKey: chat
+      AuthorizationType: NONE
+      OperationName: ChatRoute
+      Target: !Sub 'integrations/${ChatIntegration}'
+  ChatIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ChatWebSocket
+      Description: Chat Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatFunction.Arn}/invocations"
+  ChatPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ChatWebSocket
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ChatFunction
+      Principal: apigateway.amazonaws.com
+  ChatDependencies:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: "${AWS::StackName}-dependencies"
+      Description: Dependencies for streaming chat function
+      ContentUri: ./dependencies
+      CompatibleRuntimes:
+        - python3.10
+      LicenseInfo: "Apache-2.0"
+    Metadata:
+      BuildMethod: python3.10
+  ChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref ChatDependencies
+      MemorySize: 128  
+      Handler: handlers/chat.handler
+      Timeout: 300
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiTokenSecret
+          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
+          AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
+          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
+          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
+          WEAVIATE_API_KEY: !Ref WeaviateApiKey
+          WEAVIATE_URL: !Ref WeaviateUrl
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'execute-api:ManageConnections'
+          Resource:
+          - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocket}/*'
+    Metadata:
+      BuildMethod: nodejs18.x
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+    - ConnectRoute
+    - DisconnectRoute
+    - DefaultRoute
+    - ChatRoute
+    Properties:
+      ApiId: !Ref ChatWebSocket
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: latest
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref ChatWebSocket
+      DefaultRouteSettings:
+        DetailedMetricsEnabled: true
+        LoggingLevel: INFO
+Outputs:
+  WebSocketURI:
+    Description: "The WSS Protocol URI to connect to"
+    Value: !Sub 'wss://${ChatWebSocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'

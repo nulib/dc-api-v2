@@ -1,3 +1,0 @@
--r src/requirements.txt
-coverage
-ruff
