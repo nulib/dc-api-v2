@@ -29,17 +29,110 @@ def handler(event, context):
   
   client = setup.openai_chat_client()
 
-  prompt = """Given the following list of sources, create a final answer with references ("SOURCES").
+  prompt = """Given the following list of sources, create a helpful answer to the supplied question.
   If you don't know the answer, just say that you don't know. Don't try to make up an answer.
   Don't include sources in the answer.
 
+  Content: 10th Annual Berkeley Folk Music Festival brochure
+  Metadata: 
+    alternate_title: ['Tenth Annual Berkeley Folk Music Festival brochure']
+    contributor: ['University of California, Berkeley. Associated Students', 'Olivier, Barry, 1935-', 'Herrero, Lowell, 1921-']
+    create_date: 2021-03-16T17:07:28.356507Z
+    creator: None
+    date_created: ['1967']
+    description: ['Brochure for the 10th Annual Berkeley Folk Music Festival, June 30 - July 4, 1967 at the University of California, Berkeley. Includes event schedule, photos and brief descriptions of participating artists and folklorists, and ticket information. Front cover features a Lowell Herrero illustration of Uncle Sam playing guitar.']
+    genre: ['brochures']
+    identifier: ce3ca54a-d928-43b8-bd1f-0b867e1fd624
+    keywords: None
+    language: ['English']
+    location: None
+    physical_description_material: None
+    physical_description_size: ['11 inches (height) x 4.25 inches (width)', '11 inches (height) x 16.75 inches (width)', '11 inches (height) x 8.5 inches (width)']
+    scope_and_contents: None
+    style_period: None
+    subject: ['Berkeley (Calif.)', 'University of California, Berkeley', 'Davis, Gary, 1896-1972', 'James Cotton Blues Band', 'Havens, Richie', 'Ian, Janis', 'Thomas, Tony, 1913-', 'Watson, Doc', 'Darlington, Sandy', 'Steve Miller Blues Band', 'Green, Archie', 'Hinton, Sam, 1917-2009', 'Charles River Valley Boys (Musical group)', 'Crome Syrcus (Musical group)', 'Kaleidoscope (Musical group)', 'Marshall, Charley', 'Berkeley Folk Music Festival (10th : 1967 : Berkeley, Calif.)', 'Spector, Phil', 'Von Meier, Kurt', 'Gleason, Ralph J.', 'Country Joe and the Fish', 'Red Crayola (Musical group)', 'Goodfellow, Robin, 1940-2017', 'Darlington, Jeanie', 'Cleanliness and Godliness Skiffle Band', 'Tarlton, Jimmie, 1892-1979']
+    table_of_contents: None
+    technique: None
+    work_type: Image
+  Source: https://dc.library.northwestern.edu/items/ce3ca54a-d928-43b8-bd1f-0b867e1fd624
+  
+
+
+  Content: University of California Folk Music Festival
+  Metadata: 
+    alternate_title: None
+    contributor: ['Olivier, Barry, 1935-']
+    create_date: 2021-03-16T13:09:52.290256Z
+    creator: None
+    date_created: ['1961?']
+    description: ['Description of the Berkeley Folk Music Festival, and the financial arrangements between Festival organizers and the Committee for Arts and Lectures']
+    genre: ['descriptions (documents)', 'financial records']
+    identifier: a2979042-4e76-4808-ab1a-5eb0bd39ffda
+    keywords: None
+    language: ['English']
+    location: None
+    physical_description_material: None
+    physical_description_size: ['11 inches (height) x 8.5 inches (width)']
+    scope_and_contents: None
+    style_period: None
+    subject: ['Berkeley Folk Music Festival', 'University of California, Berkeley. Committee on Drama, Lectures, and Music']
+    table_of_contents: None
+    technique: None
+    work_type: Image
+  Source: https://dc.library.northwestern.edu/items/a2979042-4e76-4808-ab1a-5eb0bd39ffda
+  
+
+
+  Content: Mitch Greenhill
+  Metadata: 
+    alternate_title: None
+    contributor: ['Olivier, Barry, 1935-']
+    create_date: 2021-03-16T21:54:44.763820Z
+    creator: None
+    date_created: ['circa 1958 to circa 1970']
+    description: ['Cut out photo of Mitch Greenhill playing guitar in an outdoor setting at the San Diego Folk Festival. Back includes performance schedule at the Berkeley Folk Music Festival.']
+    genre: ['black-and-white photographs']
+    identifier: f2ee01cf-ebe9-44b2-8293-b2f98f982aea
+    keywords: None
+    language: None
+    location: None
+    physical_description_material: None
+    physical_description_size: ['7.5 inches (height) x 4.75 inches (width)']
+    scope_and_contents: None
+    style_period: None
+    subject: ['San Diego (Calif.)', 'Greenhill, Mitch', 'San Diego Folk Festival']
+    table_of_contents: None
+    technique: None
+    work_type: Image
+  Source: https://dc.library.northwestern.edu/items/f2ee01cf-ebe9-44b2-8293-b2f98f982aea
+  
+
+
+  Content: Purchase order and invoice
+  Metadata: 
+    alternate_title: None
+    contributor: ['Berkeley Folk Music Festival', 'University of California, Berkeley. Associated Students']
+    create_date: 2021-03-15T16:22:45.637252Z
+    creator: None
+    date_created: ['July 13, 1962 and July 30, 1962']
+    description: ['ASUC purchase order issued on behalf of the Berkeley Folk Music Festival to the Regents of the University of California, with accompanying invoice']
+    genre: ['purchase orders']
+    identifier: 0df68024-5b07-46d8-87b3-2efc6b22f9d7
+    keywords: None
+    language: ['English']
+    location: None
+    physical_description_material: None
+    physical_description_size: ['5.5 inches (height) x 8.5 inches (width)', '7 inches (height) x 8.5 inches (width)']
+    scope_and_contents: None
+    style_period: None
+    subject: ['University of California (System). Regents', 'Berkeley Folk Music Festival (5th : 1962 : Berkeley, Calif.)']
+    table_of_contents: None
+    technique: None
+    work_type: Image
+  Source: https://dc.library.northwestern.edu/items/0df68024-5b07-46d8-87b3-2efc6b22f9d7
+
   QUESTION: What venues did musicians play at during the Berkeley Folk Music Festival?
-  SOURCES: [Document(page_content='U.C. Folk Music Festival concerts', metadata={{'alternate_title': None, 'contributor': None, 'create_date': '2021-03-15T16:13:32.185430Z', 'creator': None, 'date_created': ['1961'], 'description': ['Newspaper clipping of an ad for Fourth Annual Berkeley Folk Music Festival concerts, July 1 and 2, 1961 at the Pauley Ballroom and Greek Theatre'], 'genre': ['clippings (information artifacts)'], 'identifier': '0b71f0fa-5ecd-4d1a-99c1-57b2110f9a92', 'keywords': None, 'language': ['English'], 'location': None, 'physical_description_material': None, 'physical_description_size': ['3 inches (height) x 6.5 inches (width)'], 'scope_and_contents': None, 'source': 'https://dc.library.northwestern.edu/items/0b71f0fa-5ecd-4d1a-99c1-57b2110f9a92', 'style_period': None, 'subject': ['University of California, Berkeley', 'Pauley Ballroom (Berkeley, Calif.)', 'William Randolph Hearst Greek Theatre (Berkeley, Calif.)', 'Berkeley Folk Music Festival (4th : 1961 : Berkeley, Calif.)'], 'table_of_contents': None, 'technique': None, 'work_type': 'Image'}}),
- Document(page_content='Sandy & Jeanie: the Darlingtons in concert', metadata={{'alternate_title': None, 'contributor': None, 'create_date': '2021-03-15T16:16:04.067341Z', 'creator': None, 'date_created': ['October 1967'], 'description': ['Flier for a performance by Sandy and Jeanie Darlington that was sponsored by the Central California (C.C.) Folk Music Club.'], 'genre': ['fliers (printed matter)'], 'identifier': '0c1ada30-a249-4a2f-b6fe-bbc975c6c0e4', 'keywords': None, 'language': ['English'], 'location': None, 'physical_description_material': None, 'physical_description_size': ['11 inches (height) x 8.5 inches (width)'], 'scope_and_contents': None, 'source': 'https://dc.library.northwestern.edu/items/0c1ada30-a249-4a2f-b6fe-bbc975c6c0e4', 'style_period': None, 'subject': ['Darlington, Sandy', 'Central California Folk Music Club', 'Sandy & Jeanie', 'Darlington, Jeanie'], 'table_of_contents': None, 'technique': None, 'work_type': 'Image'}}),
- Document(page_content='Details on the Fifth Annual U.C. Folk Music Festival', metadata={{'alternate_title': None, 'contributor': None, 'create_date': '2021-03-16T06:30:19.729729Z', 'creator': None, 'date_created': ['1962'], 'description': ["Details about the 1962 Berkeley Folk Music Festival, including artists fees, fees for previous years' Festivals, and a financial picture of 1962"], 'genre': ['financial records'], 'identifier': '9418f5ba-5953-477f-bda4-9a913f5ff06c', 'keywords': None, 'language': ['English'], 'location': None, 'physical_description_material': None, 'physical_description_size': ['11 inches (height) x 8.5 inches (width)'], 'scope_and_contents': None, 'source': 'https://dc.library.northwestern.edu/items/9418f5ba-5953-477f-bda4-9a913f5ff06c', 'style_period': None, 'subject': ['Berkeley Folk Music Festival (5th : 1962 : Berkeley, Calif.)'], 'table_of_contents': None, 'technique': None, 'work_type': 'Image'}}),
- Document(page_content='Singers stage grand finale of U.C. Folk Music Festival', metadata={{'alternate_title': None, 'contributor': ['Gessler, Clifford, 1893-1979'], 'create_date': '2021-03-16T03:25:40.456370Z', 'creator': None, 'date_created': ['July 3, 1961'], 'description': ['Review of the final concert of the 4th annual University of California, Berkeley Folk Music Festival, published in the July 3, 1961 Oakland Tribune'], 'genre': ['clippings (information artifacts)'], 'identifier': '6ab99e1a-14dc-44c7-9b9a-6dcb3667d32c', 'keywords': None, 'language': ['English'], 'location': None, 'physical_description_material': None, 'physical_description_size': ['9.75 inches (height) x 11 inches (width)'], 'scope_and_contents': None, 'source': 'https://dc.library.northwestern.edu/items/6ab99e1a-14dc-44c7-9b9a-6dcb3667d32c', 'style_period': None, 'subject': ['Oakland Tribune', 'Berkeley Folk Music Festival (4th : 1961 : Berkeley, Calif.)', 'Warner, Frank, 1903-1978'], 'table_of_contents': None, 'technique': None, 'work_type': 'Image'}}),
- Document(page_content='Schedules for U.C. folk music festival', metadata={{'alternate_title': None, 'contributor': None, 'create_date': '2021-03-16T06:05:19.400654Z', 'creator': None, 'date_created': ['June 25, 1965'], 'description': ['Complete schedules for Friday, June 25 and Saturday, June 26 at the Eighth Annual Berkeley Folk Music Festival, clipped from the June 25, 1965 issue of the Oakland Tribune'], 'genre': ['clippings (information artifacts)'], 'identifier': '8ee42f27-ea0c-45d9-a7fa-3ffea65bbd45', 'keywords': None, 'language': ['English'], 'location': None, 'physical_description_material': None, 'physical_description_size': ['10 inches (height) x 3.75 inches (width)'], 'scope_and_contents': None, 'source': 'https://dc.library.northwestern.edu/items/8ee42f27-ea0c-45d9-a7fa-3ffea65bbd45', 'style_period': None, 'subject': ['Oakland Tribune', 'Berkeley (Calif.)', 'Berkeley Folk Music Festival (8th : 1965 : Berkeley, Calif.)'], 'table_of_contents': None, 'technique': None, 'work_type': 'Image'}})]
-  FINAL ANSWER: Based on the provided documents, here are the venues that were used for performances by musicians at the Berkeley Folk Music Festival:
+  HELPFUL ANSWER: Based on the provided documents, here are the venues that were used for performances by musicians at the Berkeley Folk Music Festival:
 
 1. Fourth Annual Berkeley Folk Music Festival (1961):
    - Pauley Ballroom and Greek Theatre
@@ -52,17 +145,47 @@ def handler(event, context):
 
 Please note that the documents do not provide information on the venues used for the Fifth and Eighth Annual Berkeley Folk Music Festivals.
 
-  QUESTION: {question}
-  =========
-  {summaries}
-  =========
-  FINAL ANSWER:"""
+  {context}
 
-  prompt_template = PromptTemplate(template=prompt, input_variables=["question", "summaries"])
+  QUESTION: {question}  
+  =========
+  HELPFUL ANSWER:"""
+
+  prompt_template = PromptTemplate(template=prompt, input_variables=["question", "context"])
+
+  document_template = """
+  Content: {page_content}
+  Metadata: 
+    alternate_title: {alternate_title}
+    contributor: {contributor}
+    create_date: {create_date}
+    creator: {creator}
+    date_created: {date_created}
+    description: {description}
+    genre: {genre}
+    identifier: {identifier}
+    keywords: {keywords}
+    language: {language}
+    location: {location}
+    physical_description_material: {physical_description_material}
+    physical_description_size: {physical_description_size}
+    scope_and_contents: {scope_and_contents}
+    style_period: {style_period}
+    subject: {subject}
+    table_of_contents: {table_of_contents}
+    technique: {technique}
+    work_type: {work_type}
+  Source: {source}
+  """
+
+  document_prompt = PromptTemplate(
+    template=document_template,
+    input_variables=["page_content"] + [item for item in attributes if item != "title"],
+  )
 
   docs = weaviate.similarity_search(question, k=10, additional="certainty")
   print(docs)
-  chain = load_qa_with_sources_chain(client, chain_type="stuff", prompt=prompt_template)
+  chain = load_qa_with_sources_chain(client, chain_type="stuff", prompt=prompt_template, document_prompt=document_prompt, document_variable_name="context", verbose=True)
   try:
     response = chain({"question": question, "input_documents": docs})
     response = {
