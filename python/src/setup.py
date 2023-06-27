@@ -2,7 +2,6 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.vectorstores import Weaviate
 from typing import List
 import os
-import jwt
 import weaviate
 
 def openai_chat_client():
@@ -31,14 +30,3 @@ def weaviate_vector_store(index_name: str, text_key: str, attributes: List[str] 
                   index_name=index_name, 
                   text_key=text_key, 
                   attributes=attributes)
-
-
-def validate_token(token):
-  secret = os.getenv("API_TOKEN_SECRET")
-  try:
-    claim = jwt.decode(token, secret, algorithms=["HS256"])
-    print(f"CLAIM: {claim}")
-    return claim.get("isLoggedIn", False)
-  except Exception as e:
-    print(e)
-    return False
