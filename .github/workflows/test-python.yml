@@ -25,5 +25,5 @@ jobs:
         run: ruff check .
       - name: Run tests
         run: |
-          coverage run -m unittest
+          coverage run --include='src/**/*' -m unittest
           coverage report
