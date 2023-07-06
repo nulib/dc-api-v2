@@ -49,6 +49,9 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     ).to.eq(source.alternate_title[0]);
     expect(getMetadataValueByLabel(manifest.metadata, "Abstract")).to.be
       .undefined;
+    expect(getMetadataValueByLabel(manifest.metadata, "License")).to.eql([
+      source.license.label,
+    ]);
   });
 
   it("populates Manifest requiredStatement", async () => {
