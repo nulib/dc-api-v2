@@ -23,7 +23,7 @@ const oaiAttributes = {
   xmlns: "http://www.openarchives.org/OAI/2.0/",
   "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
   "xsi:schemaLocation":
-    "http://www.openarchives.org/OAI/2.0/\nhttp://www.openarchives.org/OAI/2.0/OAI-PMH.xsd",
+    "http://www.openarchives.org/OAI/2.0/\nhttp://www.openarchives.org/OAI/2.0/OAI_PMH.xsd",
 };
 
 function header(work) {
@@ -80,7 +80,7 @@ const getRecord = async (url, id) => {
     const work = JSON.parse(esResponse.body)._source;
     const record = transform(work);
     const document = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
@@ -91,7 +91,7 @@ const getRecord = async (url, id) => {
           },
           _text: url,
         },
-        GetRecord: { ...record },
+        GetRecord: { record: record },
       },
     };
     return output(document);
@@ -107,7 +107,7 @@ const getRecord = async (url, id) => {
 const identify = async (url) => {
   let earliestDatestamp = await earliestRecord();
   const obj = {
-    OAI_PMH: {
+    "OAI-PMH": {
       _attributes: oaiAttributes,
       responseDate: new Date().toISOString(),
       request: {
@@ -166,7 +166,7 @@ const listIdentifiers = async (
       _text: scrollId,
     };
     const obj = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
@@ -203,7 +203,7 @@ const listIdentifiers = async (
 
 const listMetadataFormats = (url) => {
   const obj = {
-    OAI_PMH: {
+    "OAI-PMH": {
       _attributes: oaiAttributes,
       responseDate: new Date().toISOString(),
       request: {
@@ -261,7 +261,7 @@ const listRecords = async (
       _text: scrollId,
     };
     const obj = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
@@ -307,7 +307,7 @@ const listSets = async (url) => {
     });
 
     const obj = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
