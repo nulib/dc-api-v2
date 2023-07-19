@@ -13,7 +13,6 @@ def prompt_template():
       date_created: ['1967']
       description: ['Brochure for the 10th Annual Berkeley Folk Music Festival, June 30 - July 4, 1967 at the University of California, Berkeley. Includes event schedule, photos and brief descriptions of participating artists and folklorists, and ticket information. Front cover features a Lowell Herrero illustration of Uncle Sam playing guitar.']
       genre: ['brochures']
-      identifier: ce3ca54a-d928-43b8-bd1f-0b867e1fd624
       keywords: None
       language: ['English']
       location: None
@@ -25,7 +24,7 @@ def prompt_template():
       table_of_contents: None
       technique: None
       work_type: Image
-    Source: https://dc.library.northwestern.edu/items/ce3ca54a-d928-43b8-bd1f-0b867e1fd624
+    Source: ce3ca54a-d928-43b8-bd1f-0b867e1fd624
     
 
 
@@ -38,7 +37,6 @@ def prompt_template():
       date_created: ['1961?']
       description: ['Description of the Berkeley Folk Music Festival, and the financial arrangements between Festival organizers and the Committee for Arts and Lectures']
       genre: ['descriptions (documents)', 'financial records']
-      identifier: a2979042-4e76-4808-ab1a-5eb0bd39ffda
       keywords: None
       language: ['English']
       location: None
@@ -50,7 +48,7 @@ def prompt_template():
       table_of_contents: None
       technique: None
       work_type: Image
-    Source: https://dc.library.northwestern.edu/items/a2979042-4e76-4808-ab1a-5eb0bd39ffda
+    Source: a2979042-4e76-4808-ab1a-5eb0bd39ffda
     
 
 
@@ -63,7 +61,6 @@ def prompt_template():
       date_created: ['circa 1958 to circa 1970']
       description: ['Cut out photo of Mitch Greenhill playing guitar in an outdoor setting at the San Diego Folk Festival. Back includes performance schedule at the Berkeley Folk Music Festival.']
       genre: ['black-and-white photographs']
-      identifier: f2ee01cf-ebe9-44b2-8293-b2f98f982aea
       keywords: None
       language: None
       location: None
@@ -75,7 +72,7 @@ def prompt_template():
       table_of_contents: None
       technique: None
       work_type: Image
-    Source: https://dc.library.northwestern.edu/items/f2ee01cf-ebe9-44b2-8293-b2f98f982aea
+    Source: f2ee01cf-ebe9-44b2-8293-b2f98f982aea
     
 
 
@@ -88,7 +85,6 @@ def prompt_template():
       date_created: ['July 13, 1962 and July 30, 1962']
       description: ['ASUC purchase order issued on behalf of the Berkeley Folk Music Festival to the Regents of the University of California, with accompanying invoice']
       genre: ['purchase orders']
-      identifier: 0df68024-5b07-46d8-87b3-2efc6b22f9d7
       keywords: None
       language: ['English']
       location: None
@@ -100,7 +96,7 @@ def prompt_template():
       table_of_contents: None
       technique: None
       work_type: Image
-    Source: https://dc.library.northwestern.edu/items/0df68024-5b07-46d8-87b3-2efc6b22f9d7
+    Source: 0df68024-5b07-46d8-87b3-2efc6b22f9d7
 
     QUESTION: What venues did musicians play at during the Berkeley Folk Music Festival?
     HELPFUL ANSWER: Based on the provided documents, here are the venues that were used for performances by musicians at the Berkeley Folk Music Festival:
