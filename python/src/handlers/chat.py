@@ -16,7 +16,7 @@ ALLOW_HEADERS = ("Accept, Accept-Charset, Accept-Encoding, Accept-Language, "
                  "X-Requested-With")
 DEFAULT_INDEX = "Work"
 DEFAULT_KEY = "title"
-DEFAULT_ATTRIBUTES = ("identifier,alternate_title,contributor,create_date,"
+DEFAULT_ATTRIBUTES = ("alternate_title,contributor,create_date,"
                       "creator,date_created,description,genre,keywords,language,location,"
                       "physical_description_material,physical_description_size,scope_and_contents,"
                       "style_period,subject,table_of_contents,technique,work_type")
