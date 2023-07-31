@@ -73,4 +73,32 @@ describe("RequestPipeline", () => {
       });
     });
   });
+
+  describe("superuser", () => {
+    it("filters out private results by default", () => {
+      event.userToken = new ApiToken();
+
+      // process.env.READING_ROOM_IPS = "192.168.0.1,172.16.10.2";
+      const result = pipeline.authFilter(helpers.preprocess(event));
+      expect(result.searchContext.size).to.eq(50);
+      expect(result.searchContext.query.bool.must).to.include(
+        requestBody.query
+      );
+      expect(result.searchContext.query.bool.must_not).to.deep.include(
+        { term: { visibility: "Private" } },
+        { term: { published: false } }
+      );
+    });
+
+    it("includes private results if the user is in the reading room", () => {
+      event.userToken = new ApiToken().superUser();
+
+      const result = pipeline.authFilter(helpers.preprocess(event));
+      expect(result.searchContext.size).to.eq(50);
+      expect(result.searchContext.query.bool.must).to.include(
+        requestBody.query
+      );
+      expect(result.searchContext.query.bool).not.to.have.any.keys("must_not");
+    });
+  });
 });
