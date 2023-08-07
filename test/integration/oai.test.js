@@ -29,16 +29,12 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
 
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      const header = resultBody.OAI_PMH.GetRecord.header;
+      const header = resultBody["OAI-PMH"].GetRecord.record.header;
       expect(header)
         .to.be.an("object")
-        .and.to.deep.include.keys(
-          "identifier",
-          "datestamp",
-          "setSpec",
-          "setName"
-        );
-      const metadata = resultBody.OAI_PMH.GetRecord.metadata["oai_dc:dc"];
+        .and.to.deep.include.keys("identifier", "datestamp", "setSpec");
+      const metadata =
+        resultBody["OAI-PMH"].GetRecord.record.metadata["oai_dc:dc"];
       expect(metadata)
         .to.be.an("object")
         .and.to.deep.include.keys(
@@ -67,10 +63,10 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
 
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badArgument"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "You must supply an identifier for GetRecord requests"
       );
     });
@@ -86,10 +82,10 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
 
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "idDoesNotExist"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "The specified record does not exist"
       );
     });
@@ -104,7 +100,7 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.ListRecords.record)
+      expect(resultBody["OAI-PMH"].ListRecords.record)
         .to.be.an("array")
         .and.to.have.lengthOf(12);
     });
@@ -117,10 +113,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badArgument"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffffZ'"
       );
     });
@@ -136,7 +132,7 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.ListRecords.record)
+      expect(resultBody["OAI-PMH"].ListRecords.record)
         .to.be.an("array")
         .and.to.have.lengthOf(12);
     });
@@ -161,7 +157,7 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      const resumptionToken = resultBody.OAI_PMH.ListRecords.resumptionToken;
+      const resumptionToken = resultBody["OAI-PMH"].ListRecords.resumptionToken;
       expect(resumptionToken).to.not.haveOwnProperty("_text");
     });
 
@@ -179,10 +175,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(401);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badResumptionToken"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "Your resumptionToken is no longer valid"
       );
     });
@@ -201,10 +197,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badRequest"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "An error occurred processing the ListRecords request"
       );
     });
@@ -219,10 +215,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badArgument"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "Missing required metadataPrefix argument"
       );
     });
@@ -237,7 +233,7 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
       const listMetadataFormatsElement =
-        resultBody.OAI_PMH.ListMetadataFormats.metadataFormat;
+        resultBody["OAI-PMH"].ListMetadataFormats.metadataFormat;
       expect(listMetadataFormatsElement.metadataNamespace._text).to.eq(
         "http://www.openarchives.org/OAI/2.0/oai_dc/"
       );
@@ -254,10 +250,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error._attributes).to.include({
+      expect(resultBody["OAI-PMH"].error._attributes).to.include({
         code: "badArgument",
       });
-      expect(resultBody.OAI_PMH.error._text).to.eq("Missing required verb");
+      expect(resultBody["OAI-PMH"].error._text).to.eq("Missing required verb");
     });
 
     it("supports the Identify verb", async () => {
@@ -286,14 +282,12 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      const identifyElement = resultBody.OAI_PMH.Identify;
+      const identifyElement = resultBody["OAI-PMH"].Identify;
       expect(identifyElement.earliestDatestamp._text).to.eq(
         "2022-11-22T20:36:00.581418Z"
       );
       expect(identifyElement.deletedRecord._text).to.eq("no");
-      expect(identifyElement.granularity._text).to.eq(
-        "YYYY-MM-DDThh:mm:ss.ffffffZ"
-      );
+      expect(identifyElement.granularity._text).to.eq("YYYY-MM-DDThh:mm:ssZ");
     });
 
     it("supports the ListRecords verb", async () => {
@@ -308,7 +302,7 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.ListRecords.record)
+      expect(resultBody["OAI-PMH"].ListRecords.record)
         .to.be.an("array")
         .to.have.lengthOf(12);
     });
@@ -325,7 +319,7 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.ListSets.set)
+      expect(resultBody["OAI-PMH"].ListSets.set)
         .to.be.an("array")
         .and.to.have.lengthOf(3);
     });
@@ -342,10 +336,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(500);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error._attributes).to.include({
+      expect(resultBody["OAI-PMH"].error._attributes).to.include({
         code: "badRequest",
       });
-      expect(resultBody.OAI_PMH.error._text).to.eq(
+      expect(resultBody["OAI-PMH"].error._text).to.eq(
         "An error occurred processing the ListSets request"
       );
     });
@@ -363,7 +357,7 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
       const resumptionToken =
-        resultBody.OAI_PMH.ListIdentifiers.resumptionToken;
+        resultBody["OAI-PMH"].ListIdentifiers.resumptionToken;
       expect(resumptionToken["_text"]).to.have.lengthOf(120);
     });
 
@@ -376,10 +370,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error._attributes).to.include({
+      expect(resultBody["OAI-PMH"].error._attributes).to.include({
         code: "badArgument",
       });
-      expect(resultBody.OAI_PMH.error._text).to.eq(
+      expect(resultBody["OAI-PMH"].error._text).to.eq(
         "Missing required metadataPrefix argument"
       );
     });
@@ -404,9 +398,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.ListIdentifiers.headers)
-        .to.be.an("array")
-        .to.have.lengthOf(1);
+      console.log(resultBody["OAI-PMH"].ListIdentifiers.header);
+      expect(resultBody["OAI-PMH"].ListIdentifiers.header)
+        .to.be.an("object")
+        .to.have.keys(["identifier", "datestamp", "setSpec"]);
     });
 
     it("uses an empty resumptionToken to tell harvesters that list requests are complete", async () => {
@@ -436,7 +431,7 @@ describe("Oai routes", () => {
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
       const resumptionToken =
-        resultBody.OAI_PMH.ListIdentifiers.resumptionToken;
+        resultBody["OAI-PMH"].ListIdentifiers.resumptionToken;
       expect(resumptionToken).to.not.haveOwnProperty("_text");
     });
 
@@ -460,10 +455,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(401);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badResumptionToken"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "Your resumptionToken is no longer valid"
       );
     });
@@ -488,10 +483,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error["_attributes"]["code"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).to.eq(
         "badRequest"
       );
-      expect(resultBody.OAI_PMH.error["_text"]).to.eq(
+      expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
         "An error occurred processing the ListIdentifiers request"
       );
     });
@@ -505,7 +500,7 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody.OAI_PMH.error._attributes).to.include({
+      expect(resultBody["OAI-PMH"].error._attributes).to.include({
         code: "badVerb",
       });
     });

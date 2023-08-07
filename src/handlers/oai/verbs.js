@@ -23,7 +23,7 @@ const oaiAttributes = {
   xmlns: "http://www.openarchives.org/OAI/2.0/",
   "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
   "xsi:schemaLocation":
-    "http://www.openarchives.org/OAI/2.0/\nhttp://www.openarchives.org/OAI/2.0/OAI-PMH.xsd",
+    "http://www.openarchives.org/OAI/2.0/\nhttp://www.openarchives.org/OAI/2.0/OAI_PMH.xsd",
 };
 
 function header(work) {
@@ -32,11 +32,10 @@ function header(work) {
     datestamp: work.modified_date,
   };
 
-  if (Object.keys(work.collection).length > 0) {
+  if (work?.collection && Object.keys(work.collection).length > 0) {
     fields = {
       ...fields,
       setSpec: work.collection.id,
-      setName: work.collection.title,
     };
   }
 
@@ -80,7 +79,7 @@ const getRecord = async (url, id) => {
     const work = JSON.parse(esResponse.body)._source;
     const record = transform(work);
     const document = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
@@ -91,7 +90,7 @@ const getRecord = async (url, id) => {
           },
           _text: url,
         },
-        GetRecord: { ...record },
+        GetRecord: { record: record },
       },
     };
     return output(document);
@@ -107,7 +106,7 @@ const getRecord = async (url, id) => {
 const identify = async (url) => {
   let earliestDatestamp = await earliestRecord();
   const obj = {
-    OAI_PMH: {
+    "OAI-PMH": {
       _attributes: oaiAttributes,
       responseDate: new Date().toISOString(),
       request: {
@@ -120,9 +119,10 @@ const identify = async (url) => {
         repositoryName: "Northwestern University Libraries",
         baseURL: url,
         protocolVersion: "2.0",
+        adminEmail: "repository@northwestern.edu",
         earliestDatestamp: earliestDatestamp,
         deletedRecord: "no",
-        granularity: "YYYY-MM-DDThh:mm:ss.ffffffZ",
+        granularity: "YYYY-MM-DDThh:mm:ssZ",
       },
     },
   };
@@ -166,7 +166,7 @@ const listIdentifiers = async (
       _text: scrollId,
     };
     const obj = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
@@ -177,7 +177,7 @@ const listIdentifiers = async (
           _text: url,
         },
         ListIdentifiers: {
-          headers: { header: headers },
+          header: headers,
           resumptionToken: resumptionTokenElement,
         },
       },
@@ -203,7 +203,7 @@ const listIdentifiers = async (
 
 const listMetadataFormats = (url) => {
   const obj = {
-    OAI_PMH: {
+    "OAI-PMH": {
       _attributes: oaiAttributes,
       responseDate: new Date().toISOString(),
       request: {
@@ -261,7 +261,7 @@ const listRecords = async (
       _text: scrollId,
     };
     const obj = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {
@@ -303,11 +303,14 @@ const listSets = async (url) => {
 
     const sets = hits.map((hit) => {
       const collection = hit._source;
-      return { setSpec: collection.id, setName: collection.title };
+      return {
+        setSpec: collection.id,
+        setName: collection.title,
+      };
     });
 
     const obj = {
-      OAI_PMH: {
+      "OAI-PMH": {
         _attributes: oaiAttributes,
         responseDate: new Date().toISOString(),
         request: {

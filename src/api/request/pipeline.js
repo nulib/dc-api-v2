@@ -5,9 +5,12 @@ function filterFor(query, event) {
   const beUnpublished = { term: { published: false } };
   const beRestricted = { term: { visibility: "Private" } };
 
-  const filter = event.userToken.isReadingRoom()
-    ? { must: [matchTheQuery], must_not: [beUnpublished] }
-    : { must: [matchTheQuery], must_not: [beUnpublished, beRestricted] };
+  let filter = { must: [matchTheQuery] };
+  if (!event.userToken.isSuperUser()) {
+    filter.must_not = event.userToken.isReadingRoom()
+      ? [beUnpublished]
+      : [beUnpublished, beRestricted];
+  }
 
   return { bool: filter };
 }

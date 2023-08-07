@@ -91,8 +91,14 @@ function decodeEventBody(event) {
   return event;
 }
 
+function getEventToken(event) {
+  const bearerRe = /^Bearer (?<token>.+)$/;
+  const result = bearerRe.exec(event.headers.authorization);
+  return result?.groups?.token || event.cookieObject[apiTokenName()];
+}
+
 function decodeToken(event) {
-  const existingToken = event.cookieObject[apiTokenName()];
+  const existingToken = getEventToken(event);
 
   try {
     event.userToken = new ApiToken(existingToken);

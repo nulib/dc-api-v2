@@ -7,7 +7,9 @@ const opensearchResponse = require("../api/response/opensearch");
  */
 exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
-  const allowPrivate = event.userToken.isReadingRoom();
-  const esResponse = await getFileSet(id, { allowPrivate });
+  const allowPrivate =
+    event.userToken.isSuperUser() || event.userToken.isReadingRoom();
+  const allowUnpublished = event.userToken.isSuperUser();
+  const esResponse = await getFileSet(id, { allowPrivate, allowUnpublished });
   return await opensearchResponse.transform(esResponse);
 });

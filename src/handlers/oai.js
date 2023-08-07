@@ -28,7 +28,7 @@ function invalidDateParameters(verb, dates) {
 }
 
 /**
- * A function to support the OAI-PMH harvesting specfication
+ * A function to support the "OAI-PMH" harvesting specfication
  */
 exports.handler = wrap(async (event) => {
   const url = `${baseUrl(event)}oai`;
