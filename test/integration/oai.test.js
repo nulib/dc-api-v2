@@ -32,12 +32,7 @@ describe("Oai routes", () => {
       const header = resultBody["OAI-PMH"].GetRecord.record.header;
       expect(header)
         .to.be.an("object")
-        .and.to.deep.include.keys(
-          "identifier",
-          "datestamp",
-          "setSpec",
-          "setName"
-        );
+        .and.to.deep.include.keys("identifier", "datestamp", "setSpec");
       const metadata =
         resultBody["OAI-PMH"].GetRecord.record.metadata["oai_dc:dc"];
       expect(metadata)
@@ -292,9 +287,7 @@ describe("Oai routes", () => {
         "2022-11-22T20:36:00.581418Z"
       );
       expect(identifyElement.deletedRecord._text).to.eq("no");
-      expect(identifyElement.granularity._text).to.eq(
-        "YYYY-MM-DDThh:mm:ss.ffffffZ"
-      );
+      expect(identifyElement.granularity._text).to.eq("YYYY-MM-DDThh:mm:ssZ");
     });
 
     it("supports the ListRecords verb", async () => {
@@ -405,9 +398,10 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody["OAI-PMH"].ListIdentifiers.headers)
-        .to.be.an("array")
-        .to.have.lengthOf(1);
+      console.log(resultBody["OAI-PMH"].ListIdentifiers.header);
+      expect(resultBody["OAI-PMH"].ListIdentifiers.header)
+        .to.be.an("object")
+        .to.have.keys(["identifier", "datestamp", "setSpec"]);
     });
 
     it("uses an empty resumptionToken to tell harvesters that list requests are complete", async () => {

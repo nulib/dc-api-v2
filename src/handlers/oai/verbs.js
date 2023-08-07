@@ -36,7 +36,6 @@ function header(work) {
     fields = {
       ...fields,
       setSpec: work.collection.id,
-      setName: work.collection.title,
     };
   }
 
@@ -120,9 +119,10 @@ const identify = async (url) => {
         repositoryName: "Northwestern University Libraries",
         baseURL: url,
         protocolVersion: "2.0",
+        adminEmail: "repository@northwestern.edu",
         earliestDatestamp: earliestDatestamp,
         deletedRecord: "no",
-        granularity: "YYYY-MM-DDThh:mm:ss.ffffffZ",
+        granularity: "YYYY-MM-DDThh:mm:ssZ",
       },
     },
   };
@@ -177,7 +177,7 @@ const listIdentifiers = async (
           _text: url,
         },
         ListIdentifiers: {
-          headers: { header: headers },
+          header: headers,
           resumptionToken: resumptionTokenElement,
         },
       },
@@ -303,7 +303,10 @@ const listSets = async (url) => {
 
     const sets = hits.map((hit) => {
       const collection = hit._source;
-      return { setSpec: collection.id, setName: collection.title };
+      return {
+        setSpec: collection.id,
+        setName: collection.title,
+      };
     });
 
     const obj = {
