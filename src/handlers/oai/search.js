@@ -44,9 +44,10 @@ async function oaiSearch(dates, set, size = 250) {
         { term: { visibility: "Public" } },
         range,
       ],
-      ...(set && { must: [{ term: { "collection.id": set } }] }),
     },
   };
+  if (set) query.bool.must.push({ term: { "collection.id": set } });
+
   const body = {
     size,
     query,

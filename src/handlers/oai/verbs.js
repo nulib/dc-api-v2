@@ -32,7 +32,7 @@ function header(work) {
     datestamp: work.modified_date,
   };
 
-  if (Object.keys(work.collection).length > 0) {
+  if (work?.collection && Object.keys(work.collection).length > 0) {
     fields = {
       ...fields,
       setSpec: work.collection.id,
