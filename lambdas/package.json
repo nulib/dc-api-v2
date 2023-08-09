@@ -1,0 +1,16 @@
+{
+  "name": "lambdas",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "nulib",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@aws-sdk/client-mediaconvert": "^3.410.0",
+    "@aws-sdk/client-s3": "^3.410.0",
+    "@aws-sdk/s3-request-presigner": "^3.410.0",
+    "@aws-sdk/signature-v4": "^3.130.0"
+  }
+}

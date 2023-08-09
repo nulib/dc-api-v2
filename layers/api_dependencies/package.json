@@ -1,18 +1,17 @@
 {
-  "name": "dc-api",
+  "name": "dc-api-dependencies",
   "version": "2.1.2",
-  "description": "NUL Digital Collections API",
+  "description": "NUL Digital Collections API Dependencies",
   "repository": "https://github.com/nulib/dc-api-v2",
   "author": "nulib",
   "license": "Apache-2.0",
-  "devDependencies": {
+  "dependencies": {
     "@aws-crypto/sha256-browser": "^2.0.1",
     "@aws-sdk/credential-provider-node": "^3.142.0",
     "@aws-sdk/node-http-handler": "^3.127.0",
     "@aws-sdk/protocol-http": "^3.127.0",
     "@aws-sdk/signature-v4": "^3.130.0",
     "@honeybadger-io/js": "^4.9.3",
-    "aws-sdk": "^2.1473.0",
     "axios": ">=0.21.1",
     "cookie": "^0.5.0",
     "debug": "^4.3.4",
