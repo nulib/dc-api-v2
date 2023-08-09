@@ -254,6 +254,35 @@ Resources:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}/authorization
             Method: HEAD
+  getFileSetDownloadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-file-set-download.handler
+      Description: Downloads a file set.
+      Environment:
+        Variables:
+          USE_PROXIED_IP: true
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/download
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/download
+            Method: HEAD
   getWorkAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
