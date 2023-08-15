@@ -42,8 +42,7 @@ function downloadAvailable(doc) {
 }
 
 async function processDownload(streaming_url) {
-
-  var stepfunctions = new AWS.StepFunctions({endpoint: 'http://localhost:8083'});
+  var stepfunctions = new AWS.StepFunctions({endpoint: 'http://172.17.0.1:8083'});
 
   var params = {
     stateMachineArn: 'arn:aws:states:us-east-1:123456789012:stateMachine:HelloStepFunction', 
