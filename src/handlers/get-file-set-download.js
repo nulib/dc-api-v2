@@ -1,3 +1,4 @@
+const AWS = require("aws-sdk");
 const { wrap } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
@@ -20,7 +21,7 @@ exports.handler = wrap(async (event) => {
   if (esResponse.statusCode == "200") {
     const doc = JSON.parse(esResponse.body)
     if (downloadAvailable(doc)) {
-      return processDownload(doc._source.streaming_url, email);
+      return await processDownload(doc._source.streaming_url, email);
     } else {
       return invalidRequest(405, "Download only allowed for role: Access, work_type: Video or Audio, with a valid streaming_url")
     }
@@ -40,7 +41,18 @@ function downloadAvailable(doc) {
   );
 }
 
-function processDownload(streaming_url) {
+async function processDownload(streaming_url) {
+
+  var stepfunctions = new AWS.StepFunctions({endpoint: 'http://localhost:8083'});
+
+  var params = {
+    stateMachineArn: 'arn:aws:states:us-east-1:123456789012:stateMachine:HelloStepFunction', 
+    name: 'fromAPI',
+  };
+  await stepfunctions.startExecution(params, function(err, data) {
+    if (err) console.log(err, err.stack); 
+    else     console.log(data);           
+  }).promise();
   return {
     statusCode: 200,
     headers: { "content-type": "text/plain" },

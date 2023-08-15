@@ -6,6 +6,7 @@ const Honeybadger = require("../honeybadger-setup");
  * token if none is present
  */
 exports.handler = wrap(async (event) => {
+  console.log(event)
   try {
     const token = event.userToken;
 
