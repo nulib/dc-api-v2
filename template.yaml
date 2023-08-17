@@ -100,6 +100,9 @@ Parameters:
   NussoBaseUrl:
     Type: String
     Description: Auth server URL
+  PrototypeUrl:
+    Type: String
+    Description: URL of prototype
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
@@ -680,6 +683,7 @@ Resources:
           AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           WEAVIATE_API_KEY: !Ref WeaviateApiKey
           WEAVIATE_URL: !Ref WeaviateUrl
+          PROTOTYPE_URL: !Ref PrototypeUrl
       Events:
         GetApiGet:
           Type: HttpApi
