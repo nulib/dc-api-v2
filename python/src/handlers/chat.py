@@ -27,6 +27,9 @@ DEFAULT_ATTRIBUTES = ("title,accession_number,alternate_title,api_model,"
 
 def handler(event, context):
   event = Event(event)
+  origin_header = event.header("Origin", os.getenv("PROTOTYPE_URL", "*"))
+  print(f"Origin header received: {origin_header}")
+
   if not event.api_token.is_logged_in():
     return {
     "statusCode": 401,
