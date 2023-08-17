@@ -16,7 +16,14 @@ ALLOW_HEADERS = ("Accept, Accept-Charset, Accept-Encoding, Accept-Language, "
                  "X-Requested-With")
 DEFAULT_INDEX = "Work"
 DEFAULT_KEY = "title"
-DEFAULT_ATTRIBUTES = "title,accession_number,alternate_title,api_model,catalog_key,collection,contributor,create_date,creator,date_created,description,genre,identifier_descriptive,keywords,language,library_unit,location,physical_description_material,physical_description_size,preservation_level,published,related_material,related_url,rights_holder,rights_statement,scope_and_contents,series,source,status,style_period,subject,table_of_contents,technique,visibility,work_type"
+DEFAULT_ATTRIBUTES = ("title,accession_number,alternate_title,api_model,"
+                      "catalog_key,collection,contributor,create_date,"
+                      "creator,date_created,description,genre,identifier_descriptive,"
+                      "keywords,language,library_unit,location,physical_description_material,"
+                      "physical_description_size,preservation_level,published,"
+                      "related_material,related_url,rights_holder,rights_statement,"
+                      "scope_and_contents,series,source,status,style_period,"
+                      "subject,table_of_contents,technique,visibility,work_type")
 
 def handler(event, context):
   event = Event(event)
@@ -84,7 +91,8 @@ def handler(event, context):
       "access-control-allow-methods": "POST, GET",
       "access-control-allow-credentials": True,
       "access-control-max-age": 600,
-      "access-control-allow-origin": event.header("Origin", os.getenv("PROTOTYPE_URL", "*")),
+      "access-control-allow-origin": event.header("Origin", 
+                                                  os.getenv("PROTOTYPE_URL", "*")),
       "access-control-allow-headers": ALLOW_HEADERS
     },
     "body": json.dumps(response)
