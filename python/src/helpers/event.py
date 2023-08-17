@@ -5,7 +5,8 @@ import os
 class Event:
   def __init__(self, event):
     self.event = event
-    self.cookies = dict(cookie.split("=") for cookie in event.get("cookies", []))
+    cookie_list = [cookie.split("=", 1) if "=" in cookie else ("", cookie) for cookie in event.get("cookies", [])]
+    self.cookies = dict(cookie_list)
     token = self.header("Authorization") or self.cookie(os.getenv("API_TOKEN_NAME"))
     if isinstance(token, str):
       token = token.replace("Bearer ", "")
