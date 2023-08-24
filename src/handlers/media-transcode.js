@@ -2,7 +2,7 @@ const AWS = require("aws-sdk");
 
 function template(fileInput)  {
   const jobQueueArn = process.env.MEDIA_CONVERT_JOB_QUEUE_ARN;
-  const iamRoleArn = process.env.MEDIA_CONVERT_IAM_ROLE_ARN;
+  const iamRoleArn = process.env.MEDIA_CONVERT_ROLE_ARN;
   const destination = `s3://${process.env.MEDIA_CONVERT_DESTINATION_BUCKET}/test`
 
   return {
