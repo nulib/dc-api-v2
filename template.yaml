@@ -32,6 +32,9 @@ Parameters:
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
+  AvDownloadStateMachineArn:
+    Type: String
+    Description: Arn for AV Download state machine
   CustomDomainCertificateArn:
     Type: String
     Description: SSL Certificate for the Custom Domain Name
@@ -65,6 +68,22 @@ Parameters:
   HoneybadgerRevision:
     Type: String
     Description: Honeybadger Revision
+    Default: ""
+  MediaConvertDestinationBucket: 
+    Type: String
+    Description: S3 bucket destination for transcoded AV resource
+    Default: ""
+  MediaConvertEndpoint: 
+    Type: String
+    Description: MediaConvert endpoint
+    Default: ""
+  MediaConvertJobQueueArn: 
+    Type: String
+    Description: Job Queue ARN for MediaConvert
+    Default: ""
+  MediaConvertRoleArn: 
+    Type: String
+    Description: MediaConvert role ARN
     Default: ""
   NussoApiKey:
     Type: String
@@ -556,6 +575,18 @@ Resources:
             ApiId: !Ref dcApi
             Path: $default
             Method: ANY
+  mediaTranscodeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/media-transcode.handler
+      Description: Creates MediaConvert Job to transcode HLS stream
+      Environment:
+        Variables:
+          AV_DOWNLOAD_STATE_MACHINE_ARN: !Ref AvDownloadStateMachineArn
+          MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
+          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
+          MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
+          MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
