@@ -169,6 +169,11 @@ function normalizeHeaders(event) {
 
 function baseUrl(event) {
   event = normalizeHeaders(event);
+
+  // For use with the local https-proxy in dev mode
+  if (event.headers["x-forwarded-base"])
+    return event.headers["x-forwarded-base"];
+
   const scheme = event.headers["x-forwarded-proto"];
 
   // The localhost check only matters in dev mode, but it's
