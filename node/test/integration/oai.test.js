@@ -398,7 +398,6 @@ describe("Oai routes", () => {
       expect(result.statusCode).to.eq(200);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      console.log(resultBody["OAI-PMH"].ListIdentifiers.header);
       expect(resultBody["OAI-PMH"].ListIdentifiers.header)
         .to.be.an("object")
         .to.have.keys(["identifier", "datestamp", "setSpec"]);

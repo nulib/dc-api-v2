@@ -8,11 +8,13 @@ def openai_chat_client():
   deployment = os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")
   key = os.getenv("AZURE_OPENAI_API_KEY")
   resource = os.getenv("AZURE_OPENAI_RESOURCE_NAME")
+  version = "2023-07-01-preview"
 
   return AzureChatOpenAI(deployment_name=deployment, 
                          openai_api_key=key, 
                          openai_api_base=f"https://{resource}.openai.azure.com/",
-                         openai_api_version="2023-03-15-preview")
+                         openai_api_version=version)
+                         
 
 
 def weaviate_vector_store(index_name: str, text_key: str, attributes: List[str] = []):
