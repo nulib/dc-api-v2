@@ -54,4 +54,31 @@ describe("IIIF Collection response transformer", () => {
     expect(body.status).to.eq(404);
     expect(body.error).to.be.a("string");
   });
+
+  it("handles a request including /similar route", async () => {
+    let pagerWorkSimilar = new Paginator(
+      "http://dcapi.library.northwestern.edu/api/v2/",
+      "works/1234/similar",
+      ["works"],
+      { query: { query_string: { query: "genre.label:architecture" } } },
+      "iiif",
+      {
+        includeToken: false,
+        queryStringParameters: {
+          collectionLabel: "The collection label",
+          collectionSummary: "The collection Summary",
+        },
+      }
+    );
+
+    const response = {
+      statusCode: 200,
+      body: helpers.testFixture("mocks/search.json"),
+    };
+    const result = await transformer.transform(response, pagerWorkSimilar);
+    expect(result.statusCode).to.eq(200);
+
+    const body = JSON.parse(result.body);
+    expect(body.homepage[0].id).to.contain("search?similar=1234");
+  });
 });

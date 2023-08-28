@@ -102,11 +102,19 @@ function homepageUrl(pageInfo) {
     result = new URL(`/collections/${collectionId}`, dcUrl());
   } else {
     result = new URL("/search", dcUrl());
-    if (pageInfo.options?.queryStringParameters?.query)
+    if (pageInfo.options?.queryStringParameters?.query) {
       result.searchParams.set(
         "q",
         pageInfo.options.queryStringParameters.query
       );
+    }
+
+    if (pageInfo.query_url.includes("similar")) {
+      // Grab the work id from the query_url and add it to the search params
+      const regex = /works\/(.*)\/similar/;
+      const found = pageInfo.query_url.match(regex);
+      result.searchParams.set("similar", found[1]);
+    }
   }
 
   return result;
