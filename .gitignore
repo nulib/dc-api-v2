@@ -222,6 +222,7 @@ $RECYCLE.BIN/
 
 .vscode
 /samconfig.toml
+/samconfig.yaml
 /env.json
 /env.*.json
 /*.parameters

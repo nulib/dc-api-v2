@@ -8,7 +8,7 @@ Description: >
 Globals:
   Function:
     CodeUri: ./node/src
-    Runtime: nodejs16.x
+    Runtime: nodejs18.x
     Architectures:
       - x86_64
     MemorySize: 128
@@ -168,301 +168,301 @@ Resources:
             ApiId: !Ref dcApi
             Path: /auth/whoami
             Method: GET
-  getCollectionsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-collections.handler
-      Description: Gets Collections.
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections
-            Method: HEAD
-  getCollectionByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-collection-by-id.handler
-      Description: Gets a Collection by id.
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}
-            Method: HEAD
-  getFileSetByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-file-set-by-id.handler
-      Description: Gets a FileSet by id.
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}
-            Method: HEAD
-  getFileSetAuthFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-file-set-auth.handler
-      Description: Authorizes access to a file set.
-      Environment:
-        Variables:
-          USE_PROXIED_IP: true
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}/authorization
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}/authorization
-            Method: HEAD
-  getWorkAuthFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-work-auth.handler
-      Description: Authorizes access to a work.
-      Environment:
-        Variables:
-          USE_PROXIED_IP: true
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/authorization
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/authorization
-            Method: HEAD
-  getWorkByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-work-by-id.handler
-      Description: Gets a Work by id.
-      Environment:
-        Variables:
-          USE_PROXIED_IP: true
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}
-            Method: HEAD
-  getThumbnailFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-thumbnail.handler
-      Description: Gets a Work's representative thumbnail.
-      Timeout: 10
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        CollectionApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}/thumbnail
-            Method: GET
-        CollectionApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}/thumbnail
-            Method: HEAD
-        WorkApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/thumbnail
-            Method: GET
-        WorkApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/thumbnail
-            Method: HEAD
-  getSimilarFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-similar.handler
-      Timeout: 100
-      Description: Gets works similar to a specific work.
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        WorkApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/similar
-            Method: GET
-        WorkApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/similar
-            Method: HEAD
-  searchPostFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/search.postSearch
-      Description: Handles OpenSearch search requests, Works only by default.
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        SearchApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search
-            Method: POST
-        SearchWithModelsApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search/{models}
-            Method: POST
-  searchGetFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/search.getSearch
-      Description: Handles paging requests
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        SearchApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search
-            Method: GET
-        SearchApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search
-            Method: HEAD
-        SearchWithModelsApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search/{models}
-            Method: GET
-        SearchWithModelsApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search/{models}
-            Method: HEAD
+  # getCollectionsFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-collections.handler
+  #     Description: Gets Collections.
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /collections
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /collections
+  #           Method: HEAD
+  # getCollectionByIdFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-collection-by-id.handler
+  #     Description: Gets a Collection by id.
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /collections/{id}
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /collections/{id}
+  #           Method: HEAD
+  # getFileSetByIdFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-file-set-by-id.handler
+  #     Description: Gets a FileSet by id.
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /file-sets/{id}
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /file-sets/{id}
+  #           Method: HEAD
+  # getFileSetAuthFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-file-set-auth.handler
+  #     Description: Authorizes access to a file set.
+  #     Environment:
+  #       Variables:
+  #         USE_PROXIED_IP: true
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /file-sets/{id}/authorization
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /file-sets/{id}/authorization
+  #           Method: HEAD
+  # getWorkAuthFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-work-auth.handler
+  #     Description: Authorizes access to a work.
+  #     Environment:
+  #       Variables:
+  #         USE_PROXIED_IP: true
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}/authorization
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}/authorization
+  #           Method: HEAD
+  # getWorkByIdFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-work-by-id.handler
+  #     Description: Gets a Work by id.
+  #     Environment:
+  #       Variables:
+  #         USE_PROXIED_IP: true
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}
+  #           Method: HEAD
+  # getThumbnailFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-thumbnail.handler
+  #     Description: Gets a Work's representative thumbnail.
+  #     Timeout: 10
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       CollectionApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /collections/{id}/thumbnail
+  #           Method: GET
+  #       CollectionApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /collections/{id}/thumbnail
+  #           Method: HEAD
+  #       WorkApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}/thumbnail
+  #           Method: GET
+  #       WorkApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}/thumbnail
+  #           Method: HEAD
+  # getSimilarFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-similar.handler
+  #     Timeout: 100
+  #     Description: Gets works similar to a specific work.
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       WorkApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}/similar
+  #           Method: GET
+  #       WorkApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /works/{id}/similar
+  #           Method: HEAD
+  # searchPostFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/search.postSearch
+  #     Description: Handles OpenSearch search requests, Works only by default.
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       SearchApi:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /search
+  #           Method: POST
+  #       SearchWithModelsApi:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /search/{models}
+  #           Method: POST
+  # searchGetFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/search.getSearch
+  #     Description: Handles paging requests
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       SearchApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /search
+  #           Method: GET
+  #       SearchApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /search
+  #           Method: HEAD
+  #       SearchWithModelsApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /search/{models}
+  #           Method: GET
+  #       SearchWithModelsApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /search/{models}
+  #           Method: HEAD
   optionsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -476,88 +476,73 @@ Resources:
             ApiId: !Ref dcApi
             Path: /{proxy+}
             Method: OPTIONS
-  getSharedLinkByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-shared-link-by-id.handler
-      Description: Gets a shared link document by id.
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /shared-links/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /shared-links/{id}
-            Method: HEAD
-  oaiFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/oai.handler
-      Description: Transforms works into OAI Records.
-      Timeout: 60
-      Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-      Events:
-        GetApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /oai
-            Method: GET
-        GetApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /oai
-            Method: HEAD
-        PostApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /oai
-            Method: POST
-  helloWorldFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./python/src
-      Runtime: python3.9
-      Handler: handlers/hello.lambda_handler
-      Environment:
-        Variables:
-          DEFAULT_NAME: "World"
-      Events:
-        GetApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /hello
-            Method: GET
+  # getSharedLinkByIdFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/get-shared-link-by-id.handler
+  #     Description: Gets a shared link document by id.
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       ApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /shared-links/{id}
+  #           Method: GET
+  #       ApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /shared-links/{id}
+  #           Method: HEAD
+  # oaiFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/oai.handler
+  #     Description: Transforms works into OAI Records.
+  #     Timeout: 60
+  #     Policies:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ESHTTPPolicy
+  #           Effect: Allow
+  #           Action:
+  #             - es:ESHttp*
+  #           Resource: "*"
+  #     Events:
+  #       GetApiGet:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /oai
+  #           Method: GET
+  #       GetApiHead:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /oai
+  #           Method: HEAD
+  #       PostApi:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: /oai
+  #           Method: POST
   chatFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./python/src
-      Runtime: python3.9
-      Handler: handlers/chat.handler
-      Timeout: 300
+      Handler: handlers/request-chat.handler
+      Timeout: 30
+      FunctionUrlConfig:
+        AuthType: NONE
+        InvokeMode: RESPONSE_STREAM
       Environment:
         Variables:
           AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
@@ -567,32 +552,34 @@ Resources:
           WEAVIATE_API_KEY: !Ref WeaviateApiKey
           WEAVIATE_URL: !Ref WeaviateUrl
           PROTOTYPE_URL: !Ref PrototypeUrl
+          DEBUG: api.request-chat
+  chatEndpointFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/chat-endpoint.handler
+      Environment:
+        Variables:
+          CHAT_ENDPOINT: !GetAtt chatFunctionUrl.FunctionUrl
       Events:
         GetApiGet:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
-            Path: /chat
+            Path: /chat-endpoint
             Method: GET
-        PostApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /chat
-            Method: POST
-  defaultFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/default-request.handler
-      Timeout: 3
-      Description: Handles all other requests
-      Events:
-        Everything:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: $default
-            Method: ANY
+  # defaultFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     Handler: handlers/default-request.handler
+  #     Timeout: 3
+  #     Description: Handles all other requests
+  #     Events:
+  #       Everything:
+  #         Type: HttpApi
+  #         Properties:
+  #           ApiId: !Ref dcApi
+  #           Path: $default
+  #           Method: ANY
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -607,10 +594,10 @@ Resources:
           HostedZoneName: !Sub "${CustomDomainZone}."
 
   # root API
-  rootApi:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      StageName: latest
+  # rootApi:
+  #   Type: AWS::Serverless::HttpApi
+  #   Properties:
+  #     StageName: latest
   # rootRedirect:
   #   Type: AWS::Serverless::Function
   #   Properties:

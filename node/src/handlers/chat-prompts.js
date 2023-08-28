@@ -1,6 +1,5 @@
-# ruff: noqa: E501
-def prompt_template(): 
-  return """Using all of the provided source documents, create a helpful and thorough answer to the supplied question.
+function promptTemplate() {
+  return `Using all of the provided source documents, create a helpful and thorough answer to the supplied question.
   If you don't know the answer, just say that you don't know. Don't try to make up an answer, but you should use the documents provided in order to ground your response.
   It may be helpful to explain why a provided document does not pertain to the query as well.
   Feel free to reference various aspects of the sources in your explanation, but please don't include the full sources in the answer.
@@ -188,10 +187,19 @@ def prompt_template():
 
     QUESTION: {question}  
     =========
-    HELPFUL ANSWER:"""
+    HELPFUL ANSWER: `;
+}
 
-def document_template(attributes):
-  lines = (["Content: {page_content}", "Metadata:"] +
-            [f"  {attribute}: {{{attribute}}}" for attribute in attributes] +
-            ["Source: {source}"])
-  return "\n".join(lines)
+function documentTemplate(attributes) {
+  let lines = [
+    "Content: {pageContent}",
+    "Metadata:",
+    [...attributes.map((attribute) => `  ${attribute}: {${attribute}}`)].join(
+      "\n"
+    ),
+    "Source: {source}",
+  ];
+  return lines.join("\n");
+}
+
+module.exports = { promptTemplate, documentTemplate };
