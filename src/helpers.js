@@ -37,6 +37,19 @@ const AcceptableHeaders = [
   "X-Forwarded-Port",
   "X-Requested-With",
 ];
+
+const ExposedHeaders = [
+  "Cache-Control",
+  "Content-Language",
+  "Content-Length",
+  "Content-Type",
+  "Date",
+  "ETag",
+  "Expires",
+  "Last-Modified",
+  "Pragma",
+];
+
 const TextTypes = new RegExp(/^(application\/(json|(.+\+)?xml)$|text\/)/);
 
 function addCorsHeaders(event, response) {
@@ -44,8 +57,9 @@ function addCorsHeaders(event, response) {
   const corsHeaders = {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Headers": AcceptableHeaders.join(", "),
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Methods": "POST, GET, HEAD, OPTIONS",
     "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Expose-Headers": ExposedHeaders.join(", "),
     "Access-Control-Max-Age": "600",
   };
   if (!response.headers) response.headers = {};
