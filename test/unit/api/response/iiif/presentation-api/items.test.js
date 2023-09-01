@@ -94,6 +94,7 @@ describe("IIIF response presentation API items helpers", () => {
   it("isAudioVideo(workType)", () => {
     expect(items.isAudioVideo("Audio")).to.be.true;
     expect(items.isAudioVideo("Image")).to.be.false;
+    expect(items.isAudioVideo("Sound")).to.be.true;
     expect(items.isAudioVideo("Video")).to.be.true;
   });
 

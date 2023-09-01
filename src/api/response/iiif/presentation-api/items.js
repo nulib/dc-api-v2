@@ -42,8 +42,8 @@ function buildImageService(representativeImageUrl) {
   ];
 }
 
-function isAudioVideo(workType) {
-  return ["Audio", "Video"].includes(workType);
+function isAudioVideo(type) {
+  return ["Audio", "Video", "Sound"].includes(type);
 }
 
 function isImage(workType) {
