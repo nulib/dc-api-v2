@@ -4,7 +4,7 @@ const { getFileSet } = require("../api/opensearch");
 const opensearchResponse = require("../api/response/opensearch");
 
 /**
- * A simple function to get a FileSet by id
+ * Handler for download file set endpoint
  */
 exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
@@ -47,8 +47,16 @@ function processDownload(streaming_url, email) {
 
   var params = {
     stateMachineArn: 'arn:aws:states:us-east-1:123456789012:stateMachine:hlsStitcherStepFunction', 
-    input: JSON.stringify({s3Location:s3Location(streaming_url), email: email })
-  };
+    input: JSON.stringify({
+      transcodeInput: {
+        source:s3Location(streaming_url)
+      },
+      sendMailInput: {
+        to: email, 
+      }
+    })
+  }
+
   stepfunctions.startExecution(params, function(err, data) {
     if (err) {
       console.log(err, err.stack); 
@@ -67,9 +75,9 @@ function processDownload(streaming_url, email) {
   }; 
 }
 
-function s3Location(_streaming_url){
-  // for now
-  return "s3://meadow-s-streaming/88/c1/59/6b/-8/02/2-/45/a3/-9/a4/e-/22/76/c3/f1/46/59/88c1596b-8022-45a3-9a4e-2276c3f14659.m3u8"
+function s3Location(streaming_url){
+  const url = new URL(streaming_url)
+  return `s3://${process.env.STREAMING_BUCKET}${url.pathname}`
 }
 
 function invalidRequest(code, message) {

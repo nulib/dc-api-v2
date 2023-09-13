@@ -1,9 +1,8 @@
-const AWS = require("aws-sdk");
+const { CreateJobCommand, MediaConvertClient } = require("@aws-sdk/client-mediaconvert");
 
-function template(fileInput)  {
+function template(fileInput, fileOutput)  {
   const jobQueueArn = process.env.MEDIA_CONVERT_JOB_QUEUE_ARN;
   const iamRoleArn = process.env.MEDIA_CONVERT_ROLE_ARN;
-  const destination = `s3://${process.env.MEDIA_CONVERT_DESTINATION_BUCKET}/test`
 
   return {
     "Queue": jobQueueArn,
@@ -50,7 +49,7 @@ function template(fileInput)  {
           "OutputGroupSettings": {
             "Type": "FILE_GROUP_SETTINGS",
             "FileGroupSettings": {
-              "Destination": destination
+              "Destination": fileOutput
             }
           }
         }
@@ -76,36 +75,32 @@ function template(fileInput)  {
   }
 }
 
-
+// should probably take source, destination and Settings?
 module.exports.handler = async (event) => {
 
   console.log("MEDIA CONVERT LAMBDA")
   console.log(event)
-  console.log(event.s3Location)
-  console.log(event.email)
+  console.log(event.source)
 
-  const params = template(event.s3Location)
+  const destination = `s3://${process.env.MEDIA_CONVERT_DESTINATION_BUCKET}/test`
+  const params = template(event.source, destination)
 
-  createJob(params);
+  const jobId = await createJob(params);
   
-  return {statusCode: 200}
+  return {jobId: jobId, destination: destination}
 };
 
-function createJob(params){
-  const mediaConvertEndpoint = process.env.MEDIA_CONVERT_ENDPOINT
+async function createJob(params){
+  const mediaConvertClient = new MediaConvertClient({endpoint: process.env.MEDIA_CONVERT_ENDPOINT});
 
-  AWS.config.mediaconvert = {endpoint : mediaConvertEndpoint};
-  var endpointPromise = new AWS.MediaConvert({apiVersion: '2017-08-29'}).createJob(params).promise();
-
-  endpointPromise.then(
-    function(data) {
-      console.log("Job created ", data);
-    },
-    function(err) {
-      console.log("Error", err);
-    }
-  );
-  return;
+  try {
+    const data = await mediaConvertClient.send(new CreateJobCommand(params));
+    console.log("Success! ", data);
+    return data.Job.Id;
+  } catch (err) {
+    console.log("Error", err);
+    return null;
+  }
 
 }
 

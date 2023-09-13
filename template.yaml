@@ -94,6 +94,9 @@ Parameters:
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
+  StreamingBucket:
+    Type: String
+    Description: Meadow streaming bucket
 Resources:
   # V2 API
   getAuthCallbackFunction:
@@ -280,6 +283,7 @@ Resources:
       Description: Downloads a file set.
       Environment:
         Variables:
+          STREAMING_BUCKET: !Ref StreamingBucket
           USE_PROXIED_IP: true
       Policies:
         Version: 2012-10-17
@@ -587,6 +591,22 @@ Resources:
           MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
           MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
           MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
+  transcodeCompleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/check-transcode-job.handler
+      Description: Determines when transcode job has completed or errored
+      Environment:
+        Variables:
+          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
+  generateDownloadLinkFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/presigned-url.handler
+      Description: Creates presigned url
+      Environment:
+        Variables:
+          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
