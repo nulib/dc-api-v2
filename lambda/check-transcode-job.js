@@ -4,12 +4,12 @@ const { GetJobCommand, MediaConvertClient } = require("@aws-sdk/client-mediaconv
 module.exports.handler = async (event) => {
 
   console.log("TRANSCODE COMPLETE LAMBDA")
-  console.log("event.jobId", event.jobId)
+  console.log("event", event)
   if(!event.jobId) return {success: false}
   
   const status = await checkJobStatus(event.jobId)
 
-  return {status: status}
+  return {jobId: event.jobId, status: status, destination: event.destination}
 };
 
 async function checkJobStatus(jobId){

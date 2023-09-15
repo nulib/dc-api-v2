@@ -9,7 +9,6 @@
     "@aws-crypto/sha256-browser": "^2.0.1",
     "@aws-sdk/credential-provider-node": "^3.142.0",
     "@aws-sdk/node-http-handler": "^3.127.0",
-    "@aws-sdk/client-mediaconvert": "^3.410.0",
     "@aws-sdk/protocol-http": "^3.127.0",
     "@aws-sdk/signature-v4": "^3.130.0",
     "@honeybadger-io/js": "^4.9.3",

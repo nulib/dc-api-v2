@@ -283,8 +283,12 @@ Resources:
       Description: Downloads a file set.
       Environment:
         Variables:
-          STREAMING_BUCKET: !Ref StreamingBucket
           USE_PROXIED_IP: true
+          STREAMING_BUCKET: !Ref StreamingBucket
+          MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
+          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
+          MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
+          MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
       Policies:
         Version: 2012-10-17
         Statement:
@@ -582,7 +586,9 @@ Resources:
   mediaTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: handlers/media-transcode.handler
+      Runtime: nodejs18.x
+      CodeUri: ./lambda
+      Handler: media-transcode.handler
       Description: Creates MediaConvert Job to transcode HLS stream
       Environment:
         Variables:
@@ -594,7 +600,9 @@ Resources:
   transcodeCompleteFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: handlers/check-transcode-job.handler
+      Runtime: nodejs18.x
+      CodeUri: ./lambda
+      Handler: check-transcode-job.handler
       Description: Determines when transcode job has completed or errored
       Environment:
         Variables:
@@ -602,7 +610,9 @@ Resources:
   generateDownloadLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: handlers/presigned-url.handler
+      Runtime: nodejs18.x
+      CodeUri: ./lambda
+      Handler: presigned-url.handler
       Description: Creates presigned url
       Environment:
         Variables:
