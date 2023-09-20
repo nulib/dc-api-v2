@@ -103,6 +103,36 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     expect(partOf.summary.none).to.be.an("array").that.is.not.empty;
   });
 
+  it("populates Manifest logo", async () => {
+    const { manifest } = await setup();
+    const logo = manifest.logo[0];
+    expect(logo.id).to.eq(
+      "https://iiif.dc.library.northwestern.edu/iiif/2/00000000-0000-0000-0000-000000000003/full/pct:50/0/default.webp"
+    );
+  });
+
+  it("populates Manifest provider", async () => {
+    const { manifest } = await setup();
+    const provider = manifest.provider[0];
+    expect(provider.id).to.eq("https://www.library.northwestern.edu/");
+    expect(provider.label).to.deep.equal({
+      none: ["Northwestern University Libraries"],
+    });
+    expect(provider.homepage[0].id).to.eq(
+      "https://dc.library.northwestern.edu/"
+    );
+    expect(provider.homepage[0].label).to.deep.eq({
+      none: ["Northwestern University Libraries Digital Collections Homepage"],
+    });
+    expect(provider.logo[0]).to.deep.eq({
+      id: "https://iiif.dc.library.northwestern.edu/iiif/2/00000000-0000-0000-0000-000000000003/full/pct:50/0/default.webp",
+      type: "Image",
+      format: "image/webp",
+      height: 139,
+      width: 1190,
+    });
+  });
+
   it("populates Manifest items (canvases)", async () => {
     const { source, manifest } = await setup();
     expect(manifest.items.length).to.eq(3);
