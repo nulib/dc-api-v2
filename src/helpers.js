@@ -88,7 +88,7 @@ function ensureCharacterEncoding(response, defaultEncoding = "UTF-8") {
 
   if (!contentTypeHeader) {
     contentTypeHeader = "Content-Type";
-    response[contentTypeHeader] ||= "application/json; charset=UTF-8";
+    response.headers[contentTypeHeader] ||= "application/json; charset=UTF-8";
   }
 
   const value = parseHeader(response.headers[contentTypeHeader]);
