@@ -11,6 +11,7 @@ const {
   baseUrl,
   decodeEventBody,
   decodeToken,
+  ensureCharacterEncoding,
   isFromReadingRoom,
   maybeUseProxiedIp,
   normalizeHeaders,
@@ -401,6 +402,37 @@ describe("helpers", () => {
       expect(result.cookies).to.eql([]);
       expect(result.pathParameters).to.eql({});
       expect(result.queryStringParameters).to.eql({});
+    });
+  });
+
+  describe("ensureCharacterEncoding", () => {
+    const response = { statusCode: 200, body: "Hello, World!" };
+
+    it("passes through an existing character set", () => {
+      const result = ensureCharacterEncoding({
+        ...response,
+        headers: { "Content-Type": "text/plain; charset=ISO-8859-1" },
+      });
+      expect(result.headers["Content-Type"]).to.eql(
+        "text/plain; charset=ISO-8859-1"
+      );
+    });
+
+    it("adds character set if it's missing", () => {
+      const result = ensureCharacterEncoding({
+        ...response,
+        headers: { "Content-Type": "text/plain" },
+      });
+      expect(result.headers["Content-Type"]).to.eql(
+        "text/plain; charset=UTF-8"
+      );
+    });
+
+    it("adds content type if it's missing", () => {
+      const result = ensureCharacterEncoding({ ...response, headers: {} });
+      expect(result.headers["Content-Type"]).to.eql(
+        "application/json; charset=UTF-8"
+      );
     });
   });
 });
