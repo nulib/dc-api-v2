@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sam local start-lambda --host 0.0.0.0 --port 3005 --env-vars env.json --log-file lambda.log & lambda_pid=$!
+sam local start-api --host 0.0.0.0 --log-file dc-api.log & api_pid=$!
+docker run --rm -p 8083:8083 -e LAMBDA_ENDPOINT=http://172.17.0.1:3005/ amazon/aws-stepfunctions-local
+kill $api_pid $lambda_pid

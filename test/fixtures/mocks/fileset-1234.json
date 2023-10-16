@@ -8,6 +8,7 @@
     "id": "1234",
     "api_model": "FileSet",
     "visibility": "Public",
-    "published": true
+    "published": true,
+    "mim_type": "image/tiff"
   }
 }

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint src/**/*.js test/**/*.js",
-    "preinstall": "cd src && npm i && cd -",
+    "preinstall": "cd src && npm i && cd ../lambdas && npm i && cd ../",
     "prettier": "prettier -c src test",
     "prettier:fix": "prettier -cw src test",
     "test": "mocha",
