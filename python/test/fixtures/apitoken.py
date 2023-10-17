@@ -1,5 +1,0 @@
-TEST_SECRET = "TEST_SECRET"
-TEST_TOKEN_NAME = "dcTestToken"
-TEST_TOKEN = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjQ4NDM1ODY2MDYxNjUs'
-              'ImlhdCI6MTY4Nzg5MTM2OSwiZW50aXRsZW1lbnRzIjpbXSwiaXNMb2dnZWRJbiI6d'
-              'HJ1ZSwic3ViIjoidGVzdFVzZXIifQ.vIZag1pHE1YyrxsKKlakXX_44ckAvkg7xWOoA_w4x58')

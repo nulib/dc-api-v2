@@ -679,35 +679,6 @@ Resources:
             ApiId: !Ref dcApi
             Path: /chat-endpoint
             Method: GET
-  chatFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./python/src
-      Runtime: python3.9
-      Handler: handlers/chat.handler
-      Timeout: 300
-      Environment:
-        Variables:
-          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
-          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
-          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
-          WEAVIATE_API_KEY: !Ref WeaviateApiKey
-          WEAVIATE_URL: !Ref WeaviateUrl
-          PROTOTYPE_URL: !Ref PrototypeUrl
-      Events:
-        GetApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /chat
-            Method: GET
-        PostApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /chat
-            Method: POST
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:
