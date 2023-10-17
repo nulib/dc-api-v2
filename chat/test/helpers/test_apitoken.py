@@ -1,6 +1,6 @@
 import os
 from src.helpers.apitoken import ApiToken
-from test.fixtures.apitoken import TEST_SECRET, TEST_TOKEN
+from test.fixtures.apitoken import SUPER_TOKEN, TEST_SECRET, TEST_TOKEN
 from unittest import mock, TestCase
 
 @mock.patch.dict(
@@ -17,6 +17,12 @@ class TestFunction(TestCase):
   def test_valid_token(self):
     subject = ApiToken(TEST_TOKEN)
     self.assertTrue(subject.is_logged_in())
+    self.assertFalse(subject.is_superuser())
+
+  def test_superuser_token(self):
+    subject = ApiToken(SUPER_TOKEN)
+    self.assertTrue(subject.is_logged_in())
+    self.assertTrue(subject.is_superuser())
 
   def test_invalid_token(self):
     subject = ApiToken("INVALID_TOKEN")

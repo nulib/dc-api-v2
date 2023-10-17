@@ -17,18 +17,19 @@ def openai_chat_client(**kwargs):
                          **kwargs)
                          
 
-
-def weaviate_vector_store(index_name: str, text_key: str, attributes: List[str] = []):
+def weaviate_client():
   weaviate_url = os.environ['WEAVIATE_URL']
   weaviate_api_key = os.environ['WEAVIATE_API_KEY']
-  # openai_api_key = os.environ['AZURE_OPENAI_API_KEY']
-
   auth_config = weaviate.AuthApiKey(api_key=weaviate_api_key)
 
-  client = weaviate.Client(
+  return weaviate.Client(
       url=weaviate_url,
       auth_client_secret=auth_config
   )
+
+def weaviate_vector_store(index_name: str, text_key: str, attributes: List[str] = []):
+  client = weaviate_client()
+
   return Weaviate(client=client, 
                   index_name=index_name, 
                   text_key=text_key, 

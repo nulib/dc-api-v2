@@ -26,3 +26,6 @@ class ApiToken:
 
   def is_logged_in(self):
     return self.token.get("isLoggedIn", False)
+  
+  def is_superuser(self):
+    return self.token.get("isSuperUser", False)
