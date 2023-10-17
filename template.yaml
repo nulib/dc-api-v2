@@ -669,6 +669,8 @@ Resources:
     Properties:
       Handler: handlers/get-chat-endpoint.handler
       Description: Returns the URI of the chat websocket API.      
+      Layers: 
+        - !Ref apiDependencies
       Environment:
         Variables:
           WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
