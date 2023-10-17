@@ -11,12 +11,8 @@ from openai.error import InvalidRequestError
 
 DEFAULT_INDEX = "Work"
 DEFAULT_KEY = "title"
-DEFAULT_ATTRIBUTES = ("title,alternate_title,collection,contributor,creator,"
-                      "date_created,description,genre,language,library_unit,"
-                      "location,physical_description_material,physical_description_size,"
-                      "published,rights_statement,scope_and_contents,series,source,"
-                      "style_period,subject,table_of_contents,technique,visibility,"
-                      "work_type")
+DEFAULT_K = 10
+MAX_K = 100
 
 class Websocket:
   def __init__(self, endpoint_url, connection_id, ref):
@@ -56,11 +52,12 @@ def handler(event, context):
       }
 
     question = payload.get("question")
-    index_name = payload.get("index", DEFAULT_INDEX)
-    text_key = payload.get("text_key", DEFAULT_KEY)  
+    index_name = payload.get("index", payload.get('index', DEFAULT_INDEX))
+    print(f'Searching index {index_name}')
+    text_key = payload.get("text_key", DEFAULT_KEY)
     attributes = [
       item for item 
-      in set(payload.get("attributes", DEFAULT_ATTRIBUTES).split(",")) 
+      in get_attributes(index_name, payload if api_token.is_superuser() else {})
       if item not in [text_key, "source"]
     ]
 
@@ -70,8 +67,9 @@ def handler(event, context):
     
     client = setup.openai_chat_client(callbacks=[StreamingSocketCallbackHandler(socket)], streaming=True)
 
+    prompt_text = payload.get("prompt", prompt_template()) if api_token.is_superuser() else prompt_template()
     prompt = PromptTemplate(
-      template=prompt_template(), 
+      template=prompt_text, 
       input_variables=["question", "context"]
     )
 
@@ -80,7 +78,8 @@ def handler(event, context):
       input_variables=["page_content", "source"] + attributes,
     )
 
-    docs = weaviate.similarity_search(question, k=10, additional="certainty")
+    k = min(payload.get("k", DEFAULT_K), MAX_K)
+    docs = weaviate.similarity_search(question, k=k, additional="certainty")
     chain = load_qa_with_sources_chain(
       client, 
       chain_type="stuff", 
@@ -110,6 +109,17 @@ def handler(event, context):
   except Exception as err:
     print(event)
     raise err
+
+def get_attributes(index, payload):
+  request_attributes = payload.get('attributes', None)
+  if request_attributes is not None:
+    return ','.split(request_attributes)
+  
+  client = setup.weaviate_client()
+  schema = client.schema.get(index)
+  names = [prop['name'] for prop in schema.get('properties')]
+  print(f'Retrieved attributes: {names}')
+  return names
 
 def to_bool(val):
   if isinstance(val, str):
