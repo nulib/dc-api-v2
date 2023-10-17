@@ -37,9 +37,9 @@ deps-python:
 cover-python:
 	cd chat/src && coverage run --include='src/**/*' -m unittest -v && coverage report
 style-python:
-	cd chat/src && ruff check .
+	cd chat && ruff check .
 test-python:
-	cd chat/src && python -m unittest -v
+	cd chat && python -m unittest -v
 build: .aws-sam/build.toml
 link: build
 	cd chat/src && for src in *.py **/*.py; do for target in $$(find ../../.aws-sam/build -maxdepth 1 -type d); do if [[ -f $$target/$$src ]]; then ln -f $$src $$target/$$src; fi; done; done
