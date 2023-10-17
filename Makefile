@@ -33,16 +33,16 @@ style-node:
 test-node:
 	cd node && npm run test
 deps-python:
-	cd python && pip install -r requirements.txt
+	cd chat/src && pip install -r requirements.txt
 cover-python:
-	cd python && coverage run --include='src/**/*' -m unittest -v && coverage report
+	cd chat/src && coverage run --include='src/**/*' -m unittest -v && coverage report
 style-python:
-	cd python && ruff check .
+	cd chat/src && ruff check .
 test-python:
-	cd python && python -m unittest -v
+	cd chat/src && python -m unittest -v
 build: .aws-sam/build.toml
 link: build
-	cd python/src && for src in *.py **/*.py; do for target in $$(find ../../.aws-sam/build -maxdepth 1 -type d); do if [[ -f $$target/$$src ]]; then ln -f $$src $$target/$$src; fi; done; done
+	cd chat/src && for src in *.py **/*.py; do for target in $$(find ../../.aws-sam/build -maxdepth 1 -type d); do if [[ -f $$target/$$src ]]; then ln -f $$src $$target/$$src; fi; done; done
 	cd node/src && for src in *.js *.json **/*.js **/*.json; do for target in $$(find ../../.aws-sam/build -maxdepth 1 -type d); do if [[ -f $$target/$$src ]]; then ln -f $$src $$target/$$src; fi; done; done
 serve: link
 	sam local start-api --host 0.0.0.0 --log-file dc-api.log

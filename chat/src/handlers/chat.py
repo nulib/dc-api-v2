@@ -34,7 +34,7 @@ class StreamingSocketCallbackHandler(BaseCallbackHandler):
     self.socket = socket
   
   def on_llm_new_token(self, token: str, **kwargs):
-    self.socket.send({'token': token});
+    self.socket.send({'token': token})
 
 def handler(event, context):
   try:
