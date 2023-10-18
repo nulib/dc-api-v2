@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import setup
+import tiktoken
 from helpers.apitoken import ApiToken
 from helpers.prompts import document_template, prompt_template
 from langchain.callbacks.base import BaseCallbackHandler
@@ -30,11 +31,13 @@ class Websocket:
 
 
 class StreamingSocketCallbackHandler(BaseCallbackHandler):
-    def __init__(self, socket: Websocket):
+    def __init__(self, socket: Websocket, debug_mode: bool):
         self.socket = socket
+        self.debug_mode = debug_mode
 
     def on_llm_new_token(self, token: str, **kwargs):
-        self.socket.send({"token": token})
+        if not self.debug_mode:
+            self.socket.send({"token": token})
 
 
 def handler(event, context):
@@ -54,6 +57,8 @@ def handler(event, context):
             socket.send({"statusCode": 401, "body": "Unauthorized"})
             return {"statusCode": 401, "body": "Unauthorized"}
 
+        debug_mode = payload.get("debug", False) and api_token.is_superuser()
+
         question = payload.get("question")
         index_name = payload.get("index", payload.get("index", DEFAULT_INDEX))
         print(f"Searching index {index_name}")
@@ -71,7 +76,8 @@ def handler(event, context):
         )
 
         client = setup.openai_chat_client(
-            callbacks=[StreamingSocketCallbackHandler(socket)], streaming=True
+            callbacks=[StreamingSocketCallbackHandler(socket, debug_mode)],
+            streaming=True,
         )
 
         prompt_text = (
@@ -101,20 +107,35 @@ def handler(event, context):
 
         try:
             doc_response = [doc.__dict__ for doc in docs]
-            socket.send({"question": question, "source_documents": doc_response})
+            original_question = {"question": question, "source_documents": doc_response}
+            socket.send(original_question)
             response = chain({"question": question, "input_documents": docs})
-            response = {
-                "answer": response["output_text"],
-            }
-            socket.send(response)
+            if debug_mode:
+                final_response = {
+                    "answer": response["output_text"],
+                    "attributes": attributes,
+                    "isSuperuser": api_token.is_superuser(),
+                    "prompt": prompt_text,
+                    "ref": ref,
+                    "k": k,
+                    "original_question": original_question,
+                    "token_counts": {
+                        "question": count_tokens(question),
+                        "answer": count_tokens(response["output_text"]),
+                        "prompt": count_tokens(prompt_text),
+                        "source_documents": count_tokens(doc_response),
+                    },
+                }
+            else:
+                final_response = {"answer": response["output_text"], "ref": ref}
         except InvalidRequestError as err:
-            response = {
+            final_response = {
                 "question": question,
-                "answer": str(err),
+                "error": str(err),
                 "source_documents": [],
             }
-            socket.send(response)
 
+        socket.send(final_response)
         return {"statusCode": 200}
     except Exception as err:
         print(event)
@@ -131,6 +152,14 @@ def get_attributes(index, payload):
     names = [prop["name"] for prop in schema.get("properties")]
     print(f"Retrieved attributes: {names}")
     return names
+
+
+def count_tokens(val):
+    encoding = tiktoken.encoding_for_model("gpt-4")
+    token_integers = encoding.encode(str(val))
+    num_tokens = len(token_integers)
+
+    return num_tokens
 
 
 def to_bool(val):
