@@ -10,7 +10,7 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.prompts import PromptTemplate
 from openai.error import InvalidRequestError
 
-DEFAULT_INDEX = "Work"
+DEFAULT_INDEX = "DCWork"
 DEFAULT_KEY = "title"
 DEFAULT_K = 10
 MAX_K = 100
