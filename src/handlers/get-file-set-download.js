@@ -85,6 +85,7 @@ async function processDownload(doc, email) {
       presignedUrlInput: {
         bucket: destinationBucket,
         key: destinationKey,
+        disposition: `${fileSetId}.mp4`,
       },
       sendEmailInput: {
         to: email,
