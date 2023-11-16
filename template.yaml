@@ -673,7 +673,7 @@ Resources:
         SubjectPart: Your {{fileType}} download from Meadow is ready
         TextPart: |
           Hello,
-          Your request for {{fileType}} download of {{fileSetLabel}} (file set id: {{fileSetId}}) has been fulfilled. Your download will be available for 24 hours.
+          Your request for {{fileType}} download of {{fileSetLabel}} (file set id: {{fileSetId}}) has been fulfilled. Your download will be available for 3 days.
           The {{fileType}} file can be downloaded from {{downloadLink}}
         HtmlPart: |
           <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
@@ -809,7 +809,7 @@ Resources:
                                 </a>
                               </p>
                               <p style='text-align: center; font-style: italic'>
-                                (Your <a href='{{downloadLink}}'>download</a> will be available for 24 hours)
+                                (Your <a href='{{downloadLink}}'>download</a> will be available for 3 days)
                               </p>
                             </td>
                           </tr>
