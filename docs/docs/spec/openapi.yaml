@@ -91,6 +91,31 @@ paths:
           description: "The resource is authorized"
         403:
           description: "The resource is not authorized"
+  /file-sets/{id}/download:
+    get:
+      operationId: getFileSetDownload
+      tags:
+        - FileSet
+      parameters:
+        - name: id
+          description: Id of the file set
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: email
+          description: Email to send the download link to
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "The download is being created"
+        400:
+          description: "Bad Request"
+        405:
+          description: "Method Not allowed for work type, file set role combo"
   /works/{id}:
     get:
       operationId: getWorkById

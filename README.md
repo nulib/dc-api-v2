@@ -115,6 +115,34 @@ npm run dev
 
 Access the app in a browser at: https://USER_PREFIX.dev.rdc.library.northwestern.edu:3003/
 
+## Running the API locally with state machine + lambdas (needed for AV download route)
+
+```shell
+# From the repo root
+cd dc-api-v2
+
+#  Make sure you've done an `npm install` recently to update any packages in the `lambdas` directory
+npm install
+
+# Start the proxy (if needed)
+https-proxy start 3002 3000
+
+# Open port 3005 (if needed)
+sg open all 3005
+
+# Login as the staging-admin user
+export AWS_PROFILE=staging-admin
+aws sso login
+
+# Start the API + step function and associated lambdas
+bin/start-with-step
+
+# Open a second terminal and create the state machine
+aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://state_machines/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole
+```
+
+
+
 ## Deploying the API manually
 
 - Symlink the `*.parameters` file you need from `tfvars/dc-api/` to the application root
