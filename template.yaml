@@ -670,7 +670,7 @@ Resources:
     Properties:
       Template:
         TemplateName: !Sub "${AWS::StackName}-av-download-template"
-        SubjectPart: Your {{fileType}} download from Meadow is ready
+        SubjectPart: Download of {{fileSetLabel}} is ready!
         TextPart: |
           Hello,
           Your request for {{fileType}} download of {{fileSetLabel}} (file set id: {{fileSetId}}) has been fulfilled. Your download will be available for 3 days.
