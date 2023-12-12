@@ -58,13 +58,13 @@ sam local start-api --host 0.0.0.0 --log-file dc-api.log
 The API will be available at:
 
 - `http://localhost:3000` (from your dev environment)
-- `http://USER_PREFIX.dev.library.northwestern.edu:3000` (from elsewhere)
+- `http://USER_PREFIX.dev.rdc.library.northwestern.edu:3000` (from elsewhere)
   - Don't forget to [open port 3000](https://github.com/nulib/aws-developer-environment#convenience-scripts) if you want to access it remotely
 
 ⚠️ Note the above URLs (which point to your local OpenSearch instance) need _full endpoints_ to resolve. For example:
 
-- `http://USER_PREFIX.dev.library.northwestern.edu:3000/search`
-- `http://USER_PREFIX.dev.library.northwestern.edu:3000/collections`
+- `http://USER_PREFIX.dev.rdc.library.northwestern.edu:3000/search`
+- `http://USER_PREFIX.dev.rdc.library.northwestern.edu:3000/collections`
 
 [View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documention](https://api.dc.library.northwestern.edu/)
 
@@ -84,8 +84,8 @@ View and edit information about a specific Work in the Index.
 
 1. Open a local Meadow instance.
 2. Find an `id` of a Work you'd like to inspect in the API.
-3. View JSON response at `http://USER_PREFIX.dev.library.northwestern.edu:3000/works/[WORK_ID]`
-4. View IIIF Manifest JSON response at `http://USER_PREFIX.dev.library.northwestern.edu:3000/works/[WORK_ID]?as=iiif`
+3. View JSON response at `http://USER_PREFIX.dev.rdc.library.northwestern.edu:3000/works/[WORK_ID]`
+4. View IIIF Manifest JSON response at `http://USER_PREFIX.dev.rdc.library.northwestern.edu:3000/works/[WORK_ID]?as=iiif`
 
 For help debugging/inspecting, JavaScript `console` messages are written to: `dc-api-v2/dc-api.log`
 
@@ -140,8 +140,6 @@ bin/start-with-step
 # Open a second terminal and create the state machine
 aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://state_machines/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole
 ```
-
-
 
 ## Deploying the API manually
 
