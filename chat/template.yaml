@@ -192,7 +192,7 @@ Resources:
         - x86_64
       Layers:
         - !Ref ChatDependencies
-      MemorySize: 128  
+      MemorySize: 1024
       Handler: handlers/chat.handler
       Timeout: 300
       Environment:

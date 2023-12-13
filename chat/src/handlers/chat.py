@@ -106,6 +106,8 @@ def handler(event, context):
         )
 
         try:
+            for doc in docs:
+                doc.metadata['full_text'] = ''
             doc_response = [doc.__dict__ for doc in docs]
             original_question = {"question": question, "source_documents": doc_response}
             socket.send(original_question)
