@@ -1,0 +1,5 @@
+#!/bin/bash
+
+rm -rf .aws-sam
+sam local start-api --host 0.0.0.0 --port 3002 --log-file dc-api.log \
+  --ssl-cert-file $HOME/.dev_cert/dev.rdc.cert.pem --ssl-key-file $HOME/.dev_cert/dev.rdc.key.pem
