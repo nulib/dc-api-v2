@@ -42,6 +42,24 @@ function buildImageService(representativeImageUrl) {
   ];
 }
 
+function buildSupplementingAnnotation({ canvasId, fileSet }) {
+  return {
+    id: `${canvasId}/annotations/page/0/a0`,
+    type: "Annotation",
+    motivation: "supplementing",
+    body: {
+      id: fileSet?.webvtt,
+      type: "Text",
+      format: "text/vtt",
+      label: {
+        en: ["Chapters"],
+      },
+      language: "none",
+    },
+    target: canvasId,
+  };
+}
+
 function isAudioVideo(type) {
   return ["Audio", "Video", "Sound"].includes(type);
 }
@@ -56,6 +74,7 @@ module.exports = {
   buildAnnotationBodyId,
   buildImageResourceId,
   buildImageService,
+  buildSupplementingAnnotation,
   isAudioVideo,
   isImage,
 };
