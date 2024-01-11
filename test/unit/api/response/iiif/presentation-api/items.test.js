@@ -91,6 +91,24 @@ describe("IIIF response presentation API items helpers", () => {
     expect(imageService.type).to.eq("ImageService2");
   });
 
+  it("buildSupplementingAnnotation({ canvasId, fileSet })", () => {
+    const canvasId = "https://example.com/canvas/1";
+    const annotation = items.buildSupplementingAnnotation({
+      canvasId,
+      fileSet: accessImage,
+    });
+
+    expect(annotation.id).to.eq(`${canvasId}/annotations/page/0/a0`);
+    expect(annotation.type).to.eq("Annotation");
+    expect(annotation.motivation).to.eq("supplementing");
+    expect(annotation.body.id).to.eq(accessImage.webvtt);
+    expect(annotation.body.type).to.eq("Text");
+    expect(annotation.body.format).to.eq("text/vtt");
+    expect(annotation.body.label.en[0]).to.eq("Chapters");
+    expect(annotation.body.language).to.eq("none");
+    expect(annotation.target).to.eq(canvasId);
+  });
+
   it("isAudioVideo(workType)", () => {
     expect(items.isAudioVideo("Audio")).to.be.true;
     expect(items.isAudioVideo("Image")).to.be.false;

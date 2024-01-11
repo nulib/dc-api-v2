@@ -6,6 +6,7 @@ const {
   buildImageResourceId,
   buildImageService,
   isAudioVideo,
+  buildSupplementingAnnotation,
 } = require("./presentation-api/items");
 const { metadataLabelFields } = require("./presentation-api/metadata");
 const {
@@ -21,11 +22,15 @@ function transform(response) {
 
     const manifestId = `${dcApiEndpoint()}/works/${source.id}?as=iiif`;
 
-    const annotationsToTagOnAtEnd = [];
-
     const normalizedFlatManifestObj = builder.createManifest(
       manifestId,
       (manifest) => {
+        /**
+         * Build out canvas from a Work's Fileset
+         * @param {object} fileSet
+         * @param {number} index
+         * @param {boolean} isAuxiliary
+         */
         function buildCanvasFromFileSet(fileSet, index, isAuxiliary) {
           const canvasId = `${manifestId}/canvas/${fileSet.role.toLowerCase()}/${index}`;
           manifest.createCanvas(canvasId, (canvas) => {
@@ -50,6 +55,7 @@ function transform(response) {
               canvas.addThumbnail(canvasThumbnail);
             }
 
+            /** Add "painting" annotation */
             const annotationId = `${canvasId}/annotation/0`;
             canvas.createAnnotation(annotationId, {
               id: annotationId,
@@ -61,29 +67,17 @@ function transform(response) {
               ),
             });
 
+            /** Add "supplementing" annotation */
             if (!isAuxiliary && fileSet.webvtt) {
-              const annotations = {
-                id: `${canvasId}/annotations/page/0`,
-                type: "AnnotationPage",
-                items: [
-                  {
-                    id: `${canvasId}/annotations/page/0/a0`,
-                    type: "Annotation",
-                    motivation: "supplementing",
-                    body: {
-                      id: fileSet.webvtt,
-                      type: "Text",
-                      format: "text/vtt",
-                      label: {
-                        en: ["Chapters"],
-                      },
-                      language: "none",
-                    },
-                    target: canvasId,
-                  },
-                ],
-              };
-              annotationsToTagOnAtEnd.push(annotations);
+              canvas.createAnnotationPage(
+                `${canvasId}/annotations/page/0`,
+                (annotationPageBuilder) => {
+                  annotationPageBuilder.createAnnotation(
+                    buildSupplementingAnnotation({ canvasId, fileSet })
+                  );
+                },
+                true
+              );
             }
           });
         }
@@ -220,26 +214,11 @@ function transform(response) {
     });
 
     /**
-     * Workaround to add webVTT annotations
-     * (iiif-builder package currently doesn't support it)
-     */
-
-    annotationsToTagOnAtEnd.forEach((a) => {
-      const matched = jsonManifest.items.find(
-        (canvas) => canvas.id === a.items[0].target
-      );
-
-      if (matched) {
-        matched.annotations = [a];
-      }
-    });
-
-    /**
      * Add a placeholderCanvas property to a Canvas if the annotation body is of type "Image"
      * (iiif-builder package currently doesn't support adding this property)
      */
     for (let i = 0; i < jsonManifest.items.length; i++) {
-      if (jsonManifest.items[i].items[0].items[0].body.type === "Image") {
+      if (jsonManifest.items[i]?.items[0]?.items[0]?.body.type === "Image") {
         const { id, thumbnail } = jsonManifest.items[i];
         const placeholderFileSet = source.file_sets.find(
           (fileSet) =>
