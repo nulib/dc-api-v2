@@ -22,7 +22,7 @@ help:
 	echo "make test-python    | run python tests"
 	echo "make cover-node     | run node tests with coverage"
 	echo "make cover-python   | run python tests with coverage"
-.aws-sam/build.toml: ./template.yaml node/package-lock.json node/src/package-lock.json python/requirements.txt python/src/requirements.txt
+.aws-sam/build.toml: ./template.yaml node/package-lock.json node/src/package-lock.json chat/dependencies/requirements.txt chat/src/requirements.txt
 	sam build --cached --parallel
 deps-node:
 	cd node && npm ci
@@ -34,12 +34,16 @@ test-node:
 	cd node && npm run test
 deps-python:
 	cd chat/src && pip install -r requirements.txt
-cover-python:
-	cd chat/src && coverage run --include='src/**/*' -m unittest -v && coverage report
-style-python:
-	cd chat && ruff check .
-test-python:
-	cd chat && python -m unittest -v
+cover-python: deps-python
+	cd chat && export SKIP_WEAVIATE_SETUP=True && coverage run --source=src -m unittest -v && coverage report --skip-empty
+cover-html-python: deps-python
+	cd chat && export SKIP_WEAVIATE_SETUP=True && coverage run --source=src -m unittest -v && coverage html --skip-empty
+style-python: deps-python
+	cd chat && ruff check . 
+test-python: deps-python
+	cd chat && export SKIP_WEAVIATE_SETUP=True && PYTHONPATH=src:test && python -m unittest discover -v
+python-version:
+	cd chat && python --version
 build: .aws-sam/build.toml
 link: build
 	cd chat/src && for src in *.py **/*.py; do for target in $$(find ../../.aws-sam/build -maxdepth 1 -type d); do if [[ -f $$target/$$src ]]; then ln -f $$src $$target/$$src; fi; done; done
