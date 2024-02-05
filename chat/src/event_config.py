@@ -122,7 +122,7 @@ class EventConfig:
         attributes = [
             item
             for item in self._get_request_attributes()
-            if item not in [self._get_text_key(), "source"]
+            if item not in [self._get_text_key(), "source", "full_text"]
         ]
         return attributes
     
