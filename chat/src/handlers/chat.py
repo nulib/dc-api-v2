@@ -2,7 +2,6 @@ import os
 from event_config import EventConfig
 from helpers.response import prepare_response
 
-
 def handler(event, _context):
     try:
         config = EventConfig(event)
@@ -21,5 +20,10 @@ def handler(event, _context):
             final_response = prepare_response(config)
             config.socket.send(final_response)
         return {"statusCode": 200}
+        
     except Exception as err:
-        raise err
+        if err.__class__.__name__ == "PayloadTooLargeException":
+            config.socket.send({"type": "error", "message": "Payload too large"})
+            return {"statusCode": 413, "body": "Payload too large"}
+        else:
+            raise err
