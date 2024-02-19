@@ -268,6 +268,12 @@ describe("A/V Work as IIIF Manifest response transformer", () => {
     expect(annotation.body.format).to.eq("application/x-mpegurl");
     expect(annotation.body.id).to.eq(source.file_sets[0].streaming_url);
   });
+
+  it("renders a label for AnnotationPage with default value", async () => {
+    const { manifest } = await setup();
+    const annotationPageLabel = manifest.items[1].annotations[0].label["en"][0];
+    expect(annotationPageLabel).to.eq("Chapters");
+  });
 });
 
 describe("404 network response", () => {

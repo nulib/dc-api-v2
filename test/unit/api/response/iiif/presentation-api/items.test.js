@@ -104,7 +104,6 @@ describe("IIIF response presentation API items helpers", () => {
     expect(annotation.body.id).to.eq(accessImage.webvtt);
     expect(annotation.body.type).to.eq("Text");
     expect(annotation.body.format).to.eq("text/vtt");
-    expect(annotation.body.label.en[0]).to.eq("Chapters");
     expect(annotation.body.language).to.eq("none");
     expect(annotation.target).to.eq(canvasId);
   });
