@@ -72,6 +72,7 @@ function transform(response) {
               canvas.createAnnotationPage(
                 `${canvasId}/annotations/page/0`,
                 (annotationPageBuilder) => {
+                  annotationPageBuilder.addLabel("Chapters", "en");
                   annotationPageBuilder.createAnnotation(
                     buildSupplementingAnnotation({ canvasId, fileSet })
                   );

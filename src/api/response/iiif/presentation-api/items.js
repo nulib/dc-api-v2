@@ -51,9 +51,6 @@ function buildSupplementingAnnotation({ canvasId, fileSet }) {
       id: fileSet?.webvtt,
       type: "Text",
       format: "text/vtt",
-      label: {
-        en: ["Chapters"],
-      },
       language: "none",
     },
     target: canvasId,
