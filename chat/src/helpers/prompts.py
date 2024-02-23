@@ -16,8 +16,8 @@ def document_template(attributes: Optional[List[str]] = None) -> str:
     if attributes is None:
         attributes = []
     lines = (
-        ["Content: {page_content}", "Metadata:"]
+        ["Content: {title}", "Metadata:"]
         + [f"  {attribute}: {{{attribute}}}" for attribute in attributes]
-        + ["Source: {source}"]
+        + ["Source: {id}"]
     )
     return "\n".join(lines)

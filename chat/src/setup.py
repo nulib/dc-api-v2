@@ -1,10 +1,16 @@
-from langchain.chat_models import AzureChatOpenAI
-from langchain.vectorstores import Weaviate
-from typing import List
+from content_handler import ContentHandler
+from langchain_community.chat_models import AzureChatOpenAI
+from langchain_community.embeddings import SagemakerEndpointEmbeddings
+from langchain_community.vectorstores import OpenSearchVectorSearch
+from opensearchpy import OpenSearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
 import os
-import weaviate
 import boto3
 
+def prefix(value):
+    env_prefix = os.getenv("ENV_PREFIX")
+    env_prefix = None if env_prefix == "" else env_prefix
+    return '-'.join(filter(None, [env_prefix, value]))
 
 def openai_chat_client(**kwargs):
     return AzureChatOpenAI(
@@ -12,42 +18,39 @@ def openai_chat_client(**kwargs):
         **kwargs,
     )
 
+def opensearch_client(region_name=os.getenv("AWS_REGION")):
+    print(region_name)
+    session = boto3.Session(region_name=region_name)
+    awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
+    endpoint = os.getenv("ELASTICSEARCH_ENDPOINT")
 
-def weaviate_client():
-    if os.getenv("SKIP_WEAVIATE_SETUP"):
-        return None
-    
-    weaviate_url = os.environ.get("WEAVIATE_URL")
-    try:
-        if weaviate_url is None:
-            raise EnvironmentError(
-                "WEAVIATE_URL is not set in the environment variables"
-            )
-
-        weaviate_api_key = os.environ.get("WEAVIATE_API_KEY")
-        if weaviate_api_key is None:
-            raise EnvironmentError(
-                "WEAVIATE_API_KEY is not set in the environment variables"
-            )
-
-        auth_config = weaviate.AuthApiKey(api_key=weaviate_api_key)
-
-        client = weaviate.Client(url=weaviate_url, auth_client_secret=auth_config)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        client = None
-    return client
-
-
-def weaviate_vector_store(index_name: str, text_key: str, attributes: List[str] = []):
-    if os.getenv("SKIP_WEAVIATE_SETUP"):
-        return None
-    
-    client = weaviate_client()
-
-    return Weaviate(
-        client=client, index_name=index_name, text_key=text_key, attributes=attributes
+    return OpenSearch(
+        hosts=[{'host': endpoint, 'port': 443}],
+        use_ssl = True,
+        connection_class=RequestsHttpConnection,
+        http_auth=awsauth,
     )
+
+def opensearch_vector_store(region_name=os.getenv("AWS_REGION")):
+    session = boto3.Session(region_name=region_name)
+    awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
+
+    sagemaker_client = session.client(service_name="sagemaker-runtime", region_name=session.region_name)
+    embeddings = SagemakerEndpointEmbeddings(
+        client=sagemaker_client,
+        region_name=session.region_name,
+        endpoint_name=os.getenv("EMBEDDING_ENDPOINT"),
+        content_handler=ContentHandler()
+    )
+
+    docsearch = OpenSearchVectorSearch(
+        index_name=prefix("dc-v2-work"),
+        embedding_function=embeddings,
+        opensearch_url="https://" + os.getenv("ELASTICSEARCH_ENDPOINT"),
+        connection_class=RequestsHttpConnection,
+        http_auth=awsauth,
+    )
+    return docsearch
 
 
 def websocket_client(endpoint_url: str):

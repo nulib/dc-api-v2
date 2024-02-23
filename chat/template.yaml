@@ -17,12 +17,12 @@ Parameters:
   AzureOpenaiResourceName:
     Type: String
     Description: Azure OpenAI Resource Name
-  WeaviateApiKey:
+  ElasticsearchEndpoint:
     Type: String
-    Description: Weaviate API Key
-  WeaviateUrl:
+    Description: Elasticsearch URL
+  EmbeddingEndpoint:
     Type: String
-    Description: Weaviate URL
+    Description: Sagemaker Inference Endpoint
 Resources:
   ApiGwAccountConfig:
     Type: "AWS::ApiGateway::Account"
@@ -202,8 +202,8 @@ Resources:
           AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
           AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
           AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
-          WEAVIATE_API_KEY: !Ref WeaviateApiKey
-          WEAVIATE_URL: !Ref WeaviateUrl
+          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+          EMBEDDING_ENDPOINT: !Ref EmbeddingEndpoint
       Policies:
       - Statement:
         - Effect: Allow
@@ -211,6 +211,18 @@ Resources:
           - 'execute-api:ManageConnections'
           Resource:
           - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocket}/*'
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'es:ESHttpGet'
+          - 'es:ESHttpPost'
+          Resource: '*'
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'sagemaker:InvokeEndpoint'
+          - 'sagemaker:InvokeEndpointAsync'
+          Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/${EmbeddingEndpoint}'
     Metadata:
       BuildMethod: nodejs18.x
   Deployment:

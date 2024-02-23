@@ -50,10 +50,9 @@ class TestEventConfig(TestCase):
             }
         )
         expected_output = {
-            "attributes": [],
+            "attributes": EventConfig.DEFAULT_ATTRIBUTES,
             "azure_endpoint": "https://test.openai.azure.com/",
-            "index_name": "DCWork",
-            "k": 10,
+            "k": 5,
             "openai_api_version": "2023-07-01-preview",
             "question": "test question",
             "ref": "test ref",
@@ -61,7 +60,6 @@ class TestEventConfig(TestCase):
             "text_key": "title",
         }
         self.assertEqual(actual.azure_endpoint, expected_output["azure_endpoint"])
-        self.assertEqual(actual.index_name, expected_output["index_name"])
         self.assertEqual(actual.attributes, expected_output["attributes"])
         self.assertEqual(actual.k, expected_output["k"])
         self.assertEqual(
@@ -71,23 +69,6 @@ class TestEventConfig(TestCase):
         self.assertEqual(actual.ref, expected_output["ref"])
         self.assertEqual(actual.temperature, expected_output["temperature"])
         self.assertEqual(actual.text_key, expected_output["text_key"])
-
-    def test_text_key_removed_from_attributes_list(self):
-        actual = EventConfig(
-            event={
-                "body": json.dumps(
-                    {
-                        "attributes": ["title", "description"],
-                        "text_key": "description",
-                    }
-                )
-            }
-        )
-        self.assertNotIn(actual.text_key, actual.attributes)
-
-    def test_source_removed_from_attributes_list(self):
-        actual = EventConfig(event={"body": json.dumps({"attributes": ["source"]})})
-        self.assertNotIn("source", actual.attributes)
 
     def test_debug_message(self):
         self.assertEqual(

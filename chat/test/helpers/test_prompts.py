@@ -17,17 +17,17 @@ class TestDocumentTemplate(TestCase):
     def test_empty_attributes(self):
         self.assertEqual(
             document_template(),
-            "Content: {page_content}\nMetadata:\nSource: {source}",
+            "Content: {title}\nMetadata:\nSource: {id}",
         )
 
     def test_single_attribute(self):
         self.assertEqual(
             document_template(["title"]),
-            "Content: {page_content}\nMetadata:\n  title: {title}\nSource: {source}",
+            "Content: {title}\nMetadata:\n  title: {title}\nSource: {id}",
         )
 
     def test_multiple_attributes(self):
         self.assertEqual(
             document_template(["title", "author", "subject", "description"]),
-            "Content: {page_content}\nMetadata:\n  title: {title}\n  author: {author}\n  subject: {subject}\n  description: {description}\nSource: {source}",
+            "Content: {title}\nMetadata:\n  title: {title}\n  author: {author}\n  subject: {subject}\n  description: {description}\nSource: {id}",
         )

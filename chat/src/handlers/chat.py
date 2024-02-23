@@ -1,4 +1,6 @@
 import os
+import sys
+import traceback
 from event_config import EventConfig
 from helpers.response import prepare_response
 
@@ -21,9 +23,8 @@ def handler(event, _context):
             config.socket.send(final_response)
         return {"statusCode": 200}
         
-    except Exception as err:
-        if err.__class__.__name__ == "PayloadTooLargeException":
-            config.socket.send({"type": "error", "message": "Payload too large"})
-            return {"statusCode": 413, "body": "Payload too large"}
-        else:
-            raise err
+    except Exception:
+        exc_info = sys.exc_info()
+        err_text = ''.join(traceback.format_exception(*exc_info))
+        print(err_text)
+        return {"statusCode": 500, "body": f'Unhandled error:\n{err_text}'}

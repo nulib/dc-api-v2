@@ -1,5 +1,7 @@
 # ruff: noqa: E402
 
+import contextlib
+from io import StringIO
 import json
 import os
 import sys
@@ -70,5 +72,11 @@ class TestHandler(TestCase):
     @patch.object(EventConfig, 'setup_websocket')
     def test_error_handling(self, mock_event):
       mock_event.side_effect = Exception("Some error occurred")
-      with self.assertRaises(Exception):
-        handler({}, {})
+      capture = StringIO()
+      with contextlib.redirect_stdout(capture):
+        response = handler({}, {})
+        self.assertEqual(response['statusCode'], 500)
+        self.assertIn('Unhandled error:', response['body'])
+        self.assertIn('Exception: Some error occurred', response['body'])
+        self.assertIn('Exception: Some error occurred', capture.getvalue())
+      

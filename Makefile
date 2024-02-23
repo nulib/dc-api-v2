@@ -40,6 +40,8 @@ cover-html-python: deps-python
 	cd chat && export SKIP_WEAVIATE_SETUP=True && coverage run --source=src -m unittest -v && coverage html --skip-empty
 style-python: deps-python
 	cd chat && ruff check . 
+style-python-fix: deps-python
+	cd chat && ruff check --fix . 
 test-python: deps-python
 	cd chat && export SKIP_WEAVIATE_SETUP=True && PYTHONPATH=src:test && python -m unittest discover -v
 python-version:

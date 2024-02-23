@@ -12,5 +12,9 @@ class Websocket:
             data = {"message": data}
         data["ref"] = self.ref
         data_as_bytes = bytes(json.dumps(data), "utf-8")
-        self.client.post_to_connection(Data=data_as_bytes, ConnectionId=self.connection_id)
+
+        if self.connection_id == "debug":
+            print(data)
+        else:
+            self.client.post_to_connection(Data=data_as_bytes, ConnectionId=self.connection_id)
         return data

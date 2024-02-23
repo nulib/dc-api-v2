@@ -62,6 +62,9 @@ Parameters:
   ElasticsearchEndpoint:
     Type: String
     Description: Elasticsearch url
+  EmbeddingEndpoint:
+    Type: String
+    Description: Sagemaker Inference Endpoint
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -112,12 +115,6 @@ Parameters:
   StreamingBucket:
     Type: String
     Description: Meadow streaming bucket
-  WeaviateApiKey:
-    Type: String
-    Description: Weaviate API Key
-  WeaviateUrl:
-    Type: String
-    Description: Weaviate URL
 Resources:
   apiDependencies:
     Type: AWS::Serverless::LayerVersion
@@ -662,8 +659,8 @@ Resources:
         AzureOpenaiEmbeddingDeploymentId: !Ref AzureOpenaiEmbeddingDeploymentId
         AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
         AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
-        WeaviateApiKey: !Ref WeaviateApiKey
-        WeaviateUrl: !Ref WeaviateUrl
+        ElasticsearchEndpoint: !Ref ElasticsearchEndpoint
+        EmbeddingEndpoint: !Ref EmbeddingEndpoint
   chatWebsocketEndpoint:
     Type: AWS::Serverless::Function
     Properties:

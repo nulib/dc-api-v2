@@ -221,6 +221,8 @@ $RECYCLE.BIN/
 /docs/docs/spec/openapi.json
 /docs/site
 
+.venv
+
 .vscode
 /samconfig.toml
 /samconfig.yaml
