@@ -103,9 +103,6 @@ Parameters:
   NussoBaseUrl:
     Type: String
     Description: Auth server URL
-  PrototypeUrl:
-    Type: String
-    Description: URL of prototype
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
