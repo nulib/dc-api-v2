@@ -13,6 +13,7 @@ const TestEnvironment = {
   DC_API_ENDPOINT: "https://thisisafakeapiurl",
   NUSSO_BASE_URL: "https://nusso-base.com/",
   NUSSO_API_KEY: "abc123",
+  WEBSOCKET_URI: "wss://thisisafakewebsocketapiurl",
 };
 
 for (const v in TestEnvironment) delete process.env[v];

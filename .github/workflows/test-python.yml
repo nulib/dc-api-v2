@@ -1,0 +1,31 @@
+name: Run Python Tests
+on:
+  push:
+    paths:
+      - ".github/workflows/test-python.yml"
+      - "chat/**"
+  workflow_dispatch:
+defaults:
+  run:
+    working-directory: ./chat
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ci
+      AWS_SECRET_ACCESS_KEY: ci
+      SKIP_WEAVIATE_SETUP: 'True' 
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache-dependency-path: chat/src/requirements.txt
+      - run: pip install -r requirements.txt
+        working-directory: ./chat/src
+      - name: Check code style
+        run: ruff check .
+      - name: Run tests
+        run: |
+          coverage run --include='src/**/*' -m unittest
+          coverage report

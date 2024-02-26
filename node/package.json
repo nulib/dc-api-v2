@@ -10,12 +10,12 @@
   },
   "scripts": {
     "lint": "eslint src/**/*.js test/**/*.js",
-    "preinstall": "cd src && npm i && cd ../lambdas && npm i && cd ../",
+    "preinstall": "cd src && npm i && cd - && cd ../lambdas && npm i && cd -",
     "prettier": "prettier -c src test",
     "prettier:fix": "prettier -cw src test",
     "test": "mocha",
     "test:coverage": "nyc npm test",
-    "validate-spec": "openapi-generator-cli validate -i ./docs/docs/spec/openapi.yaml"
+    "validate-spec": "openapi-generator-cli validate -i ../docs/docs/spec/openapi.yaml"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.5.2",
