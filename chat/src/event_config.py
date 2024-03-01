@@ -63,7 +63,6 @@ class EventConfig:
         self.attributes = self._get_attributes()
         self.azure_endpoint = self._get_azure_endpoint()
         self.azure_resource_name = self._get_azure_resource_name()
-        self.azure_endpoint = self._get_azure_endpoint()
         self.debug_mode = self._is_debug_mode_enabled()
         self.deployment_name = self._get_deployment_name()
         self.is_logged_in = self.api_token.is_logged_in()
