@@ -6,8 +6,11 @@
 
 ```
 .
+├── bin/ - utilities for working with API locally
+├── dev/ - example configs for developers
 ├── docs/ - mkdocs-based API documentation
 ├── events/ - sample HTTP API Lambda events
+├── lambdas/ - deployable functions not directly part of the API
 ├── src/
 │   └── api/ - code that directly supports API requests
 │       ├── request/ - code to wrap/transform/modify incoming queries
@@ -17,6 +20,7 @@
 │       │   └── oai-pmh/ - oai-pmh formatted response transformers
 │       ├── aws/ - lower-level code to interact with AWS resources and OpenSearch
 │       └── handlers/ - minimal code required to bridge between API Gateway request and core logic
+├── state_machines/ - AWS Step Function definitions
 └── test/ - tests and test helpers
 ```
 
@@ -48,33 +52,29 @@ Some of the values can be found as follows:
 
 ## Running the API locally
 
-To start the API in development mode, run the following commands:
+To start the API in development mode, first make sure you have the correct version of the AWS SAM command line utility installed:
 
+```shell
+asdf install aws-sam-cli
 ```
-rm -rf .aws-sam
-sam local start-api --host 0.0.0.0 --log-file dc-api.log
+
+Then run the following command:
+
+```shell
+bin/start-local-api
 ```
 
 The API will be available at:
 
-- `http://localhost:3000` (from your dev environment)
-- `http://USER_PREFIX.dev.library.northwestern.edu:3000` (from elsewhere)
-  - Don't forget to [open port 3000](https://github.com/nulib/aws-developer-environment#convenience-scripts) if you want to access it remotely
+- `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002`
+  - Don't forget to [open port 3002](https://github.com/nulib/aws-developer-environment#convenience-scripts) if you want to access it remotely
 
 ⚠️ Note the above URLs (which point to your local OpenSearch instance) need _full endpoints_ to resolve. For example:
 
-- `http://USER_PREFIX.dev.library.northwestern.edu:3000/search`
-- `http://USER_PREFIX.dev.library.northwestern.edu:3000/collections`
+- `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/search`
+- `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/collections`
 
 [View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documention](https://api.dc.library.northwestern.edu/)
-
-## Running the API locally via our AWS dev domain
-
-Use the [https-proxy](https://github.com/nulib/aws-developer-environment#convenience-scripts) script to make the local environment live at: https://[DEV_PREFIX].dev.rdc.library.northwestern.edu:3002/search
-
-```
-https-proxy start 3002 3000
-```
 
 ## Example workflows
 
@@ -84,8 +84,8 @@ View and edit information about a specific Work in the Index.
 
 1. Open a local Meadow instance.
 2. Find an `id` of a Work you'd like to inspect in the API.
-3. View JSON response at `http://USER_PREFIX.dev.library.northwestern.edu:3000/works/[WORK_ID]`
-4. View IIIF Manifest JSON response at `http://USER_PREFIX.dev.library.northwestern.edu:3000/works/[WORK_ID]?as=iiif`
+3. View JSON response at `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/works/[WORK_ID]`
+4. View IIIF Manifest JSON response at `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/works/[WORK_ID]?as=iiif`
 
 For help debugging/inspecting, JavaScript `console` messages are written to: `dc-api-v2/dc-api.log`
 
@@ -100,13 +100,7 @@ Develop against changes to the API.
 sg open all 3003
 ```
 
-3. Start the proxy for the API
-
-```
-https-proxy start 3002 3000
-```
-
-4. Point to the proxy URL and start DC app (in your `/environment/dc-nextjs` shell)
+3. Point to the proxy URL and start DC app (in your `/environment/dc-nextjs` shell)
 
 ```
 export NEXT_PUBLIC_DCAPI_ENDPOINT=https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002
@@ -124,9 +118,6 @@ cd dc-api-v2
 #  Make sure you've done an `npm install` recently to update any packages in the `lambdas` directory
 npm install
 
-# Start the proxy (if needed)
-https-proxy start 3002 3000
-
 # Open port 3005 (if needed)
 sg open all 3005
 
@@ -140,8 +131,6 @@ bin/start-with-step
 # Open a second terminal and create the state machine
 aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://state_machines/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole
 ```
-
-
 
 ## Deploying the API manually
 

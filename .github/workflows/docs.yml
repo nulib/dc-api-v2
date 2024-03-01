@@ -1,0 +1,53 @@
+name: Build and deploy API documentation
+on:
+  push:
+    branches:
+      - deploy/staging
+      - main
+    paths:
+      - .github/workflows/docs.yaml
+      - docs/*
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
+          aws-region: us-east-1
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 1.4.2
+      - name: Install dependencies
+        run: poetry install
+        working-directory: ./docs
+      - name: Build docs
+        run: poetry run mkdocs build --clean
+        working-directory: ./docs
+      - name: Determine correct deploy domain for environment
+        run: sed -i s/API_HOST/${HOSTNAME}/g docs/site/spec/openapi.*
+        env:
+          HOSTNAME: ${{ secrets.Hostname }}.${{ secrets.HostedZone }}
+      - name: Generate JSON API
+        uses: openapi-generators/openapitools-generator-action@v1
+        with:
+          generator: openapi
+          openapi-file: docs/site/spec/openapi.yaml
+          command-args: -o docs/site/spec
+      - name: Copy to S3
+        run: aws s3 sync --delete docs/site/ s3://${HOST}-docs.${ZONE}/
+        env:
+          HOST: ${{ secrets.Hostname }}
+          ZONE: ${{ secrets.HostedZone }}

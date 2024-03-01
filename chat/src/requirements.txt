@@ -1,0 +1,16 @@
+# Runtime Dependencies
+boto3~=1.34.13
+langchain~=0.1.8
+langchain-community
+openai~=0.27.8
+opensearch-py
+pyjwt~=2.6.0
+python-dotenv~=1.0.0
+requests 
+requests-aws4auth
+tiktoken~=0.4.0
+wheel~=0.40.0
+
+# Dev/Test Dependencies
+ruff~=0.1.0
+coverage~=7.3.2

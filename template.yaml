@@ -7,8 +7,8 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    CodeUri: ./src
-    Runtime: nodejs16.x
+    CodeUri: ./node/src
+    Runtime: nodejs18.x
     Architectures:
       - x86_64
     MemorySize: 128
@@ -32,6 +32,18 @@ Parameters:
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
+  AzureOpenaiApiKey:
+    Type: String
+    Description: Azure OpenAI API Key
+  AzureOpenaiEmbeddingDeploymentId:
+    Type: String
+    Description: Azure OpenAI Embedding Deployment ID
+  AzureOpenaiLlmDeploymentId:
+    Type: String
+    Description: Azure OpenAI LLM Deployment ID
+  AzureOpenaiResourceName:
+    Type: String
+    Description: Azure OpenAI Resource Name
   CustomDomainCertificateArn:
     Type: String
     Description: SSL Certificate for the Custom Domain Name
@@ -50,6 +62,9 @@ Parameters:
   ElasticsearchEndpoint:
     Type: String
     Description: Elasticsearch url
+  EmbeddingEndpoint:
+    Type: String
+    Description: Sagemaker Inference Endpoint
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -105,10 +120,10 @@ Resources:
       Description: Dependencies for API handlers
       ContentUri: ./layers/api_dependencies
       CompatibleRuntimes:
-        - nodejs16.x
+        - nodejs18.x
       LicenseInfo: Apache-2.0
     Metadata:
-      BuildMethod: nodejs16.x
+      BuildMethod: nodejs18.x
   # V2 API
   getAuthCallbackFunction:
     Type: AWS::Serverless::Function
@@ -631,6 +646,35 @@ Resources:
             ApiId: !Ref dcApi
             Path: /oai
             Method: POST
+  chatWebsocket:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./chat/template.yaml
+      Parameters:
+        ApiTokenSecret: !Ref ApiTokenSecret
+        AzureOpenaiApiKey: !Ref AzureOpenaiApiKey
+        AzureOpenaiEmbeddingDeploymentId: !Ref AzureOpenaiEmbeddingDeploymentId
+        AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
+        AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
+        ElasticsearchEndpoint: !Ref ElasticsearchEndpoint
+        EmbeddingEndpoint: !Ref EmbeddingEndpoint
+  chatWebsocketEndpoint:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-chat-endpoint.handler
+      Description: Returns the URI of the chat websocket API.      
+      Layers: 
+        - !Ref apiDependencies
+      Environment:
+        Variables:
+          WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
+      Events:
+        GetApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /chat-endpoint
+            Method: GET
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -958,7 +1002,7 @@ Resources:
   rootRedirect:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./redirect
+      CodeUri: ./node/redirect
       Handler: index.handler
       Timeout: 1
       Description: Redirects to latest version of docs
@@ -991,7 +1035,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
-      AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
       WebsiteConfiguration:
         IndexDocument: index.html
         ErrorDocument: index.html

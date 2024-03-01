@@ -1,0 +1,54 @@
+{
+  "name": "dc-api-build",
+  "version": "2.1.3",
+  "description": "NUL Digital Collections API Build Environment",
+  "repository": "https://github.com/nulib/dc-api-v2",
+  "author": "nulib",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "dc-api": "file:./src"
+  },
+  "scripts": {
+    "lint": "eslint src/**/*.js test/**/*.js",
+    "preinstall": "cd src && npm i && cd - && cd ../lambdas && npm i && cd -",
+    "prettier": "prettier -c src test",
+    "prettier:fix": "prettier -cw src test",
+    "test": "mocha",
+    "test:coverage": "nyc npm test",
+    "validate-spec": "openapi-generator-cli validate -i ../docs/docs/spec/openapi.yaml"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.5.2",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "choma": "^1.2.1",
+    "eslint": "^8.32.0",
+    "eslint-plugin-json": "^3.1.0",
+    "husky": "^8.0.3",
+    "mocha": "^9.1.4",
+    "nock": "^13.2.9",
+    "nyc": "^15.1.0",
+    "prettier": "^2.7.1",
+    "sinon": "^15.0.1"
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "env": {
+      "es6": true,
+      "mocha": true,
+      "node": true
+    },
+    "parserOptions": {
+      "ecmaVersion": "latest"
+    },
+    "root": true,
+    "rules": {
+      "no-unused-vars": [
+        "error",
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ]
+    }
+  }
+}

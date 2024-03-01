@@ -1,0 +1,30 @@
+name: Run NodeJS Tests
+on:
+  push:
+    paths:
+      - ".github/workflows/test-node.yml"
+      - "node/**"
+  workflow_dispatch:
+defaults:
+  run:
+    working-directory: ./node
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ci
+      AWS_SECRET_ACCESS_KEY: ci
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "npm"
+          cache-dependency-path: 'node/package-lock.json'
+      - run: npm ci
+      - name: Check code style
+        run: npm run lint && npm run prettier
+      - name: Run tests
+        run: npm run test:coverage
+      - name: Validate OpenAPI spec
+        run: npm run validate-spec
