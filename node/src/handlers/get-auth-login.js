@@ -3,7 +3,6 @@ const axios = require("axios").default;
 const cookie = require("cookie");
 const { wrap } = require("./middleware");
 const Honeybadger = require("../honeybadger-setup");
-const url = require("url");
 
 /**
  * Performs NUSSO login
@@ -19,12 +18,7 @@ exports.handler = wrap(async (event) => {
     };
   }
 
-  const parsedUrl = url.parse(returnPath, true);
-  const mergedQueryParams = { ...event.queryStringParameters };
-  delete mergedQueryParams.goto;
-  parsedUrl.search = null;
-  parsedUrl.query = { ...parsedUrl.query, ...mergedQueryParams };
-  returnPath = url.format(parsedUrl);
+  returnPath = encodeURIComponent(returnPath);
 
   try {
     const response = await axios.get(nussoUrl, {

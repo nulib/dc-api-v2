@@ -3,7 +3,6 @@
 const chai = require("chai");
 const expect = chai.expect;
 const nock = require("nock");
-const url = require("url");
 
 const getAuthLoginHandler = requireSource("handlers/get-auth-login");
 
@@ -14,7 +13,7 @@ describe("auth login", function () {
     process.env.NUSSO_BASE_URL = "https://nusso-base.com/";
     process.env.NUSSO_API_KEY = "abc123";
 
-    const gotoUrl = "https://test-goto.com";
+    const gotoUrl = "https://test-goto.com/api/search?=College+sports?ai=true";
 
     nock(process.env.NUSSO_BASE_URL)
       .get("/get-ldap-redirect-url")
@@ -26,9 +25,6 @@ describe("auth login", function () {
       .mockEvent("GET", "/auth/login")
       .queryParams({
         goto: gotoUrl,
-        q: "baseball",
-        subject: "College+students",
-        ai: true,
       })
       .render();
 
@@ -39,9 +35,8 @@ describe("auth login", function () {
     const [cookieName, encodedString] = cookie.split("=");
     expect(cookieName).to.eq("redirectUrl");
     const decoded = Buffer.from(encodedString, "base64").toString("utf8");
-    const parsed = url.parse(decoded, true);
-    expect(parsed.query.q).to.eq("baseball");
-    expect(parsed.query.subject).to.eq("College+students");
-    expect(parsed.query.ai).to.eq("true");
+    expect(decoded).to.eq(
+      "https%3A%2F%2Ftest-goto.com%2Fapi%2Fsearch%3F%3DCollege%2Bsports%3Fai%3Dtrue"
+    );
   });
 });
