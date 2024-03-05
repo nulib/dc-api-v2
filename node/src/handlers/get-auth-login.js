@@ -3,15 +3,15 @@ const axios = require("axios").default;
 const cookie = require("cookie");
 const { wrap } = require("./middleware");
 const Honeybadger = require("../honeybadger-setup");
+const url = require("url");
 
 /**
  * Performs NUSSO login
  */
 exports.handler = wrap(async (event) => {
   const callbackUrl = `${dcApiEndpoint()}/auth/callback`;
-  const url = `${process.env.NUSSO_BASE_URL}get-ldap-redirect-url`;
-  const returnPath =
-    event.queryStringParameters?.goto || event.headers?.referer;
+  const nussoUrl = `${process.env.NUSSO_BASE_URL}get-ldap-redirect-url`;
+  let returnPath = event.queryStringParameters?.goto || event.headers?.referer;
 
   if (!returnPath) {
     return {
@@ -19,8 +19,15 @@ exports.handler = wrap(async (event) => {
     };
   }
 
+  const parsedUrl = url.parse(returnPath, true);
+  const mergedQueryParams = { ...event.queryStringParameters };
+  delete mergedQueryParams.goto;
+  parsedUrl.search = null;
+  parsedUrl.query = { ...parsedUrl.query, ...mergedQueryParams };
+  returnPath = url.format(parsedUrl);
+
   try {
-    const response = await axios.get(url, {
+    const response = await axios.get(nussoUrl, {
       headers: {
         apikey: process.env.NUSSO_API_KEY,
         goto: callbackUrl,
@@ -32,7 +39,7 @@ exports.handler = wrap(async (event) => {
       cookies: [
         cookie.serialize(
           "redirectUrl",
-          Buffer.from(returnPath, "utf8").toString("base64")
+          Buffer.from(returnPath, "utf8").toString("base64").replace(/=/g, "")
         ),
       ],
       headers: {
