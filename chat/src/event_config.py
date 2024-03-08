@@ -7,7 +7,7 @@ from langchain.prompts import PromptTemplate
 from setup import (
     opensearch_client,
     opensearch_vector_store,
-    openai_chat_client,
+    bedrock_chat_client,
 )
 from typing import List
 from handlers.streaming_socket_callback_handler import StreamingSocketCallbackHandler
@@ -38,15 +38,13 @@ class EventConfig:
 
     api_token: ApiToken = field(init=False)
     attributes: List[str] = field(init=False)
-    azure_endpoint: str = field(init=False)
-    azure_resource_name: str = field(init=False)
     debug_mode: bool = field(init=False)
-    deployment_name: str = field(init=False)
+    model_id: str = field(init=False)
     document_prompt: PromptTemplate = field(init=False)
     event: dict = field(default_factory=dict)
+    index_name: str = field(init=False)
     is_logged_in: bool = field(init=False)
     k: int = field(init=False)
-    openai_api_version: str = field(init=False)
     payload: dict = field(default_factory=dict)
     prompt_text: str = field(init=False)
     prompt: PromptTemplate = field(init=False)
@@ -61,13 +59,11 @@ class EventConfig:
         self.payload = json.loads(self.event.get("body", "{}"))
         self.api_token = ApiToken(signed_token=self.payload.get("auth"))
         self.attributes = self._get_attributes()
-        self.azure_endpoint = self._get_azure_endpoint()
-        self.azure_resource_name = self._get_azure_resource_name()
         self.debug_mode = self._is_debug_mode_enabled()
-        self.deployment_name = self._get_deployment_name()
+        self.index_name = self._get_opensearch_index()
+        self.model_id = self._get_model_id()
         self.is_logged_in = self.api_token.is_logged_in()
         self.k = self._get_k()
-        self.openai_api_version = self._get_openai_api_version()
         self.prompt_text = self._get_prompt_text()
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")
@@ -88,7 +84,7 @@ class EventConfig:
     def _get_attributes_function(self):
         try:
             opensearch = opensearch_client()
-            mapping = opensearch.indices.get_mapping(index="dc-v2-work")
+            mapping = opensearch.indices.get_mapping(index=self._get_opensearch_index())
             return list(next(iter(mapping.values()))['mappings']['properties'].keys())
         except StopIteration:
             return []
@@ -96,34 +92,20 @@ class EventConfig:
     def _get_attributes(self):
         return self._get_payload_value_with_superuser_check("attributes", self.DEFAULT_ATTRIBUTES)
 
-    def _get_azure_endpoint(self):
-        default = f"https://{self._get_azure_resource_name()}.openai.azure.com/"
-        return self._get_payload_value_with_superuser_check("azure_endpoint", default)
-
-    def _get_azure_resource_name(self):
-        azure_resource_name = self._get_payload_value_with_superuser_check(
-            "azure_resource_name", os.environ.get("AZURE_OPENAI_RESOURCE_NAME")
-        )
-        if not azure_resource_name:
-            raise EnvironmentError(
-                "Either payload must contain 'azure_resource_name' or environment variable 'AZURE_OPENAI_RESOURCE_NAME' must be set"
-            )
-        return azure_resource_name
-
-    def _get_deployment_name(self):
+    def _get_model_id(self):
         return self._get_payload_value_with_superuser_check(
-            "deployment_name", os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")
+            "model_id", os.getenv("AI_MODEL_ID")
         )
 
     def _get_k(self):
         value = self._get_payload_value_with_superuser_check("k", K_VALUE)
         return min(value, MAX_K)
 
-    def _get_openai_api_version(self):
+    def _get_opensearch_index(self):
         return self._get_payload_value_with_superuser_check(
-            "openai_api_version", VERSION
+            "index", os.getenv("INDEX_NAME")
         )
-
+    
     def _get_prompt_text(self):
         return self._get_payload_value_with_superuser_check("prompt", prompt_template())
 
@@ -144,10 +126,8 @@ class EventConfig:
             "type": "debug",
             "message": {
                 "attributes": self.attributes,
-                "azure_endpoint": self.azure_endpoint,
-                "deployment_name": self.deployment_name,
+                "model_id": self.model_id,
                 "k": self.k,
-                "openai_api_version": self.openai_api_version,
                 "prompt": self.prompt_text,
                 "question": self.question,
                 "ref": self.ref,
@@ -173,13 +153,11 @@ class EventConfig:
         self._setup_chain()
 
     def _setup_vector_store(self):
-        self.opensearch = opensearch_vector_store()
+        self.opensearch = opensearch_vector_store(index_name=self.index_name)
 
     def _setup_chat_client(self):
-        self.client = openai_chat_client(
-            deployment_name=self.deployment_name,
-            openai_api_base=self.azure_endpoint,
-            openai_api_version=self.openai_api_version,
+        self.client = bedrock_chat_client(
+            model_id=self.model_id,
             callbacks=[StreamingSocketCallbackHandler(self.socket, self.debug_mode)],
             streaming=True,
         )

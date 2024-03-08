@@ -2,27 +2,22 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Websocket Chat API for dc-api-v2
 Parameters:
+  AIModelId:
+    Type: String
+    Description: Amazon Bedrock Model
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
-  AzureOpenaiApiKey:
-    Type: String
-    Description: Azure OpenAI API Key
-  AzureOpenaiEmbeddingDeploymentId:
-    Type: String
-    Description: Azure OpenAI Embedding Deployment ID
-  AzureOpenaiLlmDeploymentId:
-    Type: String
-    Description: Azure OpenAI LLM Deployment ID
-  AzureOpenaiResourceName:
-    Type: String
-    Description: Azure OpenAI Resource Name
   ElasticsearchEndpoint:
     Type: String
     Description: Elasticsearch URL
   EmbeddingEndpoint:
     Type: String
     Description: Sagemaker Inference Endpoint
+  IndexName:
+    Type: String
+    Description: Index or alias to use for vector search
+    Default: dc-v2-work
 Resources:
   ApiGwAccountConfig:
     Type: "AWS::ApiGateway::Account"
@@ -197,13 +192,11 @@ Resources:
       Timeout: 300
       Environment:
         Variables:
+          AI_MODEL_ID: !Ref AIModelId
           API_TOKEN_SECRET: !Ref ApiTokenSecret
-          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
-          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
-          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
           EMBEDDING_ENDPOINT: !Ref EmbeddingEndpoint
+          INDEX_NAME: !Ref IndexName
       Policies:
       - Statement:
         - Effect: Allow
@@ -217,6 +210,12 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpPost'
           Resource: '*'
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'bedrock:InvokeModel'
+          - 'bedrock:InvokeModelWithResponseStream'
+          Resource: arn:aws:bedrock:*::foundation-model/*
       - Statement:
         - Effect: Allow
           Action:
