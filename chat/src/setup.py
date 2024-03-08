@@ -1,4 +1,5 @@
-from langchain_community.chat_models import AzureChatOpenAI
+from content_handler import ContentHandler
+from langchain_community.chat_models import BedrockChat
 from handlers.opensearch_neural_search import OpenSearchNeuralSearch
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -10,14 +11,10 @@ def prefix(value):
     env_prefix = None if env_prefix == "" else env_prefix
     return '-'.join(filter(None, [env_prefix, value]))
 
-def openai_chat_client(**kwargs):
-    return AzureChatOpenAI(
-        openai_api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        **kwargs,
-    )
+def bedrock_chat_client(model_id=os.getenv("AI_MODEL_ID"), region_name=os.getenv("AWS_REGION"), **kwargs):
+    return BedrockChat(model_id=model_id, region_name=region_name, **kwargs)
 
 def opensearch_client(region_name=os.getenv("AWS_REGION")):
-    print(region_name)
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
     endpoint = os.getenv("OPENSEARCH_ENDPOINT")
@@ -29,7 +26,7 @@ def opensearch_client(region_name=os.getenv("AWS_REGION")):
         http_auth=awsauth,
     )
 
-def opensearch_vector_store(region_name=os.getenv("AWS_REGION")):
+def opensearch_vector_store(region_name=os.getenv("AWS_REGION"), index_name="dc-v2-work"):
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
 

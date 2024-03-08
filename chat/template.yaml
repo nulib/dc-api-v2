@@ -2,18 +2,12 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Websocket Chat API for dc-api-v2
 Parameters:
+  AIModelId:
+    Type: String
+    Description: Amazon Bedrock Model
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
-  AzureOpenaiApiKey:
-    Type: String
-    Description: Azure OpenAI API Key
-  AzureOpenaiLlmDeploymentId:
-    Type: String
-    Description: Azure OpenAI LLM Deployment ID
-  AzureOpenaiResourceName:
-    Type: String
-    Description: Azure OpenAI Resource Name
   EnvironmentPrefix:
     Type: String
     Description: Prefix for Index names
@@ -198,10 +192,8 @@ Resources:
       Timeout: 300
       Environment:
         Variables:
+          AI_MODEL_ID: !Ref AIModelId
           API_TOKEN_SECRET: !Ref ApiTokenSecret
-          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
-          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           ENV_PREFIX: !Ref EnvironmentPrefix
           OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
           OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
@@ -218,6 +210,12 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpPost'
           Resource: '*'
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'bedrock:InvokeModel'
+          - 'bedrock:InvokeModelWithResponseStream'
+          Resource: arn:aws:bedrock:*::foundation-model/*
     Metadata:
       BuildMethod: nodejs18.x
   Deployment:

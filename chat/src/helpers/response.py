@@ -1,5 +1,4 @@
 from helpers.metrics import token_usage
-from openai.error import InvalidRequestError
 
 def base_response(config, response):
     return {"answer": response["output_text"], "ref": config.ref}
@@ -9,11 +8,9 @@ def debug_response(config, response, original_question):
     response_base = base_response(config, response)
     debug_info = {
         "attributes": config.attributes,
-        "azure_endpoint": config.azure_endpoint,
-        "deployment_name": config.deployment_name,
+        "model_id": config.model_id,
         "is_superuser": config.api_token.is_superuser(),
         "k": config.k,
-        "openai_api_version": config.openai_api_version,
         "prompt": config.prompt_text,
         "ref": config.ref,
         "temperature": config.temperature,
@@ -35,7 +32,8 @@ def get_and_send_original_question(config, docs):
         "question": config.question,
         "source_documents": doc_response,
     }
-    config.socket.send(original_question)
+    if (config.socket):
+        config.socket.send(original_question)
     return original_question
 
 def extract_prompt_value(v):
@@ -67,7 +65,7 @@ def prepare_response(config):
             prepared_response = debug_response(config, response, original_question)
         else:
             prepared_response = base_response(config, response)
-    except InvalidRequestError as err:
+    except Exception as err:
         prepared_response = {
             "question": config.question,
             "error": str(err),
