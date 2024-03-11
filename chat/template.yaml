@@ -14,6 +14,10 @@ Parameters:
   AzureOpenaiResourceName:
     Type: String
     Description: Azure OpenAI Resource Name
+  EnvironmentPrefix:
+    Type: String
+    Description: Prefix for Index names
+    Default: ""
   OpenSearchEndpoint:
     Type: String
     Description: OpenSearch Endpoint
@@ -198,6 +202,7 @@ Resources:
           AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
           AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
           AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
+          ENV_PREFIX: !Ref EnvironmentPrefix
           OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
           OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
       Policies:
