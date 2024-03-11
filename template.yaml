@@ -652,6 +652,7 @@ Resources:
         AzureOpenaiApiKey: !Ref AzureOpenaiApiKey
         AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
         AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
+        EnvironmentPrefix: !Ref EnvironmentPrefix
         OpenSearchEndpoint: !Ref OpenSearchEndpoint
         OpenSearchModelId: !Ref OpenSearchModelId
   chatWebsocketEndpoint:
