@@ -8,21 +8,18 @@ Parameters:
   AzureOpenaiApiKey:
     Type: String
     Description: Azure OpenAI API Key
-  AzureOpenaiEmbeddingDeploymentId:
-    Type: String
-    Description: Azure OpenAI Embedding Deployment ID
   AzureOpenaiLlmDeploymentId:
     Type: String
     Description: Azure OpenAI LLM Deployment ID
   AzureOpenaiResourceName:
     Type: String
     Description: Azure OpenAI Resource Name
-  ElasticsearchEndpoint:
+  OpenSearchEndpoint:
     Type: String
-    Description: Elasticsearch URL
-  EmbeddingEndpoint:
+    Description: OpenSearch Endpoint
+  OpenSearchModelId:
     Type: String
-    Description: Sagemaker Inference Endpoint
+    Description: OpenSearch Model ID
 Resources:
   ApiGwAccountConfig:
     Type: "AWS::ApiGateway::Account"
@@ -199,11 +196,10 @@ Resources:
         Variables:
           API_TOKEN_SECRET: !Ref ApiTokenSecret
           AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID: !Ref AzureOpenaiEmbeddingDeploymentId
           AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
           AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
-          ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
-          EMBEDDING_ENDPOINT: !Ref EmbeddingEndpoint
+          OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
+          OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
       Policies:
       - Statement:
         - Effect: Allow
@@ -217,12 +213,6 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpPost'
           Resource: '*'
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'sagemaker:InvokeEndpoint'
-          - 'sagemaker:InvokeEndpointAsync'
-          Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:endpoint/${EmbeddingEndpoint}'
     Metadata:
       BuildMethod: nodejs18.x
   Deployment:

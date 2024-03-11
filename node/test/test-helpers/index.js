@@ -46,7 +46,7 @@ function mockIndex() {
   const mock = nock("https://index.test.library.northwestern.edu");
 
   beforeEach(function () {
-    process.env.ELASTICSEARCH_ENDPOINT = "index.test.library.northwestern.edu";
+    process.env.OPENSEARCH_ENDPOINT = "index.test.library.northwestern.edu";
   });
 
   afterEach(function () {

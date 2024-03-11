@@ -19,7 +19,7 @@ Globals:
         API_TOKEN_SECRET: !Ref ApiTokenSecret
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
-        ELASTICSEARCH_ENDPOINT: !Ref ElasticsearchEndpoint
+        OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
         ENV_PREFIX: !Ref EnvironmentPrefix
         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
         HONEYBADGER_ENV: !Ref HoneybadgerEnv
@@ -35,9 +35,6 @@ Parameters:
   AzureOpenaiApiKey:
     Type: String
     Description: Azure OpenAI API Key
-  AzureOpenaiEmbeddingDeploymentId:
-    Type: String
-    Description: Azure OpenAI Embedding Deployment ID
   AzureOpenaiLlmDeploymentId:
     Type: String
     Description: Azure OpenAI LLM Deployment ID
@@ -59,12 +56,12 @@ Parameters:
   DcUrl:
     Type: String
     Description: URL of Digital Collections website
-  ElasticsearchEndpoint:
+  OpenSearchModelId:
     Type: String
-    Description: Elasticsearch url
-  EmbeddingEndpoint:
+    Description: OpenSearch Model ID
+  OpenSearchEndpoint:
     Type: String
-    Description: Sagemaker Inference Endpoint
+    Description: OpenSearch endpoint
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -653,11 +650,10 @@ Resources:
       Parameters:
         ApiTokenSecret: !Ref ApiTokenSecret
         AzureOpenaiApiKey: !Ref AzureOpenaiApiKey
-        AzureOpenaiEmbeddingDeploymentId: !Ref AzureOpenaiEmbeddingDeploymentId
         AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
         AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
-        ElasticsearchEndpoint: !Ref ElasticsearchEndpoint
-        EmbeddingEndpoint: !Ref EmbeddingEndpoint
+        OpenSearchEndpoint: !Ref OpenSearchEndpoint
+        OpenSearchModelId: !Ref OpenSearchModelId
   chatWebsocketEndpoint:
     Type: AWS::Serverless::Function
     Properties:
