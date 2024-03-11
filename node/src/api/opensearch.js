@@ -1,6 +1,6 @@
 const { HttpRequest } = require("@aws-sdk/protocol-http");
 const { awsFetch } = require("../aws/fetch");
-const { elasticsearchEndpoint, prefix } = require("../environment");
+const { openSearchEndpoint, prefix } = require("../environment");
 const Honeybadger = require("../honeybadger-setup");
 
 async function getCollection(id, opts) {
@@ -65,7 +65,7 @@ function isVisible(doc, { allowPrivate, allowUnpublished }) {
 }
 
 function initRequest(path) {
-  const endpoint = elasticsearchEndpoint();
+  const endpoint = openSearchEndpoint();
 
   return new HttpRequest({
     method: "GET",
@@ -80,7 +80,7 @@ function initRequest(path) {
 
 async function search(targets, body, optionsQuery = {}) {
   Honeybadger.addBreadcrumb("Searching", { metadata: { targets, body } });
-  const endpoint = elasticsearchEndpoint();
+  const endpoint = openSearchEndpoint();
 
   const request = new HttpRequest({
     method: "POST",
@@ -98,7 +98,7 @@ async function search(targets, body, optionsQuery = {}) {
 }
 
 async function scroll(scrollId) {
-  const endpoint = elasticsearchEndpoint();
+  const endpoint = openSearchEndpoint();
 
   const request = new HttpRequest({
     method: "POST",
@@ -114,7 +114,7 @@ async function scroll(scrollId) {
 }
 
 async function deleteScroll(scrollId) {
-  const endpoint = elasticsearchEndpoint();
+  const endpoint = openSearchEndpoint();
 
   const request = new HttpRequest({
     method: "DELETE",

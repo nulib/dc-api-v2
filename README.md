@@ -42,7 +42,7 @@ The `env.json` file contains environment variable values for the lambda function
 Some of the values can be found as follows:
 
 - `API_TOKEN_SECRET` - already defined; value has to exist but doesn't matter in dev mode
-- `ELASTICSEARCH_ENDPOINT` - run the following command:
+- `OPENSEARCH_ENDPOINT` - run the following command:
   ```
   aws secretsmanager get-secret-value \
     --secret-id dev-environment/config/meadow --query SecretString \

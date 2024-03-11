@@ -1,7 +1,5 @@
-from content_handler import ContentHandler
 from langchain_community.chat_models import AzureChatOpenAI
-from langchain_community.embeddings import SagemakerEndpointEmbeddings
-from langchain_community.vectorstores import OpenSearchVectorSearch
+from handlers.opensearch_neural_search import OpenSearchNeuralSearch
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 import os
@@ -22,7 +20,7 @@ def opensearch_client(region_name=os.getenv("AWS_REGION")):
     print(region_name)
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
-    endpoint = os.getenv("ELASTICSEARCH_ENDPOINT")
+    endpoint = os.getenv("OPENSEARCH_ENDPOINT")
 
     return OpenSearch(
         hosts=[{'host': endpoint, 'port': 443}],
@@ -35,20 +33,14 @@ def opensearch_vector_store(region_name=os.getenv("AWS_REGION")):
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
 
-    sagemaker_client = session.client(service_name="sagemaker-runtime", region_name=session.region_name)
-    embeddings = SagemakerEndpointEmbeddings(
-        client=sagemaker_client,
-        region_name=session.region_name,
-        endpoint_name=os.getenv("EMBEDDING_ENDPOINT"),
-        content_handler=ContentHandler()
-    )
-
-    docsearch = OpenSearchVectorSearch(
-        index_name=prefix("dc-v2-work"),
-        embedding_function=embeddings,
-        opensearch_url="https://" + os.getenv("ELASTICSEARCH_ENDPOINT"),
+    docsearch = OpenSearchNeuralSearch(
+        index=prefix("dc-v2-work"),
+        model_id=os.getenv("OPENSEARCH_MODEL_ID"),
+        endpoint=os.getenv("OPENSEARCH_ENDPOINT"),
         connection_class=RequestsHttpConnection,
         http_auth=awsauth,
+        search_pipeline=prefix("dc-v2-work-pipeline"),
+        text_field= "id"
     )
     return docsearch
 
