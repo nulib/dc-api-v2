@@ -1,6 +1,7 @@
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from opensearchpy import OpenSearch
+from typing import Any, List
 
 class OpensearchNeuralSearch(VectorStore):
   """Read-only OpenSearch vectorstore with neural search."""
@@ -58,3 +59,5 @@ class OpensearchNeuralSearch(VectorStore):
       dsl[key] = value
 
     response = self.client.search(index=self.index, body=dsl)
+
+    return response # replace this
