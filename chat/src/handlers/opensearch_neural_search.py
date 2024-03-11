@@ -57,14 +57,16 @@ class OpenSearchNeuralSearch(VectorStore):
                 }
             },
         }
-
+        
         if subquery:
-            dsl["query"]["hybrid"]["queries"].append(subquery)
+            dsl["query"]["hybrid"]["queries"].append(subquery)    
 
         for key, value in kwargs.items():
             dsl[key] = value
 
-        response = self.client.search(index=self.index, body=dsl)
+        print(f"OpenSearchNeuralSearch dsl: {dsl}")
+        
+        response = self.client.search(index=self.index, body=dsl, params={"search_pipeline": self.search_pipeline} if self.search_pipeline else None)
 
         documents_with_scores = [
             (
