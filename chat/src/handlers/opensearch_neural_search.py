@@ -9,6 +9,7 @@ class OpenSearchNeuralSearch(VectorStore):
 
     def __init__(
         self,
+        client: None,
         endpoint: str,
         index: str,
         model_id: str,
@@ -17,7 +18,7 @@ class OpenSearchNeuralSearch(VectorStore):
         text_field: str = "id",
         **kwargs: Any,
     ):
-        self.client = OpenSearch(
+        self.client = client or OpenSearch(
             hosts=[{"host": endpoint, "port": "443", "use_ssl": True}], **kwargs
         )
         self.index = index
@@ -64,7 +65,7 @@ class OpenSearchNeuralSearch(VectorStore):
         for key, value in kwargs.items():
             dsl[key] = value
 
-        response = self.client.search(index=self.index, body=dsl)
+        response = self.client.search(index=self.index, body=dsl, params={"search_pipeline": self.search_pipeline} if self.search_pipeline else None)
 
         documents_with_scores = [
             (
