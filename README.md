@@ -132,6 +132,22 @@ bin/start-with-step
 aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://state_machines/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole
 ```
 
+## Deploying a development branch
+
+```
+# sam sync --watch will do hot deploys as you make changes. If you don't want this, switch below command to sam sync or deploy
+
+export STACK_NAME=dc-api-yourdevprefix
+export CONFIG_ENV=staging 
+
+sam sync --watch --stack-name $STACK_NAME \             
+  --config-env $CONFIG_ENV \
+  --config-file ./samconfig.toml \
+  --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params CustomDomainHost=$STACK_NAME")
+```
+
+This will give you API routes like: `https://dc-api-yourdevprefix.rdc-staging.library.northwestern.edu/chat-endpoint`
+
 ## Deploying the API manually
 
 - Symlink the `*.parameters` file you need from `tfvars/dc-api/` to the application root

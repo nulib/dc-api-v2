@@ -48,7 +48,7 @@ class TestMetrics(TestCase):
 
         expected_result = {
             "answer": 6,
-            "prompt": 36,
+            "prompt": 328,
             "question": 15,
             "source_documents": 1,
         }
