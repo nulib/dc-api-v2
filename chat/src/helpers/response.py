@@ -48,8 +48,9 @@ def extract_prompt_value(v):
     
 def prepare_response(config):
     try:
+        subquery = {"match": {"all_text": {"query": config.question}}}
         docs = config.opensearch.similarity_search(
-            config.question, k=config.k, vector_field="embedding", text_field="id"
+            query=config.question, k=config.k, subquery=subquery, _source={"excludes": ["embedding"]}
         )
         original_question = get_and_send_original_question(config, docs)
         response = config.chain({"question": config.question, "input_documents": docs})

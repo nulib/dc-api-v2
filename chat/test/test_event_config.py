@@ -57,7 +57,7 @@ class TestEventConfig(TestCase):
             "question": "test question",
             "ref": "test ref",
             "temperature": 0.2,
-            "text_key": "title",
+            "text_key": "id",
         }
         self.assertEqual(actual.azure_endpoint, expected_output["azure_endpoint"])
         self.assertEqual(actual.attributes, expected_output["attributes"])

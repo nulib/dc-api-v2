@@ -40,8 +40,8 @@ function dcUrl() {
   return process.env.DC_URL;
 }
 
-function elasticsearchEndpoint() {
-  return process.env.ELASTICSEARCH_ENDPOINT;
+function openSearchEndpoint() {
+  return process.env.OPENSEARCH_ENDPOINT;
 }
 
 function prefix(value) {
@@ -61,7 +61,7 @@ module.exports = {
   appInfo,
   dcApiEndpoint,
   dcUrl,
-  elasticsearchEndpoint,
+  openSearchEndpoint,
   prefix,
   region,
 };
