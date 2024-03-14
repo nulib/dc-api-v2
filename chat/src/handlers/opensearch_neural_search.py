@@ -9,10 +9,10 @@ class OpenSearchNeuralSearch(VectorStore):
 
     def __init__(
         self,
-        client: None,
         endpoint: str,
         index: str,
         model_id: str,
+        client: OpenSearch = None,
         vector_field: str = "embedding",
         search_pipeline: str = None,
         text_field: str = "id",
