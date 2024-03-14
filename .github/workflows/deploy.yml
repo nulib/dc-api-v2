@@ -60,5 +60,6 @@ jobs:
             --config-file ./samconfig.toml \
             --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION") \
           | sed 's/\(Parameter overrides\s*\): .*/\1: ***** REDACTED *****/'
+          exit ${PIPESTATUS[0]}
         env:
           HONEYBADGER_REVISION: ${{ github.sha }}
