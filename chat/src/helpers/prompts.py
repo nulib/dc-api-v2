@@ -1,8 +1,9 @@
+from langchain_core.prompts import ChatPromptTemplate
 from typing import List, Optional
 
 
 def prompt_template() -> str:
-    return """Please answer the question based on the documents provided, and include some details about why the documents might be relevant to the particular question. The 'title' field is the document title, and the 'source' field is a UUID that uniquely identifies each document:
+    template = """Please answer the question based on the documents provided, and include some details about why the documents might be relevant to the particular question. The 'title' field is the document title, and the 'source' field is a UUID that uniquely identifies each document:
 
 Documents:
 {context}
@@ -11,6 +12,7 @@ Format the answer as raw markdown. Insert links when referencing documents by ti
 Question:
 {question}
 """
+    return ChatPromptTemplate.from_template(template)
 
 
 def document_template(attributes: Optional[List[str]] = None) -> str:

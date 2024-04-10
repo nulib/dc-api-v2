@@ -1,5 +1,12 @@
 from helpers.metrics import token_usage
 from openai.error import InvalidRequestError
+from setup import opensearch_vector_store
+from helpers.prompts import prompt_template
+
+from operator import itemgetter
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_openai import AzureChatOpenAI
 
 def base_response(config, response):
     return {"answer": response["output_text"], "ref": config.ref}
@@ -48,15 +55,25 @@ def extract_prompt_value(v):
     
 def prepare_response(config):
     try:
+        vectorstore = opensearch_vector_store()
+        retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k":config.k, "subquery":subquery, "_source":{"excludes": ["embedding"]}})
         subquery = {"match": {"all_text": {"query": config.question}}}
-        docs = config.opensearch.similarity_search(
-            query=config.question, k=config.k, subquery=subquery, _source={"excludes": ["embedding"]}
+        prompt = prompt_template()
+        model = AzureChatOpenAI(
+            openai_api_version=config.openai_api_version,
+            azure_deployment=config.deployment_name,
+            verbose=True
         )
-        original_question = get_and_send_original_question(config, docs)
-        response = config.chain({"question": config.question, "input_documents": docs})
-
+        chain = (
+            {"context": retriever, "question": RunnablePassthrough()}
+            | prompt
+            | model
+            | StrOutputParser()
+        )
+        response = chain.invoke(config.question)
+        
         if config.debug_mode:
-            prepared_response = debug_response(config, response, original_question)
+            prepared_response = debug_response(config, response, config.question)
         else:
             prepared_response = base_response(config, response)
     except InvalidRequestError as err:
