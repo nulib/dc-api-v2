@@ -1,4 +1,4 @@
-const AWS = require("aws-sdk");
+const { SFNClient, StartExecutionCommand } = require("@aws-sdk/client-sfn");
 const { wrap } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
 const { videoTranscodeSettings } = require("./transcode-templates");
@@ -55,7 +55,7 @@ async function processDownload(doc, email) {
   const stepFunctionConfig = process.env.STEP_FUNCTION_ENDPOINT
     ? { endpoint: process.env.STEP_FUNCTION_ENDPOINT }
     : {};
-  var stepfunctions = new AWS.StepFunctions(stepFunctionConfig);
+  const client = new SFNClient(stepFunctionConfig);
 
   const fileSet = doc._source;
   const url = new URL(fileSet.streaming_url);
@@ -103,7 +103,9 @@ async function processDownload(doc, email) {
   };
 
   try {
-    await stepfunctions.startExecution(params).promise();
+    const command = new StartExecutionCommand(params);
+    await client.send(command);
+
     return {
       statusCode: 200,
       headers: { "content-type": "text/plain" },
