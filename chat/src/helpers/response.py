@@ -48,7 +48,15 @@ def extract_prompt_value(v):
     
 def prepare_response(config):
     try:
-        subquery = {"match": {"all_text": {"query": config.question}}}
+        subquery = { 
+            "match": {
+                "all_titles":  {
+                    "query": config.question, 
+                    "operator": "AND",
+                    "analyzer": "english"
+                }
+            }
+        }
         docs = config.opensearch.similarity_search(
             query=config.question, k=config.k, subquery=subquery, _source={"excludes": ["embedding"]}
         )
