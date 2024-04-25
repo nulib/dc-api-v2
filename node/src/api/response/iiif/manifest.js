@@ -5,7 +5,9 @@ const {
   buildAnnotationBody,
   buildImageResourceId,
   buildImageService,
+  isAltFormat,
   isAudioVideo,
+  isPDF,
   buildSupplementingAnnotation,
 } = require("./presentation-api/items");
 const { metadataLabelFields } = require("./presentation-api/metadata");
@@ -108,6 +110,24 @@ function transform(response) {
           },
         });
 
+        /** Add rendering */
+        let renderings = [];
+        source.file_sets
+          .filter((fileSet) => fileSet.role === "Auxiliary")
+          .filter((fileSet) => isPDF(fileSet.mime_type))
+          .forEach((fileSet) => {
+            const rendering = {
+              id: fileSet.download_url || null,
+              type: "Text",
+              label: {
+                en: [fileSet.label || "Download PDF"],
+              },
+              format: "application/pdf",
+            };
+            renderings.push(rendering);
+          });
+        manifest.setRendering(renderings);
+
         /** Add rights using rights statement */
         source.rights_statement?.id &&
           manifest.setRights(source.rights_statement.id);
@@ -203,6 +223,7 @@ function transform(response) {
 
         source.file_sets
           .filter((fileSet) => fileSet.role === "Auxiliary")
+          .filter((fileSet) => !isAltFormat(fileSet.mime_type))
           .forEach((fileSet, index) => {
             buildCanvasFromFileSet(fileSet, index, true);
           });
