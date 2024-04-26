@@ -6,7 +6,6 @@
 
 ```
 .
-├── bin/ - utilities for working with API locally
 ├── dev/ - example configs for developers
 ├── docs/ - mkdocs-based API documentation
 ├── events/ - sample HTTP API Lambda events
@@ -61,7 +60,7 @@ asdf install aws-sam-cli
 Then run the following command:
 
 ```shell
-bin/start-local-api
+make serve
 ```
 
 The API will be available at:
@@ -126,7 +125,7 @@ export AWS_PROFILE=staging-admin
 aws sso login
 
 # Start the API + step function and associated lambdas
-bin/start-with-step
+make start-with-step
 
 # Open a second terminal and create the state machine
 aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://state_machines/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole

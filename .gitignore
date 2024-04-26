@@ -224,10 +224,10 @@ $RECYCLE.BIN/
 .venv
 
 .vscode
-/samconfig.toml
-/samconfig.yaml
-/samconfig.*.yaml
-/env.json
-/env.*.json
-/*.parameters
+samconfig.*
+!dev/samconfig.toml
+env.json
+env.*.json
+*.parameters
 /schemas
+.sam-pids
