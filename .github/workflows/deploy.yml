@@ -51,7 +51,7 @@ jobs:
           aws-region: us-east-1
       - run: ln -s .tfvars/dc-api/samconfig.toml .
       - run: ln -s .tfvars/dc-api/$CONFIG_ENV.parameters .
-      - run: sam build
+      - run: make build
       - run: | 
           sam deploy \
             --no-confirm-changeset \

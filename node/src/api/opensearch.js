@@ -1,4 +1,4 @@
-const { HttpRequest } = require("@aws-sdk/protocol-http");
+const { HttpRequest } = require("@smithy/protocol-http");
 const { awsFetch } = require("../aws/fetch");
 const { openSearchEndpoint, prefix } = require("../environment");
 const Honeybadger = require("../honeybadger-setup");
