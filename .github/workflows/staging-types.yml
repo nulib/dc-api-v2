@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 jobs:
   Push-To-Types-Repo-Staging:
-    if: github.event.pull_request.merged == true
+    if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -31,26 +31,26 @@ jobs:
           path: "${{ env.TMP_SRCDIR }}"
       - uses: actions/setup-node@v3
         with:
-          cache-dependency-path: "${{ env.TMP_SRCDIR }}/package-lock.json"
+          cache-dependency-path: "${{ env.TMP_SRCDIR }}/node/package-lock.json"
           node-version: 16.x
           cache: "npm"
       - name: get-npm-version
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
         with:
-          path: "${{ env.TMP_SRCDIR }}"
+          path: "${{ env.TMP_SRCDIR }}/node"
       - name: Generate Typescript file
-        working-directory: "${{ env.TMP_SRCDIR }}"
+        working-directory: "${{ env.TMP_SRCDIR }}/node"
         run: |
           npm ci
-          npx openapi-typescript docs/docs/spec/data-types.yaml --output schemas.ts
+          npx openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
       - name: Checkout dcapi-types
         uses: actions/checkout@v3
         with:
           path: ${{ env.TMP_DSTDIR }}
           ref: ${{ env.TARGET_BRANCH }}
           repository: ${{env.TYPES_REPO}}
-      - run: mv -f "${{ env.TMP_SRCDIR }}/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
+      - run: mv -f "${{ env.TMP_SRCDIR }}/node/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
         shell: bash
       - name: Set GitHub Deploy Key
         uses: webfactory/ssh-agent@v0.5.3
