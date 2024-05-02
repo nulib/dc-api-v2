@@ -367,7 +367,7 @@ Resources:
             Effect: Allow
             Action:
               - s3:GetObject
-            Resource: !Sub "arn:aws:s3:::${pyramidBucket}/*"
+            Resource: !Sub "arn:aws:s3:::${PyramidBucket}/*"
       Events:
         ApiGet:
           Type: HttpApi
