@@ -57,12 +57,25 @@ function buildSupplementingAnnotation({ canvasId, fileSet }) {
   };
 }
 
+function isAltFormat(mimeType) {
+  const acceptedTypes = [
+    "application/pdf",
+    "application/zip",
+    "application/zip-compressed",
+  ];
+  return acceptedTypes.includes(mimeType);
+}
+
 function isAudioVideo(type) {
   return ["Audio", "Video", "Sound"].includes(type);
 }
 
 function isImage(workType) {
   return workType === "Image";
+}
+
+function isPDF(mimeType) {
+  return mimeType === "application/pdf";
 }
 
 module.exports = {
@@ -72,6 +85,8 @@ module.exports = {
   buildImageResourceId,
   buildImageService,
   buildSupplementingAnnotation,
+  isAltFormat,
   isAudioVideo,
   isImage,
+  isPDF,
 };

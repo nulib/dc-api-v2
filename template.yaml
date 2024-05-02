@@ -107,6 +107,9 @@ Parameters:
   NussoBaseUrl:
     Type: String
     Description: Auth server URL
+  PyramidBucket:
+    Type: String
+    Description: Meadow pyramid bucket
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
@@ -340,6 +343,7 @@ Resources:
           MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
           MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
           MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
+          PYRAMID_BUCKET: !Ref PyramidBucket
           REPOSITORY_EMAIL: !Ref RepositoryEmail
           START_TRANSCODE_FUNCTION: !GetAtt startTranscodeFunction.Arn
           TRANSCODE_STATUS_FUNCTION: !GetAtt transcodeStatusFunction.Arn
