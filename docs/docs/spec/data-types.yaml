@@ -132,6 +132,9 @@ components:
         description:
           type: string
           nullable: true
+        download_url:
+          type: string
+          nullable: true
         duration:
           type: number
           nullable: true
@@ -172,6 +175,7 @@ components:
         - id
         - accession_number
         - description
+        - download_url
         - duration
         - height
         - label
@@ -489,6 +493,17 @@ components:
           description: An account of the resource.
           items:
             type: string
+        embedding:
+          type: array
+          description: Vector representation of the resource's location in the repository's semantic space.
+          items:
+            type: number
+        embedding_model:
+          type: string
+          description: The name of the inference model used to generate the `embedding` from the resource's content.
+        download_url:
+          type: string
+          nullable: true
         file_sets:
           type: array
           description: File sets associated with the resource.
@@ -749,6 +764,9 @@ components:
         - cultural_context
         - date_created
         - description
+        - embedding
+        - embedding_model
+        - download_url
         - file_sets
         - folder_name
         - folder_number

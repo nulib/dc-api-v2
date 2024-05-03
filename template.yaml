@@ -1,3 +1,10 @@
+# Build and Deploy Template for DC API
+#
+# Note: Any comment starting with `#*` will be removed
+# at build time. This allows us to run without the
+# dependency layer in development without removing the
+# layer from the build.
+
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
@@ -78,19 +85,19 @@ Parameters:
     Type: String
     Description: Honeybadger Revision
     Default: ""
-  MediaConvertDestinationBucket: 
+  MediaConvertDestinationBucket:
     Type: String
     Description: S3 bucket destination for transcoded AV resource
     Default: ""
-  MediaConvertEndpoint: 
+  MediaConvertEndpoint:
     Type: String
     Description: MediaConvert endpoint
     Default: ""
-  MediaConvertJobQueueArn: 
+  MediaConvertJobQueueArn:
     Type: String
     Description: Job Queue ARN for MediaConvert
     Default: ""
-  MediaConvertRoleArn: 
+  MediaConvertRoleArn:
     Type: String
     Description: MediaConvert role ARN
     Default: ""
@@ -100,6 +107,9 @@ Parameters:
   NussoBaseUrl:
     Type: String
     Description: Auth server URL
+  PyramidBucket:
+    Type: String
+    Description: Meadow pyramid bucket
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
@@ -110,25 +120,25 @@ Parameters:
     Type: String
     Description: Meadow streaming bucket
 Resources:
-  apiDependencies:
-    Type: AWS::Serverless::LayerVersion
-    Properties: 
-      LayerName: !Sub "${AWS::StackName}-api-dependencies"
-      Description: Dependencies for API handlers
-      ContentUri: ./layers/api_dependencies
-      CompatibleRuntimes:
-        - nodejs18.x
-      LicenseInfo: Apache-2.0
-    Metadata:
-      BuildMethod: nodejs18.x
+  #* apiDependencies:
+  #*   Type: AWS::Serverless::LayerVersion
+  #*   Properties:
+  #*     LayerName: !Sub "${AWS::StackName}-api-dependencies"
+  #*     Description: Dependencies for API handlers
+  #*     ContentUri: ./layers/api_dependencies
+  #*     CompatibleRuntimes:
+  #*       - nodejs18.x
+  #*     LicenseInfo: Apache-2.0
+  #*   Metadata:
+  #*     BuildMethod: nodejs18.x
   # V2 API
   getAuthCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers/get-auth-callback.handler
       Description: NUSSO callback function.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           NUSSO_API_KEY: !Ref NussoApiKey
@@ -151,8 +161,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-login.handler
       Description: Performs NUSSO login.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           NUSSO_API_KEY: !Ref NussoApiKey
@@ -169,8 +179,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-logout.handler
       Description: Performs NUSSO logout.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           NUSSO_API_KEY: !Ref NussoApiKey
@@ -187,8 +197,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-whoami.handler
       Description: Exchanges valid JWT token for user information.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           NUSSO_API_KEY: !Ref NussoApiKey
@@ -205,8 +215,8 @@ Resources:
     Properties:
       Handler: handlers/get-collections.handler
       Description: Gets Collections.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -233,8 +243,8 @@ Resources:
     Properties:
       Handler: handlers/get-collection-by-id.handler
       Description: Gets a Collection by id.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -261,8 +271,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-by-id.handler
       Description: Gets a FileSet by id.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -289,8 +299,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-auth.handler
       Description: Authorizes access to a file set.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -320,8 +330,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-download.handler
       Description: Downloads a file set.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           STEP_FUNCTION_ENDPOINT: !Ref AWS::NoValue
@@ -333,6 +343,7 @@ Resources:
           MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
           MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
           MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
+          PYRAMID_BUCKET: !Ref PyramidBucket
           REPOSITORY_EMAIL: !Ref RepositoryEmail
           START_TRANSCODE_FUNCTION: !GetAtt startTranscodeFunction.Arn
           TRANSCODE_STATUS_FUNCTION: !GetAtt transcodeStatusFunction.Arn
@@ -352,6 +363,11 @@ Resources:
               - states:StartExecution
             Resource:
               - !Ref avDownloadStateMachine
+          - Sid: BucketAccess
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${PyramidBucket}/*"
       Events:
         ApiGet:
           Type: HttpApi
@@ -370,8 +386,8 @@ Resources:
     Properties:
       Handler: handlers/get-work-auth.handler
       Description: Authorizes access to a work.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -401,8 +417,8 @@ Resources:
     Properties:
       Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -432,8 +448,8 @@ Resources:
     Properties:
       Handler: handlers/get-thumbnail.handler
       Description: Gets a Work's representative thumbnail.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Timeout: 10
       Policies:
         Version: 2012-10-17
@@ -474,8 +490,8 @@ Resources:
       Handler: handlers/get-similar.handler
       Timeout: 100
       Description: Gets works similar to a specific work.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -502,8 +518,8 @@ Resources:
     Properties:
       Handler: handlers/search.postSearch
       Description: Handles OpenSearch search requests, Works only by default.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -530,8 +546,8 @@ Resources:
     Properties:
       Handler: handlers/search.getSearch
       Description: Handles paging requests
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -571,8 +587,8 @@ Resources:
       Handler: handlers/options-request.handler
       Timeout: 3
       Description: Handles all OPTIONS requests
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Events:
         Everything:
           Type: HttpApi
@@ -585,8 +601,8 @@ Resources:
     Properties:
       Handler: handlers/get-shared-link-by-id.handler
       Description: Gets a shared link document by id.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         Version: 2012-10-17
         Statement:
@@ -613,8 +629,8 @@ Resources:
     Properties:
       Handler: handlers/oai.handler
       Description: Transforms works into OAI Records.
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Timeout: 60
       Policies:
         Version: 2012-10-17
@@ -659,9 +675,9 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers/get-chat-endpoint.handler
-      Description: Returns the URI of the chat websocket API.      
-      Layers: 
-        - !Ref apiDependencies
+      Description: Returns the URI of the chat websocket API.
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
@@ -678,8 +694,8 @@ Resources:
       Handler: handlers/default-request.handler
       Timeout: 3
       Description: Handles all other requests
-      Layers: 
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Events:
         Everything:
           Type: HttpApi
@@ -689,19 +705,19 @@ Resources:
             Method: ANY
 
   # Resources for AV Download state machine
-  avDownloadStateMachine: 
+  avDownloadStateMachine:
     Type: AWS::Serverless::StateMachine
-    Properties: 
+    Properties:
       DefinitionUri: ./state_machines/av_download.json
       Name: !Sub "${AWS::StackName}-av-download-state-machine"
-      Policies: 
+      Policies:
         Version: 2012-10-17
         Statement:
           - Sid: LambaInvokePermissions
             Effect: Allow
             Action:
               - lambda:InvokeFunction
-            Resource: 
+            Resource:
               - !GetAtt startTranscodeFunction.Arn
               - !GetAtt transcodeStatusFunction.Arn
               - !GetAtt getDownloadLinkFunction.Arn
@@ -913,7 +929,7 @@ Resources:
           MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
           MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
           MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
-      Policies: 
+      Policies:
         Version: 2012-10-17
         Statement:
           - Sid: PassMediaConvertRole
@@ -937,7 +953,7 @@ Resources:
       Environment:
         Variables:
           MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
-      Policies: 
+      Policies:
         Version: 2012-10-17
         Statement:
           - Sid: TranscodeJobStatus
@@ -953,14 +969,14 @@ Resources:
       CodeUri: ./lambdas
       Handler: get-download-link.handler
       Description: Creates presigned url
-      Policies: 
+      Policies:
         Version: 2012-10-17
         Statement:
           - Sid: BucketAccess
             Effect: Allow
             Action:
               - s3:GetObject
-            Resource: "*"
+            Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -968,7 +984,7 @@ Resources:
       CodeUri: ./lambdas
       Handler: send-templated-email.handler
       Description: Sends email
-      Policies: 
+      Policies:
         Version: 2012-10-17
         Statement:
           - Sid: SESSendEmail

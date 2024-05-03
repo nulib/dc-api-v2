@@ -6,7 +6,7 @@ chai.use(require("chai-http"));
 
 const ApiToken = requireSource("api/api-token");
 
-describe("Returns unauthorized without a superUser token", () => {
+describe("Download file set", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
@@ -18,10 +18,10 @@ describe("Returns unauthorized without a superUser token", () => {
   describe("GET /file-sets/{id}/download", () => {
     const { handler } = requireSource("handlers/get-file-set-download");
 
-    it("returns unauthorized without a token", async () => {
+    it("returns unauthorized for a video without a superuser token", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/fileset-1234.json"));
+        .reply(200, helpers.testFixture("mocks/fileset-video-1234.json"));
 
       const event = helpers
         .mockEvent("GET", "/file-sets/{id}/download")
@@ -32,10 +32,10 @@ describe("Returns unauthorized without a superUser token", () => {
       expect(result.statusCode).to.eq(401);
     });
 
-    it("returns an error if the mime-type is not video/*", async () => {
+    it("returns an error if the mime-type is audio/*", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/fileset-1234.json"));
+        .reply(200, helpers.testFixture("mocks/fileset-audio-1234.json"));
 
       const token = new ApiToken().superUser().sign();
 
@@ -55,7 +55,7 @@ describe("Returns unauthorized without a superUser token", () => {
     it("returns an error if it does not contain an email query string parameters", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/fileset-1234.json"));
+        .reply(200, helpers.testFixture("mocks/fileset-video-1234.json"));
 
       const token = new ApiToken().superUser().sign();
 

@@ -9,6 +9,8 @@
     "api_model": "FileSet",
     "visibility": "Public",
     "published": true,
-    "mime_type": "image/tiff"
+    "mime_type": "audio/mp3",
+    "role": "Access",
+    "streaming_url": "https://example.com/video.mp3"
   }
 }
