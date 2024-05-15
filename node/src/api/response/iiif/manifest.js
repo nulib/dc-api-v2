@@ -242,17 +242,20 @@ function transform(response) {
     for (let i = 0; i < jsonManifest.items.length; i++) {
       if (jsonManifest.items[i]?.items[0]?.items[0]?.body.type === "Image") {
         const { id, thumbnail } = jsonManifest.items[i];
-        const placeholderFileSet = source.file_sets.find(
-          (fileSet) =>
-            fileSet.representative_image_url === thumbnail[0].service[0]["@id"]
-        );
-
-        // only add the placeholderCanvas property if the fileSet has width and height
-        if (placeholderFileSet.width && placeholderFileSet.height) {
-          jsonManifest.items[i].placeholderCanvas = buildPlaceholderCanvas(
-            id,
-            placeholderFileSet
+        if (thumbnail) {
+          const placeholderFileSet = source.file_sets.find(
+            (fileSet) =>
+              fileSet.representative_image_url ===
+              thumbnail[0].service[0]["@id"]
           );
+
+          // only add the placeholderCanvas property if the fileSet has width and height
+          if (placeholderFileSet.width && placeholderFileSet.height) {
+            jsonManifest.items[i].placeholderCanvas = buildPlaceholderCanvas(
+              id,
+              placeholderFileSet
+            );
+          }
         }
       }
     }
