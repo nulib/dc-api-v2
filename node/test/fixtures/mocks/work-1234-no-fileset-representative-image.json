@@ -1,0 +1,303 @@
+{
+  "_index": "dev-dc-v2-work",
+  "_type": "_doc",
+  "_id": "1234",
+  "_version": 1,
+  "_seq_no": 719,
+  "_primary_term": 1,
+  "found": true,
+  "_source": {
+    "provenance": [
+      "Artist; sold to Mr. Blank in 1955; sold to Lancelot in 2017; gifted to Northwestern University in 2019"
+    ],
+    "contributor": [
+      {
+        "facet": "http://id.loc.gov/authorities/names/n91114928|ctg|Metallica (Musical group) (Cartographer)",
+        "id": "http://id.loc.gov/authorities/names/n91114928",
+        "label": "Metallica (Musical group)",
+        "label_with_role": "Metallica (Musical group) (Cartographer)",
+        "role": "Cartographer",
+        "variants": []
+      },
+      {
+        "facet": "http://id.worldcat.org/fast/1204616|abr|South Africa (Abridger)",
+        "id": "http://id.worldcat.org/fast/1204616",
+        "label": "South Africa",
+        "label_with_role": "South Africa (Abridger)",
+        "role": "Abridger",
+        "variants": []
+      },
+      {
+        "facet": "http://id.worldcat.org/fast/1150166|app|Thistles (Applicant)",
+        "id": "http://id.worldcat.org/fast/1150166",
+        "label": "Thistles",
+        "label_with_role": "Thistles (Applicant)",
+        "role": "Applicant",
+        "variants": []
+      }
+    ],
+    "batch_ids": [
+      "a846a5f2-da57-49e6-a138-f5462d113a55",
+      "97aac3e3-389a-47ac-a7b3-5dd6ffffd558",
+      "e2529123-6a8c-4f6d-89d5-0257a1b947d4",
+      "b3d3462d-c03e-4cae-9219-4e38335a25fc",
+      "1591cc1e-009d-4b39-97a2-7d8743fb957b",
+      "80a15dc2-92d5-48a4-9aa4-73ecdcb1d130"
+    ],
+    "publisher": ["Northwestern University Press"],
+    "subject": [
+      {
+        "facet": "http://id.worldcat.org/fast/1902713|TOPICAL|Cats on postage stamps (Topical)",
+        "id": "http://id.worldcat.org/fast/1902713",
+        "label": "Cats on postage stamps",
+        "label_with_role": "Cats on postage stamps (Topical)",
+        "role": "Topical",
+        "variants": []
+      },
+      {
+        "facet": "info:nul/6cba23b5-a91a-4c13-8398-54967b329d48|TOPICAL|Test Record Canary (Topical)",
+        "id": "info:nul/6cba23b5-a91a-4c13-8398-54967b329d48",
+        "label": "Test Record Canary",
+        "label_with_role": "Test Record Canary (Topical)",
+        "role": "Topical",
+        "variants": []
+      },
+      {
+        "facet": "http://vocab.getty.edu/tgn/2000971|GEOGRAPHICAL|Leelanau (Geographical)",
+        "id": "http://vocab.getty.edu/tgn/2000971",
+        "label": "Leelanau",
+        "label_with_role": "Leelanau (Geographical)",
+        "role": "Geographical",
+        "variants": []
+      },
+      {
+        "facet": "http://id.worldcat.org/fast/1204587|GEOGRAPHICAL|Michigan--Ann Arbor (Geographical)",
+        "id": "http://id.worldcat.org/fast/1204587",
+        "label": "Michigan--Ann Arbor",
+        "label_with_role": "Michigan--Ann Arbor (Geographical)",
+        "role": "Geographical",
+        "variants": []
+      }
+    ],
+    "scope_and_contents": ["I promise there is scope and content"],
+    "notes": [
+      {
+        "note": "Here are some notes",
+        "type": "General Note"
+      },
+      {
+        "note": "Awards type",
+        "type": "Awards"
+      },
+      {
+        "note": "Biographical note",
+        "type": "Biographical/Historical Note"
+      },
+      {
+        "note": "creation production credits",
+        "type": "Creation/Production Credits"
+      },
+      {
+        "note": "Language note",
+        "type": "Language Note"
+      },
+      {
+        "note": "Local Note",
+        "type": "Local Note"
+      },
+      {
+        "note": "Performers",
+        "type": "Performers"
+      },
+      {
+        "note": "Statement of Responsibility",
+        "type": "Statement of Responsibility"
+      },
+      {
+        "note": "Venue/event date",
+        "type": "Venue/Event Date"
+      },
+      {
+        "note": "massive add to all pages/check",
+        "type": "General Note"
+      }
+    ],
+    "related_material": ["See Also: related material"],
+    "accession_number": "Canary_002",
+    "modified_date": "2022-10-13T20:56:31.249155Z",
+    "folder_names": ["Blue folder"],
+    "series": ["Canaries and How to Care for Them"],
+    "cultural_context": ["Test Context"],
+    "language": [
+      {
+        "facet": "http://id.loc.gov/vocabulary/languages/crh||Crimean Tatar",
+        "id": "http://id.loc.gov/vocabulary/languages/crh",
+        "label": "Crimean Tatar",
+        "variants": []
+      }
+    ],
+    "location": [
+      {
+        "facet": "https://sws.geonames.org/4999069/||Leland Township",
+        "id": "https://sws.geonames.org/4999069/",
+        "label": "Leland Township",
+        "variants": []
+      }
+    ],
+    "create_date": "2022-03-02T20:38:29.813494Z",
+    "thumbnail": "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/square/!300,300/0/default.jpg",
+    "id": "1234",
+    "collection": {
+      "id": "7c50096c-89eb-43e8-b357-5836a788ddeb",
+      "title": "TEST Canary Records",
+      "description": "This is the description of the collection"
+    },
+    "abstract": [],
+    "creator": [
+      {
+        "facet": "http://id.loc.gov/authorities/names/no2011059409||Dessa (Vocalist)",
+        "id": "http://id.loc.gov/authorities/names/no2011059409",
+        "label": "Dessa (Vocalist)",
+        "variants": [
+          "Dessa, 1981-",
+          "Wander, Dessa, 1981-",
+          "Dessa Darling",
+          "Wander, Margret"
+        ]
+      },
+      {
+        "facet": "http://id.worldcat.org/fast/1152763||Tornadoes",
+        "id": "http://id.worldcat.org/fast/1152763",
+        "label": "Tornadoes",
+        "variants": []
+      },
+      {
+        "facet": "http://vocab.getty.edu/aat/300443944||photo editors",
+        "id": "http://vocab.getty.edu/aat/300443944",
+        "label": "photo editors",
+        "variants": []
+      },
+      {
+        "facet": "http://id.worldcat.org/fast/1717972||Schober, Franz von, 1796-1882",
+        "id": "http://id.worldcat.org/fast/1717972",
+        "label": "Schober, Franz von, 1796-1882",
+        "variants": []
+      }
+    ],
+    "rights_holder": ["Artist"],
+    "box_number": ["88"],
+    "physical_description_size": ["16 x 24 inches"],
+    "description": [
+      "This is a private record for RepoDev testing on production"
+    ],
+    "keywords": ["leaves"],
+    "indexed_at": "2022-10-14T14:19:42.844994",
+    "folder_numbers": ["88"],
+    "genre": [
+      {
+        "facet": "http://id.worldcat.org/fast/1919896||Biographies",
+        "id": "http://id.worldcat.org/fast/1919896",
+        "label": "Biographies",
+        "variants": []
+      },
+      {
+        "facet": "http://id.worldcat.org/fast/1019337||Mice",
+        "id": "http://id.worldcat.org/fast/1019337",
+        "label": "Mice",
+        "variants": []
+      }
+    ],
+    "date_created": ["August 1906 to December 1910", "1958"],
+    "title": "Canary Record TEST 1",
+    "physical_description_material": ["Acrylic paint on cement block"],
+    "csv_metadata_update_jobs": [
+      "5753101a-42fa-4838-9b71-f1594a5b1d5f",
+      "6b46db60-6f6a-45e8-8b8d-ab0029a1e8fe",
+      "38988b3e-5778-41da-85a5-e16d13cb098a",
+      "21838181-8d12-4015-8b98-0874061adb98"
+    ],
+    "ark": "ark:/99999/fk47h32p0m",
+    "caption": ["Beebo"],
+    "status": "Done",
+    "style_period": [
+      {
+        "facet": "http://vocab.getty.edu/aat/300018478||Qing (dynastic styles and periods)",
+        "id": "http://vocab.getty.edu/aat/300018478",
+        "label": "Qing (dynastic styles and periods)",
+        "variants": []
+      }
+    ],
+    "api_model": "Work",
+    "catalog_key": ["MS-1984-1982-1989"],
+    "rights_statement": {
+      "id": "http://rightsstatements.org/vocab/InC-EDU/1.0/",
+      "label": "In Copyright - Educational Use Permitted"
+    },
+    "file_sets": [
+      {
+        "duration": null,
+        "height": 100,
+        "id": "076dcbd8-8c57-40e8-bdf7-dc9153c87a36",
+        "label": "Access File - Tiff",
+        "mime_type": "image/tiff",
+        "original_filename": "Squirrel.tif",
+        "poster_offset": null,
+        "rank": 0,
+        "representative_image_url": null,
+        "role": "Access",
+        "streaming_url": null,
+        "webvtt": null,
+        "width": 100
+      }
+    ],
+    "library_unit": "Charles Deering McCormick Library of Special Collections",
+    "technique": [
+      {
+        "facet": "http://vocab.getty.edu/aat/300053228||drypoint (printing process)",
+        "id": "http://vocab.getty.edu/aat/300053228",
+        "label": "drypoint (printing process)",
+        "variants": []
+      }
+    ],
+    "table_of_contents": ["1. cats; 2. dogs"],
+    "representative_file_set": {
+      "fileSetId": "5678",
+      "url": "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678"
+    },
+    "related_url": [
+      {
+        "label": "Finding Aid",
+        "url": "https://findingaids.library.northwestern.edu/"
+      },
+      {
+        "label": "Research Guide",
+        "url": "https://www.wbez.org/"
+      },
+      {
+        "label": "Related Information",
+        "url": "https://www.nationalgeographic.com/animals/mammals/facts/squirrels"
+      },
+      {
+        "label": "Hathi Trust Digital Library",
+        "url": "https://www.hathitrust.org/"
+      }
+    ],
+    "terms_of_use": "Terms ",
+    "visibility": "Public",
+    "license": {
+      "id": "http://www.europeana.eu/portal/rights/rr-r.html",
+      "label": "All rights reserved",
+      "scheme": "license"
+    },
+    "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/works/1234",
+    "alternate_title": ["This is an alternative title"],
+    "preservation_level": "Level 1",
+    "published": true,
+    "source": ["Mars"],
+    "iiif_manifest": "https://iiif.stack.rdc-staging.library.northwestern.edu/public/15/6a/8f/8e/-5/49/b-/49/82/-8/6c/c-/37/5b/f0/41/04/ff-manifest.json",
+    "legacy_identifier": ["555"],
+    "work_type": "Image",
+    "identifier": ["555"],
+    "box_name": ["The name of a box"]
+  }
+}
