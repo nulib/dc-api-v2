@@ -1,13 +1,9 @@
 from helpers.metrics import token_usage
 from openai.error import InvalidRequestError
 
-def base_response(config, response):
-    return {"answer": response["output_text"], "ref": config.ref}
-
-
 def debug_response(config, response, original_question):
-    response_base = base_response(config, response)
-    debug_info = {
+    return {
+        "answer": response["output_text"],
         "attributes": config.attributes,
         "azure_endpoint": config.azure_endpoint,
         "deployment_name": config.deployment_name,
@@ -15,13 +11,12 @@ def debug_response(config, response, original_question):
         "k": config.k,
         "openai_api_version": config.openai_api_version,
         "prompt": config.prompt_text,
+        "question": config.question,
         "ref": config.ref,
         "temperature": config.temperature,
         "text_key": config.text_key,
         "token_counts": token_usage(config, response, original_question),
     }
-    return {**response_base, **debug_info}
-
 
 def get_and_send_original_question(config, docs):
     doc_response = []
@@ -63,10 +58,7 @@ def prepare_response(config):
         original_question = get_and_send_original_question(config, docs)
         response = config.chain({"question": config.question, "input_documents": docs})
 
-        if config.debug_mode:
-            prepared_response = debug_response(config, response, original_question)
-        else:
-            prepared_response = base_response(config, response)
+        prepared_response = debug_response(config, response, original_question)
     except InvalidRequestError as err:
         prepared_response = {
             "question": config.question,

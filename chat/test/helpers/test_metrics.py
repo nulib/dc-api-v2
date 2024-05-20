@@ -51,6 +51,7 @@ class TestMetrics(TestCase):
             "prompt": 302,
             "question": 15,
             "source_documents": 1,
+            "total": 350
         }
 
         self.assertEqual(result, expected_result)

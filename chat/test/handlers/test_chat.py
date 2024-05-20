@@ -23,6 +23,9 @@ class MockClient:
         self.received_data = Data
         return Data
 
+class MockContext:
+   def __init__(self):
+      self.log_stream_name = 'test'
 
 @mock.patch.dict(
     os.environ,
@@ -33,13 +36,13 @@ class MockClient:
 class TestHandler(TestCase):
     def test_handler_unauthorized(self):        
         event = {"socket": Websocket(client=MockClient(), endpoint_url="test", connection_id="test", ref="test")}
-        self.assertEqual(handler(event, {}), {'body': 'Unauthorized', 'statusCode': 401})
+        self.assertEqual(handler(event, MockContext()), {'body': 'Unauthorized', 'statusCode': 401})
       
     @patch.object(ApiToken, 'is_logged_in')
     def test_handler_success(self, mock_is_logged_in):
       mock_is_logged_in.return_value = True
       event = {"socket": Websocket(client=MockClient(), endpoint_url="test", connection_id="test", ref="test")}
-      self.assertEqual(handler(event, {}), {'statusCode': 200})
+      self.assertEqual(handler(event, MockContext()), {'statusCode': 200})
     
     @patch.object(ApiToken, 'is_logged_in')
     @patch.object(ApiToken, 'is_superuser')
@@ -51,7 +54,7 @@ class TestHandler(TestCase):
       mock_client = MockClient()
       mock_websocket = Websocket(client=mock_client, endpoint_url="test", connection_id="test", ref="test")
       event = {"socket": mock_websocket, "debug": True}
-      handler(event, {})
+      handler(event, MockContext())
       response = json.loads(mock_client.received_data)
       self.assertEqual(response["type"], "debug")
       
@@ -65,7 +68,7 @@ class TestHandler(TestCase):
       mock_client = MockClient()
       mock_websocket = Websocket(client=mock_client, endpoint_url="test", connection_id="test", ref="test")
       event = {"socket": mock_websocket, "debug": True}
-      handler(event, {})
+      handler(event, MockContext())
       response = json.loads(mock_client.received_data)
       self.assertEqual(response["type"], "error")
     

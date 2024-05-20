@@ -203,6 +203,7 @@ Resources:
           AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
           AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           ENV_PREFIX: !Ref EnvironmentPrefix
+          METRICS_LOG_GROUP: !Ref ChatMetricsLog
           OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
           OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
       Policies:
@@ -218,8 +219,20 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpPost'
           Resource: '*'
+      - Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: !Sub "${ChatMetricsLog.Arn}:*"
     Metadata:
       BuildMethod: nodejs18.x
+  ChatMetricsLog:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/nul/${AWS::StackName}/ChatFunction-Metrics"
+      LogGroupClass: STANDARD
+      RetentionInDays: 90
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
