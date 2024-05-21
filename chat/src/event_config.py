@@ -21,7 +21,7 @@ K_VALUE = 5
 MAX_K = 100
 TEMPERATURE = 0.2
 TEXT_KEY = "id"
-VERSION = "2023-07-01-preview"
+VERSION = "2024-02-01"
 
 @dataclass
 class EventConfig:
