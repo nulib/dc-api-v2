@@ -53,7 +53,7 @@ class TestEventConfig(TestCase):
             "attributes": EventConfig.DEFAULT_ATTRIBUTES,
             "azure_endpoint": "https://test.openai.azure.com/",
             "k": 5,
-            "openai_api_version": "2023-07-01-preview",
+            "openai_api_version": "2024-02-01",
             "question": "test question",
             "ref": "test ref",
             "temperature": 0.2,
