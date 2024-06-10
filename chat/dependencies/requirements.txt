@@ -1,4 +1,5 @@
 boto3~=1.34.13
+honeybadger
 langchain
 langchain-community
 openai~=0.27.8
