@@ -18,6 +18,18 @@ Parameters:
     Type: String
     Description: Prefix for Index names
     Default: ""
+  HoneybadgerApiKey:
+    Type: String
+    Description: Honeybadger API Key
+    Default: ""
+  HoneybadgerEnv:
+    Type: String
+    Description: Honeybadger Environment
+    Default: ""
+  HoneybadgerRevision:
+    Type: String
+    Description: Honeybadger Revision
+    Default: ""
   OpenSearchEndpoint:
     Type: String
     Description: OpenSearch Endpoint
@@ -203,6 +215,9 @@ Resources:
           AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
           AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           ENV_PREFIX: !Ref EnvironmentPrefix
+          HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
+          HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
+          HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
           OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId

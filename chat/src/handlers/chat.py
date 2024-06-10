@@ -6,6 +6,10 @@ import traceback
 from datetime import datetime
 from event_config import EventConfig
 from helpers.response import prepare_response
+from honeybadger import honeybadger
+
+if not os.getenv("HONEYBADGER_DISABLED") == "true":
+    honeybadger.configure()
 
 RESPONSE_TYPES = {
     "base": ["answer", "ref"],
