@@ -112,9 +112,9 @@ async function getDownloadLink(doc) {
   const getObjectParams = {
     Bucket: bucket,
     Key: key,
-    ResponseContentDisposition: `attachment; filename=${
-      doc._source.label
-    }.${mime.extension(doc._source.mime_type)}`,
+    ResponseContentDisposition: `attachment; filename=download.${mime.extension(
+      doc._source.mime_type
+    )}`,
   };
 
   const client = new S3Client(clientParams);

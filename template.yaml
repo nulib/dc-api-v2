@@ -669,6 +669,9 @@ Resources:
         AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
         AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
         EnvironmentPrefix: !Ref EnvironmentPrefix
+        HoneybadgerApiKey: !Ref HoneybadgerApiKey
+        HoneybadgerEnv: !Ref HoneybadgerEnv
+        HoneybadgerRevision: !Ref HoneybadgerRevision
         OpenSearchEndpoint: !Ref OpenSearchEndpoint
         OpenSearchModelId: !Ref OpenSearchModelId
   chatWebsocketEndpoint:
