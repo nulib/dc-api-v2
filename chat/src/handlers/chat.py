@@ -1,13 +1,14 @@
 import boto3
 import json
+import logging
 import os
 from datetime import datetime
 from event_config import EventConfig
 from helpers.response import prepare_response
 from honeybadger import honeybadger
 
-if not os.getenv("HONEYBADGER_DISABLED") == "true":
-    honeybadger.configure()
+honeybadger.configure()
+logging.getLogger('honeybadger').addHandler(logging.StreamHandler())
 
 RESPONSE_TYPES = {
     "base": ["answer", "ref"],
