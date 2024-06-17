@@ -32,30 +32,43 @@ describe("Download file set", () => {
       expect(result.statusCode).to.eq(401);
     });
 
-    it("returns an error if the mime-type is audio/*", async () => {
+    it("returns unauthorized for an audio without a superuser token", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
         .reply(200, helpers.testFixture("mocks/fileset-audio-1234.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}/download")
+        .pathParams({ id: 1234 })
+        .queryParams({ email: "example@example.com" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(401);
+    });
+
+    it("returns an error for video if it does not contain an email query string parameters", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/fileset-video-1234.json"));
 
       const token = new ApiToken().superUser().sign();
 
       const event = helpers
         .mockEvent("GET", "/file-sets/{id}/download")
         .pathParams({ id: 1234 })
-        .queryParams({ email: "example@example.com" })
         .headers({
           Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
         })
         .render();
 
       const result = await handler(event);
-      expect(result.statusCode).to.eq(405);
+      expect(result.statusCode).to.eq(400);
     });
 
-    it("returns an error if it does not contain an email query string parameters", async () => {
+    it("returns an error for audio if it does not contain an email query string parameters", async () => {
       mock
         .get("/dc-v2-file-set/_doc/1234")
-        .reply(200, helpers.testFixture("mocks/fileset-video-1234.json"));
+        .reply(200, helpers.testFixture("mocks/fileset-audio-1234.json"));
 
       const token = new ApiToken().superUser().sign();
 

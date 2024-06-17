@@ -18,6 +18,7 @@ const path = require("path");
 exports.handler = wrap(async (event) => {
   const id = event.pathParameters.id;
   const email = event.queryStringParameters?.email;
+  const referer = event.headers?.referer;
 
   const allowPrivate =
     event.userToken.isSuperUser() ||
@@ -32,14 +33,14 @@ exports.handler = wrap(async (event) => {
 
   if (esResponse.statusCode == "200") {
     const doc = JSON.parse(esResponse.body);
-    if (isVideoDownload(doc)) {
+    if (isAVDownload(doc)) {
       if (!email) {
         return invalidRequest(400, "Query string must include email address");
       }
       if (!event.userToken.isSuperUser()) {
         return invalidRequest(401, "Unauthorized");
       }
-      return await processAVDownload(doc, email);
+      return await processAVDownload(doc, email, referer);
     } else if (isImageDownload(doc)) {
       return await IIIFImageRequest(doc);
     } else if (isAltFileDownload(doc)) {
@@ -70,14 +71,12 @@ function isAltFileDownload(doc) {
   );
 }
 
-function isVideoDownload(doc) {
-  // Note - audio is not currently implemented due to an issue with AWS
-  // & MediaConvert and our .m3u8 files
+function isAVDownload(doc) {
   return (
     doc.found &&
     doc._source.role === "Access" &&
     doc._source.mime_type != null &&
-    ["video"].includes(doc._source.mime_type.split("/")[0]) &&
+    ["audio", "video"].includes(doc._source.mime_type.split("/")[0]) &&
     doc._source.streaming_url != null
   );
 }
@@ -89,6 +88,10 @@ function isImageDownload(doc) {
     doc._source.mime_type != null &&
     ["image"].includes(doc._source.mime_type.split("/")[0])
   );
+}
+
+function isAudio(doc) {
+  return ["audio"].includes(doc._source.mime_type.split("/")[0]);
 }
 
 function derivativeKey(doc) {
@@ -169,7 +172,7 @@ const IIIFImageRequest = async (doc) => {
   };
 };
 
-async function processAVDownload(doc, email) {
+async function processAVDownload(doc, email, referer) {
   const stepFunctionConfig = process.env.STEP_FUNCTION_ENDPOINT
     ? { endpoint: process.env.STEP_FUNCTION_ENDPOINT }
     : {};
@@ -184,14 +187,20 @@ async function processAVDownload(doc, email) {
   const fileSetLabel = fileSet.label;
   const workId = fileSet.work_id;
   const fileType = fileSet.mime_type.split("/")[0];
-  const destinationKey = `av-downloads/${fileSetId}.mp4`; //TODO - account for audio
-  const destinationLocation = `s3://${destinationBucket}/av-downloads/${fileSetId}`; // TODO - account for audio
-  const settings = videoTranscodeSettings(sourceLocation, destinationLocation); // TODO - account for audio
+  const destinationKey = isAudio(doc)
+    ? `av-downloads/${fileSetId}.mp3`
+    : `av-downloads/${fileSetId}.mp4`;
+  const destinationLocation = `s3://${destinationBucket}/av-downloads/${fileSetId}`;
+  const settings = isAudio(doc)
+    ? {}
+    : videoTranscodeSettings(sourceLocation, destinationLocation);
+  const filename = isAudio(doc) ? `${fileSetId}.mp3` : `${fileSetId}.mp4`;
 
   var params = {
     stateMachineArn: process.env.AV_DOWNLOAD_STATE_MACHINE_ARN,
     input: JSON.stringify({
       configuration: {
+        startAudioTranscodeFunction: process.env.START_AUDIO_TRANSCODE_FUNCTION,
         startTranscodeFunction: process.env.START_TRANSCODE_FUNCTION,
         transcodeStatusFunction: process.env.TRANSCODE_STATUS_FUNCTION,
         getDownloadLinkFunction: process.env.GET_DOWNLOAD_LINK_FUNCTION,
@@ -199,11 +208,16 @@ async function processAVDownload(doc, email) {
       },
       transcodeInput: {
         settings: settings,
+        type: fileType,
+        streamingUrl: fileSet.streaming_url,
+        referer: referer,
+        destinationBucket: destinationBucket,
+        destinationKey: destinationKey,
       },
       presignedUrlInput: {
         bucket: destinationBucket,
         key: destinationKey,
-        disposition: `${fileSetId}.mp4`,
+        disposition: filename,
       },
       sendEmailInput: {
         to: email,
