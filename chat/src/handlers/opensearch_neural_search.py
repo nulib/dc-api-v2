@@ -2,7 +2,7 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from opensearchpy import OpenSearch
 from typing import Any, List, Tuple
-
+from helpers.hybrid_query import hybrid_query
 
 class OpenSearchNeuralSearch(VectorStore):
     """Read-only OpenSearch vectorstore with neural search."""
@@ -40,33 +40,8 @@ class OpenSearchNeuralSearch(VectorStore):
         self, query: str, k: int = 10, subquery: Any = None, **kwargs: Any
     ) -> List[Tuple[Document, float]]:
         """Return docs most similar to query."""
-        dsl = {
-            "size": k,
-            "query": {
-                "hybrid": {
-                    "queries": [
-                        {
-                            "neural": {
-                                self.vector_field: {
-                                    "query_text": query,
-                                    "model_id": self.model_id,
-                                    "k": k,
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-        }
-
-        if subquery:
-            dsl["query"]["hybrid"]["queries"].append(subquery)
-
-        for key, value in kwargs.items():
-            dsl[key] = value
-
+        dsl = hybrid_query(query=query, model_id=self.model_id, vector_field=self.vector_field, k=k, subquery=subquery, **kwargs)
         response = self.client.search(index=self.index, body=dsl, params={"search_pipeline": self.search_pipeline} if self.search_pipeline else None)
-
         documents_with_scores = [
             (
                 Document(

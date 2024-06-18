@@ -20,33 +20,34 @@ const findFilterQuery = (searchContext) => {
 describe("RequestPipeline", () => {
   helpers.saveEnvironment();
 
-  const requestBody = {
-    query: { match: { term: { title: "The Title" } } },
-    size: 50,
-    from: 0,
-    sort: [{ create_date: "asc" }],
-    _source: ["id", "title", "collection"],
-    aggs: { collection: { terms: { field: "contributor.label", size: 10 } } },
-  };
-
-  let event, pipeline;
+  let event;
+  let pipeline;
+  let requestBody;
   beforeEach(() => {
-    event = helpers.mockEvent("GET", "/search").render();
+    requestBody = {
+      query: { match: { term: { title: "The Title" } } },
+      size: 50,
+      from: 0,
+      sort: [{ create_date: "asc" }],
+      _source: ["id", "title", "collection"],
+      aggs: { collection: { terms: { field: "contributor.label", size: 10 } } },
+    };
+    event = helpers.preprocess(helpers.mockEvent("GET", "/search").render());
     pipeline = new RequestPipeline(requestBody);
   });
 
   it("adds an auth filter", () => {
     event.userToken = new ApiToken();
 
-    const result = pipeline.authFilter(helpers.preprocess(event));
+    const result = pipeline.authFilter(event);
     expect(result.searchContext.size).to.eq(50);
-    expect(result.searchContext.query).to.eq(requestBody.query);
-    expect(findFilterQuery(result.searchContext)).to.deep.equalInAnyOrder({
-      must_not: [
-        { term: { visibility: "Private" } },
-        { term: { published: false } },
-      ],
-    });
+    expect(result.searchContext.query.bool.must).to.deep.include(
+      requestBody.query
+    );
+    expect(result.searchContext.query.bool.must_not).to.deep.include(
+      { term: { visibility: "Private" } },
+      { term: { published: false } }
+    );
   });
 
   it("serializes JSON", () => {
@@ -58,25 +59,31 @@ describe("RequestPipeline", () => {
       event.userToken = new ApiToken();
 
       // process.env.READING_ROOM_IPS = "192.168.0.1,172.16.10.2";
-      const result = pipeline.authFilter(helpers.preprocess(event));
+      const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
-      expect(result.searchContext.query).to.eq(requestBody.query);
-      expect(findFilterQuery(result.searchContext)).to.deep.equalInAnyOrder({
-        must_not: [
-          { term: { visibility: "Private" } },
-          { term: { published: false } },
-        ],
-      });
+      expect(result.searchContext.query.bool.must).to.deep.include(
+        requestBody.query
+      );
+      expect(result.searchContext.query.bool.must_not).to.deep.include(
+        { term: { visibility: "Private" } },
+        { term: { published: false } }
+      );
     });
 
     it("includes private results if the user is in the reading room", () => {
       event = helpers.preprocess(event);
       event.userToken = new ApiToken().readingRoom();
+
       const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
-      expect(result.searchContext.query).to.eq(requestBody.query);
-      expect(findFilterQuery(result.searchContext)).to.deep.equal({
-        must_not: [{ term: { published: false } }],
+      expect(result.searchContext.query.bool.must).to.deep.include(
+        requestBody.query
+      );
+      expect(result.searchContext.query.bool.must_not).to.deep.include({
+        term: { published: false },
+      });
+      expect(result.searchContext.query.bool.must_not).not.to.deep.include({
+        term: { visibility: "Private" },
       });
     });
   });
@@ -86,15 +93,15 @@ describe("RequestPipeline", () => {
       event.userToken = new ApiToken();
 
       // process.env.READING_ROOM_IPS = "192.168.0.1,172.16.10.2";
-      const result = pipeline.authFilter(helpers.preprocess(event));
+      const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
-      expect(result.searchContext.query).to.eq(requestBody.query);
-      expect(findFilterQuery(result.searchContext)).to.deep.equalInAnyOrder({
-        must_not: [
-          { term: { visibility: "Private" } },
-          { term: { published: false } },
-        ],
-      });
+      expect(result.searchContext.query.bool.must).to.deep.include(
+        requestBody.query
+      );
+      expect(result.searchContext.query.bool.must_not).to.deep.include(
+        { term: { visibility: "Private" } },
+        { term: { published: false } }
+      );
     });
 
     it("includes private results if the user is in the reading room", () => {
@@ -103,19 +110,53 @@ describe("RequestPipeline", () => {
 
       const result = pipeline.authFilter(event);
       expect(result.searchContext.size).to.eq(50);
-      expect(result.searchContext.query).to.eq(requestBody.query);
-      expect(findFilterQuery(result.searchContext)).to.be.null;
+      expect(result.searchContext.query.bool.must).to.deep.include(
+        requestBody.query
+      );
+      expect(result.searchContext.query.bool).not.to.have.any.keys("must_not");
     });
   });
 
-  describe("search_pipeline in request", () => {
-    it("does not add a search filter when a pipeline is specified", () => {
-      event.queryStringParameters = {
-        ...event.queryStringParameters,
-        search_pipeline: "alternate-pipeline",
+  describe("hybrid", () => {
+    it("applies the filter to all subqueries", () => {
+      event.userToken = new ApiToken();
+      requestBody.query = {
+        hybrid: {
+          queries: [
+            {
+              neural: {
+                embedding: {
+                  query_text:
+                    "Do you have any materials related to testing the request pipeline?",
+                  model_id: "MODEL_ID",
+                  k: 5,
+                },
+              },
+            },
+            {
+              match: {
+                all_titles: {
+                  query:
+                    "Do you have any materials related to testing the request pipeline?",
+                  operator: "AND",
+                  analyzer: "english",
+                },
+              },
+            },
+          ],
+        },
       };
-      const result = pipeline.authFilter(helpers.preprocess(event));
-      expect(result.searchContext).not.to.have.keys("search_pipeline");
+      pipeline = new RequestPipeline(requestBody);
+      const result = pipeline.authFilter(event);
+      for (const i in requestBody.query.hybrid.queries) {
+        const originalQuery = requestBody.query.hybrid.queries[i];
+        const newQuery = result.searchContext.query.hybrid.queries[i];
+        expect(newQuery.bool.must).to.deep.include(originalQuery);
+        expect(newQuery.bool.must_not).to.deep.include(
+          { term: { visibility: "Private" } },
+          { term: { published: false } }
+        );
+      }
     });
   });
 });

@@ -1,27 +1,18 @@
 const sortJson = require("sort-json");
 
-function filterFor(event) {
+function filterFor(query, event) {
+  const matchTheQuery = query;
   const beUnpublished = { term: { published: false } };
   const beRestricted = { term: { visibility: "Private" } };
 
-  if (event.userToken.isSuperUser()) {
-    return null;
+  let filter = { must: [matchTheQuery] };
+  if (!event.userToken.isSuperUser()) {
+    filter.must_not = event.userToken.isReadingRoom()
+      ? [beUnpublished]
+      : [beUnpublished, beRestricted];
   }
 
-  return {
-    filter_query: {
-      tag: "access_filter",
-      description:
-        "Restricts access to unpublished and restricted items based on user's access level",
-      query: {
-        bool: {
-          must_not: event.userToken.isReadingRoom()
-            ? [beUnpublished]
-            : [beUnpublished, beRestricted],
-        },
-      },
-    },
-  };
+  return { bool: filter };
 }
 
 module.exports = class RequestPipeline {
@@ -37,17 +28,16 @@ module.exports = class RequestPipeline {
   // - Add `track_total_hits` to search context (so we can get accurate hits.total.value)
 
   authFilter(event) {
-    delete this.searchContext.search_pipeline;
-
-    if (event.queryStringParameters?.search_pipeline) {
-      return this;
-    }
-
-    const filterProcessor = filterFor(event);
-    if (filterProcessor != null) {
-      this.searchContext.search_pipeline = {
-        request_processors: [filterProcessor],
+    if (this.searchContext.query?.hybrid?.queries) {
+      this.searchContext.query = {
+        hybrid: {
+          queries: this.searchContext.query.hybrid.queries.map((query) =>
+            filterFor(query, event)
+          ),
+        },
       };
+    } else {
+      this.searchContext.query = filterFor(this.searchContext.query, event);
     }
     this.searchContext.track_total_hits = true;
 
