@@ -39,7 +39,6 @@ def opensearch_vector_store(region_name=os.getenv("AWS_REGION")):
         endpoint=os.getenv("OPENSEARCH_ENDPOINT"),
         connection_class=RequestsHttpConnection,
         http_auth=awsauth,
-        search_pipeline=prefix("dc-v2-work-pipeline"),
         text_field= "id"
     )
     return docsearch
