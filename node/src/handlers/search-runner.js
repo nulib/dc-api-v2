@@ -9,6 +9,21 @@ const responseTransformer = require("../api/response/transformer");
 const { decodeSearchToken, Paginator } = require("../api/pagination");
 const RequestPipeline = require("../api/request/pipeline");
 
+const AllowedQueryParams = ["search_pipeline"];
+
+const sanitizeQueryString = (params) => {
+  const sanitized = {};
+  for (const param in params) {
+    if (AllowedQueryParams.includes(param)) {
+      sanitized[param] = params[param];
+    }
+  }
+  if (Object.keys(sanitized).length == 0) {
+    return undefined;
+  }
+  return sanitized;
+};
+
 /**
  * Function to wrap search requests and transform responses
  */
@@ -47,7 +62,8 @@ const doSearch = async (event, searchParams = {}) => {
 
   const esResponse = await search(
     modelsToTargets(models),
-    filteredSearchContext
+    filteredSearchContext,
+    sanitizeQueryString(event.queryStringParameters)
   );
 
   return await responseTransformer.transformSearchResult(esResponse, pager);
