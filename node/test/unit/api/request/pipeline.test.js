@@ -9,14 +9,6 @@ const RequestPipeline = requireSource("api/request/pipeline");
 
 chai.use(deepEqualInAnyOrder);
 
-const findFilterQuery = (searchContext) => {
-  if (!searchContext.search_pipeline?.request_processors) return null;
-  const filter = searchContext.search_pipeline.request_processors.find(
-    (processor) => processor?.filter_query?.tag == "access_filter"
-  );
-  return filter?.filter_query?.query?.bool;
-};
-
 describe("RequestPipeline", () => {
   helpers.saveEnvironment();
 
