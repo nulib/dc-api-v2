@@ -136,7 +136,7 @@ const getAxiosResponse = (url, config) => {
 };
 
 const IIIFImageRequest = async (doc) => {
-  const dimensions = "/full/max/0/default.jpg";
+  const dimensions = "/full/!3000,3000/0/default.jpg";
   const iiifImageBaseUrl = doc._source.representative_image_url;
   const url = `${iiifImageBaseUrl}${dimensions}`;
   const { status, headers, data } = await getAxiosResponse(url, {
