@@ -24,6 +24,10 @@ def handler(event, context):
     if not config.is_logged_in:
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
+
+    if config.question is None or config.question == "":
+        config.socket.send({"type": "error", "message": "Question cannot be blank"})
+        return {"statusCode": 400, "body": "Question cannot be blank"}
     
     debug_message = config.debug_message()
     if config.debug_mode:

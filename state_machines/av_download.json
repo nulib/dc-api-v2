@@ -1,7 +1,29 @@
 {
   "Comment": "HLS stiching and save as file in s3 and email download link",
-  "StartAt": "startTranscode",
+  "StartAt": "audioOrVideo",
   "States": {
+    "audioOrVideo": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.transcodeInput.type",
+          "StringEquals": "audio",
+          "Next": "startAudioTranscode"
+        }
+      ],
+      "Default": "startTranscode"
+    },
+    "startAudioTranscode": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "Payload.$": "$.transcodeInput",
+        "FunctionName.$": "$.configuration.startAudioTranscodeFunction"
+      },
+      "Next": "getDownloadLink",
+      "InputPath": "$",
+      "ResultPath": "$.audioTranscodeOutput"
+    },
     "startTranscode": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",

@@ -28,7 +28,17 @@ module.exports = class RequestPipeline {
   // - Add `track_total_hits` to search context (so we can get accurate hits.total.value)
 
   authFilter(event) {
-    this.searchContext.query = filterFor(this.searchContext.query, event);
+    if (this.searchContext.query?.hybrid?.queries) {
+      this.searchContext.query = {
+        hybrid: {
+          queries: this.searchContext.query.hybrid.queries.map((query) =>
+            filterFor(query, event)
+          ),
+        },
+      };
+    } else {
+      this.searchContext.query = filterFor(this.searchContext.query, event);
+    }
     this.searchContext.track_total_hits = true;
 
     return this;

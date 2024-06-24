@@ -15,7 +15,7 @@ Description: >
 Globals:
   Function:
     CodeUri: ./node/src
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
     Architectures:
       - x86_64
     MemorySize: 128
@@ -127,10 +127,10 @@ Resources:
   #*     Description: Dependencies for API handlers
   #*     ContentUri: ./layers/api_dependencies
   #*     CompatibleRuntimes:
-  #*       - nodejs18.x
+  #*       - nodejs20.x
   #*     LicenseInfo: Apache-2.0
   #*   Metadata:
-  #*     BuildMethod: nodejs18.x
+  #*     BuildMethod: nodejs20.x
   # V2 API
   getAuthCallbackFunction:
     Type: AWS::Serverless::Function
@@ -345,6 +345,7 @@ Resources:
           MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
           PYRAMID_BUCKET: !Ref PyramidBucket
           REPOSITORY_EMAIL: !Ref RepositoryEmail
+          START_AUDIO_TRANSCODE_FUNCTION: !GetAtt startAudioTranscodeFunction.Arn
           START_TRANSCODE_FUNCTION: !GetAtt startTranscodeFunction.Arn
           TRANSCODE_STATUS_FUNCTION: !GetAtt transcodeStatusFunction.Arn
           GET_DOWNLOAD_LINK_FUNCTION: !GetAtt getDownloadLinkFunction.Arn
@@ -721,6 +722,7 @@ Resources:
             Action:
               - lambda:InvokeFunction
             Resource:
+              - !GetAtt startAudioTranscodeFunction.Arn
               - !GetAtt startTranscodeFunction.Arn
               - !GetAtt transcodeStatusFunction.Arn
               - !GetAtt getDownloadLinkFunction.Arn
@@ -920,10 +922,32 @@ Resources:
               <!--[if gte mso 15]></td></tr></table><![endif]-->
             </body>
           </html>
+  startAudioTranscodeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs16.x
+      CodeUri: ./lambdas
+      Handler: start-audio-transcode.handler
+      Description: Performs audio transcode job with ffmpeg
+      Timeout: 900
+      MemorySize: 10240
+      Layers:
+        - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:layer:ffmpeg:9"
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BucketAccess
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
+      Environment:
+        Variables:
+          MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
   startTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       CodeUri: ./lambdas
       Handler: start-transcode.handler
       Description: Creates MediaConvert Job to transcode HLS stream
@@ -949,7 +973,7 @@ Resources:
   transcodeStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       CodeUri: ./lambdas
       Handler: transcode-status.handler
       Description: Determines when transcode job has completed or errored
@@ -968,7 +992,7 @@ Resources:
   getDownloadLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       CodeUri: ./lambdas
       Handler: get-download-link.handler
       Description: Creates presigned url
@@ -983,7 +1007,7 @@ Resources:
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs18.x
+      Runtime: nodejs20.x
       CodeUri: ./lambdas
       Handler: send-templated-email.handler
       Description: Sends email
