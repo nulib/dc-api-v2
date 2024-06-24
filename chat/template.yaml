@@ -241,7 +241,7 @@ Resources:
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
     Metadata:
-      BuildMethod: nodejs18.x
+      BuildMethod: nodejs20.x
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:
