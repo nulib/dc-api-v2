@@ -63,6 +63,10 @@ Parameters:
   DcUrl:
     Type: String
     Description: URL of Digital Collections website
+  FfmpegLayer:
+    Type: String
+    Description: "FFMPEG Lambda Layer ARN"
+    Default: "arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:11"
   OpenSearchModelId:
     Type: String
     Description: OpenSearch Model ID
@@ -932,7 +936,7 @@ Resources:
       Timeout: 900
       MemorySize: 10240
       Layers:
-        - !Sub "arn:aws:lambda:us-east-1:${AWS::AccountId}:layer:ffmpeg:9"
+        - !Ref FfmpegLayer
       Policies:
         Version: 2012-10-17
         Statement:
