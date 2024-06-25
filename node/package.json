@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.5.2",
+    "aws-sdk-client-mock": "^4.0.1",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "choma": "^1.2.1",

@@ -696,6 +696,46 @@ Resources:
             ApiId: !Ref dcApi
             Path: /chat-endpoint
             Method: GET
+  chatFeedback:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/post-chat-feedback.handler
+      Description: Handles feedback from the chat.
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Environment:
+        Variables:
+          CHAT_FEEDBACK_BUCKET: !Ref chatFeedbackBucket
+          CHAT_FEEDBACK_TOPIC_ARN: !Ref chatFeedbackTopic
+      Policies:
+        Version: 2012-10-17
+        Statement:
+          - Sid: BucketAccess
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: !Sub "arn:aws:s3:::${chatFeedbackBucket}/*"
+          - Sid: TopicAccess
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: !Ref chatFeedbackTopic
+      Events:
+        PostApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /chat-feedback
+            Method: POST
+  chatFeedbackBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-chat-feedback"
+  chatFeedbackTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: DC Chat Feedback
+      TopicName: !Sub "${AWS::StackName}-chat-feedback"
   defaultFunction:
     Type: AWS::Serverless::Function
     Properties:
