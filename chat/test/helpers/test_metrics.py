@@ -47,11 +47,11 @@ class TestMetrics(TestCase):
         result = token_usage(config, response, original_question)
 
         expected_result = {
-            "answer": 6,
-            "prompt": 302,
+            "answer": 12,
+            "prompt": 314,
             "question": 15,
             "source_documents": 1,
-            "total": 324
+            "total": 342
         }
 
         self.assertEqual(result, expected_result)

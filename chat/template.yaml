@@ -184,18 +184,18 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ChatFunction
       Principal: apigateway.amazonaws.com
-  ChatDependencies:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName:
-        Fn::Sub: "${AWS::StackName}-dependencies"
-      Description: Dependencies for streaming chat function
-      ContentUri: ./dependencies
-      CompatibleRuntimes:
-        - python3.10
-      LicenseInfo: "Apache-2.0"
-    Metadata:
-      BuildMethod: python3.10
+  #* ChatDependencies:
+  #*   Type: AWS::Serverless::LayerVersion
+  #*   Properties:
+  #*     LayerName:
+  #*       Fn::Sub: "${AWS::StackName}-dependencies"
+  #*     Description: Dependencies for streaming chat function
+  #*     ContentUri: ./dependencies
+  #*     CompatibleRuntimes:
+  #*       - python3.10
+  #*     LicenseInfo: "Apache-2.0"
+  #*   Metadata:
+  #*     BuildMethod: python3.10
   ChatFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -203,8 +203,8 @@ Resources:
       Runtime: python3.10
       Architectures:
         - x86_64
-      Layers:
-        - !Ref ChatDependencies
+      #* Layers:
+      #*   - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat.handler
       Timeout: 300
@@ -240,8 +240,8 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
-    Metadata:
-      BuildMethod: nodejs20.x
+    #* Metadata:
+    #*   BuildMethod: nodejs20.x
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:
