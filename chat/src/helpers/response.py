@@ -1,37 +1,6 @@
 from helpers.metrics import token_usage
-from openai.error import InvalidRequestError
-
-def debug_response(config, response, original_question):
-    return {
-        "answer": response["output_text"],
-        "attributes": config.attributes,
-        "azure_endpoint": config.azure_endpoint,
-        "deployment_name": config.deployment_name,
-        "is_superuser": config.api_token.is_superuser(),
-        "k": config.k,
-        "openai_api_version": config.openai_api_version,
-        "prompt": config.prompt_text,
-        "question": config.question,
-        "ref": config.ref,
-        "temperature": config.temperature,
-        "text_key": config.text_key,
-        "token_counts": token_usage(config, response, original_question),
-    }
-
-def get_and_send_original_question(config, docs):
-    doc_response = []
-    for doc in docs:
-        doc_dict = doc.__dict__
-        metadata = doc_dict.get('metadata', {})
-        new_doc = {key: extract_prompt_value(metadata.get(key)) for key in config.attributes if key in metadata}
-        doc_response.append(new_doc)
-        
-    original_question = {
-        "question": config.question,
-        "source_documents": doc_response,
-    }
-    config.socket.send(original_question)
-    return original_question
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
 def extract_prompt_value(v):
     if isinstance(v, list):
@@ -40,29 +9,76 @@ def extract_prompt_value(v):
         return [v.get('label')]
     else:
         return v
-    
-def prepare_response(config):
-    try:
-        subquery = { 
-            "match": {
-                "all_titles":  {
-                    "query": config.question, 
-                    "operator": "AND",
-                    "analyzer": "english"
+
+class Response:
+    def __init__(self, config):
+        self.config = config
+        self.store = {}
+
+    def debug_response_passthrough(self):
+        def debug_response(config, response, original_question):
+            return {
+                "answer": response,
+                "attributes": config.attributes,
+                "azure_endpoint": config.azure_endpoint,
+                "deployment_name": config.deployment_name,
+                "is_superuser": config.api_token.is_superuser(),
+                "k": config.k,
+                "openai_api_version": config.openai_api_version,
+                "prompt": config.prompt_text,
+                "question": config.question,
+                "ref": config.ref,
+                "temperature": config.temperature,
+                "text_key": config.text_key,
+                "token_counts": token_usage(config, response, original_question),
+            }
+
+        return RunnableLambda(lambda x: debug_response(self.config, x, self.original_question))
+
+    def original_question_passthrough(self):
+        def get_and_send_original_question(docs):
+            source_documents = []
+            for doc in docs["context"]:
+                doc.metadata = {key: extract_prompt_value(doc.metadata.get(key)) for key in self.config.attributes if key in doc.metadata}
+                source_document = doc.metadata.copy()
+                source_document["content"] = doc.page_content
+                source_documents.append(source_document)
+                
+            original_question = {
+                "question": self.config.question,
+                "source_documents": source_documents,
+            }
+            self.config.socket.send(original_question)
+            self.original_question = original_question
+            return docs
+        
+        return RunnablePassthrough(get_and_send_original_question)
+
+    def prepare_response(self):
+        try:
+            subquery = { 
+                "match": {
+                    "all_titles":  {
+                        "query": self.config.question, 
+                        "operator": "AND",
+                        "analyzer": "english"
+                    }
                 }
             }
-        }
-        docs = config.opensearch.similarity_search(
-            query=config.question, k=config.k, subquery=subquery, _source={"excludes": ["embedding"]}
-        )
-        original_question = get_and_send_original_question(config, docs)
-        response = config.chain({"question": config.question, "input_documents": docs})
-
-        prepared_response = debug_response(config, response, original_question)
-    except InvalidRequestError as err:
-        prepared_response = {
-            "question": config.question,
-            "error": str(err),
-            "source_documents": [],
-        }
-    return prepared_response
+            retriever = self.config.opensearch.as_retriever(search_type="similarity", search_kwargs={"k": self.config.k, "subquery": subquery, "_source": {"excludes": ["embedding"]}})
+            chain = (
+                {"context": retriever, "question": RunnablePassthrough()}
+                | self.original_question_passthrough()
+                | self.config.prompt
+                | self.config.client
+                | StrOutputParser()
+                | self.debug_response_passthrough()
+            )
+            response = chain.invoke(self.config.question)
+        except Exception as err:
+            response = {
+                "question": self.config.question,
+                "error": str(err),
+                "source_documents": [],
+            }
+        return response

@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime
 from event_config import EventConfig
-from helpers.response import prepare_response
+from helpers.response import Response
 from honeybadger import honeybadger
 
 honeybadger.configure()
@@ -35,7 +35,8 @@ def handler(event, context):
 
     if not os.getenv("SKIP_WEAVIATE_SETUP"):
         config.setup_llm_request()
-        final_response = prepare_response(config)
+        response = Response(config)
+        final_response = response.prepare_response()
         config.socket.send(reshape_response(final_response, 'debug' if config.debug_mode else 'base'))
 
     log_group = os.getenv('METRICS_LOG_GROUP')

@@ -4,7 +4,7 @@ import tiktoken
 def token_usage(config, response, original_question):
     data = {
         "question": count_tokens(config.question),
-        "answer": count_tokens(response["output_text"]),
+        "answer": count_tokens(response),
         "prompt": count_tokens(config.prompt_text),
         "source_documents": count_tokens(original_question["source_documents"]),
     }
