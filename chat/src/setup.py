@@ -1,4 +1,4 @@
-from langchain_community.chat_models import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI
 from handlers.opensearch_neural_search import OpenSearchNeuralSearch
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -17,7 +17,6 @@ def openai_chat_client(**kwargs):
     )
 
 def opensearch_client(region_name=os.getenv("AWS_REGION")):
-    print(region_name)
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
     endpoint = os.getenv("OPENSEARCH_ENDPOINT")

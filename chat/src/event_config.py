@@ -2,8 +2,8 @@ import os
 import json
 
 from dataclasses import dataclass, field
-from langchain.chains.qa_with_sources import load_qa_with_sources_chain
-from langchain.prompts import PromptTemplate
+
+from langchain_core.prompts import ChatPromptTemplate
 from setup import (
     opensearch_client,
     opensearch_vector_store,
@@ -19,6 +19,7 @@ CHAIN_TYPE = "stuff"
 DOCUMENT_VARIABLE_NAME = "context"
 K_VALUE = 5
 MAX_K = 100
+MAX_TOKENS = 1000
 TEMPERATURE = 0.2
 TEXT_KEY = "id"
 VERSION = "2024-02-01"
@@ -42,19 +43,21 @@ class EventConfig:
     azure_resource_name: str = field(init=False)
     debug_mode: bool = field(init=False)
     deployment_name: str = field(init=False)
-    document_prompt: PromptTemplate = field(init=False)
+    document_prompt: ChatPromptTemplate = field(init=False)
     event: dict = field(default_factory=dict)
     is_logged_in: bool = field(init=False)
     k: int = field(init=False)
+    max_tokens: int = field(init=False)
     openai_api_version: str = field(init=False)
     payload: dict = field(default_factory=dict)
     prompt_text: str = field(init=False)
-    prompt: PromptTemplate = field(init=False)
+    prompt: ChatPromptTemplate = field(init=False)
     question: str = field(init=False)
     ref: str = field(init=False)
     request_context: dict = field(init=False)
     temperature: float = field(init=False)
     socket: Websocket = field(init=False, default=None)
+    stream_response: bool = field(init=False)
     text_key: str = field(init=False)
 
     def __post_init__(self):
@@ -67,17 +70,17 @@ class EventConfig:
         self.deployment_name = self._get_deployment_name()
         self.is_logged_in = self.api_token.is_logged_in()
         self.k = self._get_k()
+        self.max_tokens = min(self.payload.get("max_tokens", MAX_TOKENS), MAX_TOKENS)
         self.openai_api_version = self._get_openai_api_version()
         self.prompt_text = self._get_prompt_text()
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")
         self.ref = self.payload.get("ref")
+        self.stream_response = self.payload.get("stream_response", not self.debug_mode)
         self.temperature = self._get_temperature()
         self.text_key = self._get_text_key()
         self.document_prompt = self._get_document_prompt()
-        self.prompt = PromptTemplate(
-            template=self.prompt_text, input_variables=["question", "context"]
-        )
+        self.prompt = ChatPromptTemplate.from_template(self.prompt_text)
 
     def _get_payload_value_with_superuser_check(self, key, default):
         if self.api_token.is_superuser():
@@ -134,10 +137,7 @@ class EventConfig:
         return self._get_payload_value_with_superuser_check("text_key", TEXT_KEY)
 
     def _get_document_prompt(self):
-        return PromptTemplate(
-            template=document_template(self.attributes),
-            input_variables=["title", "id"] + self.attributes,
-        )
+        return ChatPromptTemplate.from_template(document_template(self.attributes))
 
     def debug_message(self):
         return {
@@ -170,28 +170,18 @@ class EventConfig:
     def setup_llm_request(self):
         self._setup_vector_store()
         self._setup_chat_client()
-        self._setup_chain()
 
     def _setup_vector_store(self):
         self.opensearch = opensearch_vector_store()
 
     def _setup_chat_client(self):
         self.client = openai_chat_client(
-            deployment_name=self.deployment_name,
-            openai_api_base=self.azure_endpoint,
+            azure_deployment=self.deployment_name,
+            azure_endpoint=self.azure_endpoint,
             openai_api_version=self.openai_api_version,
-            callbacks=[StreamingSocketCallbackHandler(self.socket, self.debug_mode)],
+            callbacks=[StreamingSocketCallbackHandler(self.socket, stream=self.stream_response)],
             streaming=True,
-        )
-
-    def _setup_chain(self):
-        self.chain = load_qa_with_sources_chain(
-            self.client,
-            chain_type=CHAIN_TYPE,
-            prompt=self.prompt,
-            document_prompt=self.document_prompt,
-            document_variable_name=DOCUMENT_VARIABLE_NAME,
-            verbose=self._to_bool(os.getenv("VERBOSE")),
+            max_tokens=self.max_tokens
         )
 
     def _is_debug_mode_enabled(self):

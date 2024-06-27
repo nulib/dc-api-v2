@@ -28,8 +28,10 @@ help:
 	echo "make cover-python    | run python tests with coverage"
 .aws-sam/build.toml: ./template.yaml node/package-lock.json node/src/package-lock.json chat/dependencies/requirements.txt chat/src/requirements.txt
 	sed -Ei.orig 's/^(\s+)#\*\s/\1/' template.yaml
+	sed -Ei.orig 's/^(\s+)#\*\s/\1/' chat/template.yaml
 	sam build --cached --parallel
 	mv template.yaml.orig template.yaml
+	mv chat/template.yaml.orig chat/template.yaml
 deps-node:
 	cd node/src ;\
 	npm list >/dev/null 2>&1 ;\
@@ -48,7 +50,7 @@ style-node: deps-node
 test-node: deps-node
 	cd node && npm run test
 deps-python:
-	cd chat/src && pip install -r requirements.txt
+	cd chat/src && pip install -r requirements.txt && pip install -r requirements-dev.txt
 cover-python: deps-python
 	cd chat && export SKIP_WEAVIATE_SETUP=True && coverage run --source=src -m unittest -v && coverage report --skip-empty
 cover-html-python: deps-python
