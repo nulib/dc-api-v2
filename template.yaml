@@ -694,7 +694,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
-            Path: /chat-endpoint
+            Path: /chat/endpoint
             Method: GET
   chatFeedback:
     Type: AWS::Serverless::Function
@@ -725,7 +725,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref dcApi
-            Path: /chat-feedback
+            Path: /chat/feedback
             Method: POST
   chatFeedbackBucket:
     Type: 'AWS::S3::Bucket'

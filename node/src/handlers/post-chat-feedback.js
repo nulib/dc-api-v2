@@ -18,24 +18,27 @@ const feedbackSchema = {
           type: "array",
           items: { type: "string" },
         },
-        required: ["ref", "question", "answer", "source_documents"],
       },
-      feedback: {
-        type: "object",
-        properties: {
-          options: { type: "array", items: { type: "string" } },
-          text: { type: "string" },
-          email: { type: "string" },
-        },
-        required: ["options", "text"],
-      },
+      required: ["ref", "question", "answer", "source_documents"],
+      additionalProperties: false,
     },
-    required: ["sentiment", "context", "feedback"],
+    feedback: {
+      type: "object",
+      properties: {
+        options: { type: "array", items: { type: "string" } },
+        text: { type: "string" },
+        email: { type: "string" },
+      },
+      required: ["options", "text", "email"],
+      additionalProperties: false,
+    },
   },
+  required: ["sentiment", "context", "feedback"],
+  additionalProperties: false,
 };
 
 const handler = wrap(async (event, context) => {
-  if (!event.userToken.isLoggedIn()) {
+  if (!event.userToken.isLoggedIn() && !event.userToken.isSuperUser()) {
     return {
       statusCode: 401,
       headers: { "Content-Type": "text/plain" },
