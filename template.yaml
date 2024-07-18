@@ -730,7 +730,11 @@ Resources:
   chatFeedbackBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Sub "${AWS::StackName}-chat-feedback"
+      BucketName: 
+        Fn::Join:
+        - "-"
+        - - !Sub "${AWS::StackName}-chat-feedback"
+          - !Select [2, !Split ['/', !Ref AWS::StackId]]
   chatFeedbackTopic:
     Type: AWS::SNS::Topic
     Properties:
