@@ -1,5 +1,24 @@
 import tiktoken
 
+def debug_response(config, response, original_question):
+    source_urls = [doc["api_link"] for doc in original_question.get("source_documents", [])]
+
+    return {
+        "answer": response,
+        "attributes": config.attributes,
+        "azure_endpoint": config.azure_endpoint,
+        "deployment_name": config.deployment_name,
+        "is_superuser": config.api_token.is_superuser(),
+        "k": config.k,
+        "openai_api_version": config.openai_api_version,
+        "prompt": config.prompt_text,
+        "question": config.question,
+        "ref": config.ref,
+        "source_documents": source_urls,
+        "temperature": config.temperature,
+        "text_key": config.text_key,
+        "token_counts": token_usage(config, response, original_question),
+    }
 
 def token_usage(config, response, original_question):
     data = {

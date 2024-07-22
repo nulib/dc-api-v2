@@ -28,19 +28,19 @@ class OpenSearchNeuralSearch(VectorStore):
         self.text_field = text_field
 
     def similarity_search(
-        self, query: str, k: int = 10, subquery: Any = None, **kwargs: Any
+        self, query: str, k: int = 10, **kwargs: Any
     ) -> List[Document]:
         """Return docs most similar to the embedding vector."""
         docs_with_scores = self.similarity_search_with_score(
-            query, k, subquery, **kwargs
+            query, k, **kwargs
         )
         return [doc[0] for doc in docs_with_scores]
 
     def similarity_search_with_score(
-        self, query: str, k: int = 10, subquery: Any = None, **kwargs: Any
+        self, query: str, k: int = 10, **kwargs: Any
     ) -> List[Tuple[Document, float]]:
         """Return docs most similar to query."""
-        dsl = hybrid_query(query=query, model_id=self.model_id, vector_field=self.vector_field, k=k, subquery=subquery, **kwargs)
+        dsl = hybrid_query(query=query, model_id=self.model_id, vector_field=self.vector_field, k=k, **kwargs)
         response = self.client.search(index=self.index, body=dsl, params={"search_pipeline": self.search_pipeline} if self.search_pipeline else None)
         documents_with_scores = [
             (
