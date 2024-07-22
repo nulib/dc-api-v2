@@ -11,12 +11,7 @@ def filter(query: dict):
         }
     }
 
-def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 10, subquery: Any = None, **kwargs: Any):
-    if subquery:
-        weights = [0.5, 0.3, 0.2]
-    else:
-        weights = [0.7, 0.3]
-        
+def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 10, **kwargs: Any):
     result = {
         "size": k,
         "query": {
@@ -24,9 +19,10 @@ def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: 
                 "queries": [
                     filter({
                         "query_string": {
-                            "default_operator": "AND", 
-                            "fields": ["title^5", "all_controlled_labels", "all_ids^5"], 
-                            "query": query
+                            "operator": "AND", 
+                            "fields": ["all_titles^5", "all_controlled_labels", "all_ids^5"], 
+                            "query": query,
+                            "analyzer": "ENGLISH"
                         }
                     }),
                     filter({
@@ -47,7 +43,7 @@ def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: 
                     "normalization-processor": {
                         "combination": {
                             "parameters": {
-                                "weights": weights
+                                "weights": [0.25, 0.75]
                             },
                             "technique": "arithmetic_mean"
                         },
@@ -60,9 +56,6 @@ def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: 
         }
     }
     
-    if subquery:
-        result["query"]["hybrid"]["queries"].append(filter(subquery))
-
     for key, value in kwargs.items():
         result[key] = value
         
