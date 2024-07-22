@@ -1159,3 +1159,7 @@ Resources:
       AuthorizationType: NONE
       RouteKey: GET /docs/v2/{proxy+}
       Target: !Sub "integrations/${docsIntegration}"
+Outputs:
+  Endpoint:
+    Description: "The base API endpoint for the stack"
+    Value: !Sub "https://${CustomDomainHost}.${CustomDomainZone}/api/v2"

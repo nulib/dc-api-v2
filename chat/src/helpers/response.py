@@ -39,16 +39,7 @@ class Response:
 
     def prepare_response(self):
         try:
-            subquery = { 
-                "match": {
-                    "all_titles":  {
-                        "query": self.config.question, 
-                        "operator": "AND",
-                        "analyzer": "english"
-                    }
-                }
-            }
-            retriever = self.config.opensearch.as_retriever(search_type="similarity", search_kwargs={"k": self.config.k, "subquery": subquery, "_source": {"excludes": ["embedding"]}})
+            retriever = self.config.opensearch.as_retriever(search_type="similarity", search_kwargs={"k": self.config.k, "_source": {"excludes": ["embedding"]}})
             chain = (
                 {"context": retriever, "question": RunnablePassthrough()}
                 | self.original_question_passthrough()
