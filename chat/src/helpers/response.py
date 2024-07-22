@@ -1,4 +1,4 @@
-from helpers.metrics import token_usage
+from helpers.metrics import debug_response
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
@@ -16,23 +16,6 @@ class Response:
         self.store = {}
 
     def debug_response_passthrough(self):
-        def debug_response(config, response, original_question):
-            return {
-                "answer": response,
-                "attributes": config.attributes,
-                "azure_endpoint": config.azure_endpoint,
-                "deployment_name": config.deployment_name,
-                "is_superuser": config.api_token.is_superuser(),
-                "k": config.k,
-                "openai_api_version": config.openai_api_version,
-                "prompt": config.prompt_text,
-                "question": config.question,
-                "ref": config.ref,
-                "temperature": config.temperature,
-                "text_key": config.text_key,
-                "token_counts": token_usage(config, response, original_question),
-            }
-
         return RunnableLambda(lambda x: debug_response(self.config, x, self.original_question))
 
     def original_question_passthrough(self):
