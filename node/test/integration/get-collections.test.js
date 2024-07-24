@@ -71,5 +71,31 @@ describe("Collections route", () => {
       const url = new URL(query_url);
       expect(url.pathname).to.eq("/api/v2/search/collections");
     });
+
+    it("returns top level collection as a IIIF collection", async () => {
+      mock
+        .post("/dc-v2-collection/_search", makeQuery({ size: 10, from: 0 }))
+        .reply(200, helpers.testFixture("mocks/collections.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/collections")
+        .queryParams({ as: "iiif" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.type).to.eq("Collection");
+      expect(resultBody.label.none[0]).to.eq(
+        "Northwestern University Libraries Digital Collections"
+      );
+      expect(resultBody.summary.none[0]).to.eq(
+        "Explore digital resources from the Northwestern University Library collections – including letters, photographs, diaries, maps, and audiovisual materials."
+      );
+      expect(resultBody.items.length).to.eq(69);
+    });
   });
 });
