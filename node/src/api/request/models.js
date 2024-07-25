@@ -12,7 +12,10 @@ function extractRequestedModels(requestedModels) {
 
 function validModels(models, format) {
   if (format === "iiif") {
-    return models.length == 1 && models.every((model) => model === "works");
+    return (
+      models.length == 1 &&
+      models.every((model) => model === "works" || "collections")
+    );
   }
   return models.every(isAllowed);
 }

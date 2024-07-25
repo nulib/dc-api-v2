@@ -35,6 +35,7 @@ paths:
       tags:
         - Collection
       parameters:
+        - $ref: "./types.yaml#/components/parameters/as"
         - $ref: "./types.yaml#/components/parameters/page"
         - $ref: "./types.yaml#/components/parameters/size"
         - $ref: "./types.yaml#/components/parameters/sort"

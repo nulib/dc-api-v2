@@ -82,3 +82,50 @@ describe("IIIF Collection response transformer", () => {
     expect(body.homepage[0].id).to.contain("search?similar=1234");
   });
 });
+
+describe("IIIF Collection response for top level colllections", () => {
+  helpers.saveEnvironment();
+
+  let pager = new Paginator(
+    "http://dcapi.library.northwestern.edu/api/v2/",
+    "collections",
+    ["collections"],
+    { query: { match_all: {} } },
+    "iiif",
+    {
+      includeToken: false,
+      parameterOverrides: { as: "iiif" },
+      queryStringParameters: {
+        as: "iiif",
+        collectionLabel:
+          "Northwestern University Libraries Digital Collections",
+        collectionSummary:
+          "Explore digital resources from the Northwestern University Library collections – including letters, photographs, diaries, maps, and audiovisual materials.",
+      },
+    }
+  );
+
+  pager.pageInfo.query_url =
+    "http://dcapi.library.northwestern.edu/api/v2/collections?as=iiif";
+
+  it("transform a collection of collections response", async () => {
+    const response = {
+      statusCode: 200,
+      body: helpers.testFixture("mocks/collections.json"),
+    };
+
+    const result = await transformer.transform(response, pager);
+    expect(result.statusCode).to.eq(200);
+
+    const body = JSON.parse(result.body);
+    expect(body.type).to.eq("Collection");
+    expect(body.label.none[0]).to.eq(
+      "Northwestern University Libraries Digital Collections"
+    );
+    expect(body.summary.none[0]).to.eq(
+      "Explore digital resources from the Northwestern University Library collections – including letters, photographs, diaries, maps, and audiovisual materials."
+    );
+    expect(body.items.length).to.eq(69);
+    expect(body.items[0].type).to.eq("Collection");
+  });
+});
