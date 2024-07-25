@@ -20,7 +20,7 @@ def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: 
                     filter({
                         "query_string": {
                             "default_operator": "AND",
-                            "fields": ["all_titles^5", "all_controlled_labels", "all_ids^5"], 
+                            "fields": ["title^5", "all_controlled_labels", "all_ids^5"], 
                             "query": query,
                             "analyzer": "english"
                         }
