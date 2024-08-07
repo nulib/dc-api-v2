@@ -17,9 +17,10 @@ from websocket import Websocket
 
 CHAIN_TYPE = "stuff"
 DOCUMENT_VARIABLE_NAME = "context"
-K_VALUE = 5
+K_VALUE = 40
 MAX_K = 100
 MAX_TOKENS = 1000
+SIZE = 5
 TEMPERATURE = 0.2
 TEXT_KEY = "id"
 VERSION = "2024-02-01"
@@ -56,6 +57,7 @@ class EventConfig:
     ref: str = field(init=False)
     request_context: dict = field(init=False)
     temperature: float = field(init=False)
+    size: int = field(init=False)
     socket: Websocket = field(init=False, default=None)
     stream_response: bool = field(init=False)
     text_key: str = field(init=False)
@@ -76,6 +78,7 @@ class EventConfig:
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")
         self.ref = self.payload.get("ref")
+        self.size = self._get_size()
         self.stream_response = self.payload.get("stream_response", not self.debug_mode)
         self.temperature = self._get_temperature()
         self.text_key = self._get_text_key()
@@ -130,6 +133,9 @@ class EventConfig:
     def _get_prompt_text(self):
         return self._get_payload_value_with_superuser_check("prompt", prompt_template())
 
+    def _get_size(self):
+        return self._get_payload_value_with_superuser_check("size", SIZE)
+
     def _get_temperature(self):
         return self._get_payload_value_with_superuser_check("temperature", TEMPERATURE)
 
@@ -151,6 +157,7 @@ class EventConfig:
                 "prompt": self.prompt_text,
                 "question": self.question,
                 "ref": self.ref,
+                "size": self.ref,
                 "temperature": self.temperature,
                 "text_key": self.text_key,
             },
