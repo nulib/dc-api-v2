@@ -39,7 +39,7 @@ class Response:
 
     def prepare_response(self):
         try:
-            retriever = self.config.opensearch.as_retriever(search_type="similarity", search_kwargs={"k": self.config.k, "_source": {"excludes": ["embedding"]}})
+            retriever = self.config.opensearch.as_retriever(search_type="similarity", search_kwargs={"k": self.config.k, "size": self.config.size, "_source": {"excludes": ["embedding"]}})
             chain = (
                 {"context": retriever, "question": RunnablePassthrough()}
                 | self.original_question_passthrough()

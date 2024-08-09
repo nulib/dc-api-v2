@@ -13,7 +13,7 @@ def filter(query: dict):
 
 def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 10, **kwargs: Any):
     result = {
-        "size": k,
+        "size": kwargs.get("size", 5),
         "query": {
             "hybrid": {
                 "queries": [

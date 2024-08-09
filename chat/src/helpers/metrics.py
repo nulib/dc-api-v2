@@ -14,6 +14,7 @@ def debug_response(config, response, original_question):
         "prompt": config.prompt_text,
         "question": config.question,
         "ref": config.ref,
+        "size": config.size,
         "source_documents": source_urls,
         "temperature": config.temperature,
         "text_key": config.text_key,

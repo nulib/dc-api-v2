@@ -60,11 +60,12 @@ class TestMetrics(TestCase):
             "body": json.dumps({
                 "deployment_name": "test",
                 "index": "test",
-                "k": 5,
+                "k": 40,
                 "openai_api_version": "2019-05-06",
                 "prompt": "This is a test prompt.",
                 "question": self.question,
                 "ref": "test",
+                "size": 5,
                 "temperature": 0.5,
                 "text_key": "text",
                 "auth": "test123"
@@ -78,9 +79,10 @@ class TestMetrics(TestCase):
     def test_debug_response(self):
         result = debug_response(self.config, self.response, self.original_question)
         
-        self.assertEqual(result["k"], 5)
+        self.assertEqual(result["k"], 40)
         self.assertEqual(result["question"], self.question)
         self.assertEqual(result["ref"], "test")
+        self.assertEqual(result["size"], 5)
         self.assertEqual(
             result["source_documents"],
             [

@@ -43,6 +43,7 @@ class TestEventConfig(TestCase):
                         "openai_api_version": "2024-01-01",
                         "question": "test question",
                         "ref": "test ref",
+                        "size": 90,
                         "temperature": 0.9,
                         "text_key": "accession_number",
                     }
@@ -52,9 +53,10 @@ class TestEventConfig(TestCase):
         expected_output = {
             "attributes": EventConfig.DEFAULT_ATTRIBUTES,
             "azure_endpoint": "https://test.openai.azure.com/",
-            "k": 5,
+            "k": 40,
             "openai_api_version": "2024-02-01",
             "question": "test question",
+            "size": 5,
             "ref": "test ref",
             "temperature": 0.2,
             "text_key": "id",
