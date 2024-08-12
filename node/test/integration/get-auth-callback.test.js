@@ -28,7 +28,9 @@ describe("auth callback", function () {
     nock(process.env.NUSSO_BASE_URL)
       .get("/validate-with-directory-search-response")
       .reply(200, {
-        results: [{ uid: "uid123", displayName: ["Some User"] }],
+        results: [
+          { displayName: ["Some User"], mail: "some.user@example.com" },
+        ],
       });
 
     const result = await getAuthCallbackHandler.handler(event);
@@ -45,6 +47,36 @@ describe("auth callback", function () {
 
     expect(apiToken.token.sub).to.eq("uid123");
     expect(apiToken.token.name).to.eq("Some User");
+    expect(apiToken.token.email).to.eq("some.user@example.com");
+    expect(apiToken.isLoggedIn()).to.be.true;
+  });
+
+  it("fills in the blanks if the directory search result is incomplete", async () => {
+    nock(process.env.NUSSO_BASE_URL)
+      .get("/validate-with-directory-search-response")
+      .reply(200, {
+        results: [{ displayName: [], mail: "" }],
+      });
+
+    const result = await getAuthCallbackHandler.handler(event);
+
+    expect(result.statusCode).to.eq(302);
+    expect(result.headers.location).to.eq("https://example.com");
+
+    expect(result.cookies).to.include(
+      "redirectUrl=null; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    );
+
+    const dcApiCookie = helpers.cookieValue(
+      result.cookies,
+      process.env.API_TOKEN_NAME
+    );
+
+    const apiToken = new ApiToken(dcApiCookie.value);
+
+    expect(apiToken.token.sub).to.eq("uid123");
+    expect(apiToken.token.name).to.eq("uid123");
+    expect(apiToken.token.email).to.eq("uid123@e.northwestern.edu");
     expect(apiToken.isLoggedIn()).to.be.true;
   });
 

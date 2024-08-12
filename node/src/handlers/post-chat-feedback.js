@@ -118,7 +118,6 @@ const sendNotification = async (snsClient, subject, message) => {
     Message: message,
   });
   const response = await snsClient.send(command);
-  console.log(response);
   return response;
 };
 
