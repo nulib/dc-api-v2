@@ -61,12 +61,12 @@ async function redeemSsoToken(event) {
           },
         }
       );
-      return { ...response.data.results[0], uid: netid };
+      return fillInBlanks({ ...response.data.results[0], uid: netid });
     } catch (err) {
       if (
         BAD_DIRECTORY_SEARCH_FAULT.test(err?.response?.data?.fault?.faultstring)
       ) {
-        return redeemForNetIdOnly(netid);
+        return fillInBlanks({ uid: netid });
       }
       await Honeybadger.notifyAsync(err, { tags: ["auth", "upstream"] });
       console.error(err.response.data);
@@ -78,10 +78,25 @@ async function redeemSsoToken(event) {
   }
 }
 
-function redeemForNetIdOnly(netid) {
-  return {
-    uid: netid,
-    displayName: [netid],
-    mail: `${netid}@e.northwestern.edu`,
-  };
+function fillInBlanks(response) {
+  const { uid } = response;
+  response.displayName = ifEmpty(response.displayName, [uid]);
+  response.mail = ifEmpty(response.mail, `${uid}@e.northwestern.edu`);
+  return response;
+}
+
+function ifEmpty(val, replacement) {
+  return isEmpty(val) ? replacement : val;
+}
+
+function isEmpty(val) {
+  if (val === null || val === undefined) {
+    return true;
+  }
+
+  if (Array.isArray(val)) {
+    return val.every(isEmpty);
+  }
+
+  return val.length == 0;
 }
