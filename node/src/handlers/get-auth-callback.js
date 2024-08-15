@@ -34,16 +34,18 @@ exports.handler = wrap(async (event) => {
   return { statusCode: 400 };
 });
 
+async function invokeNuApi(path, headers) {
+  const url = new URL(process.env.NUSSO_BASE_URL);
+  url.pathname = path;
+  return await axios.get(url.toString(), {
+    headers: { apikey: process.env.NUSSO_API_KEY, ...headers },
+  });
+}
+
 async function getNetIdFromToken(nusso) {
-  const response = await axios.get(
-    `${process.env.NUSSO_BASE_URL}validateWebSSOToken`,
-    {
-      headers: {
-        apikey: process.env.NUSSO_API_KEY,
-        webssotoken: nusso,
-      },
-    }
-  );
+  const response = await invokeNuApi("/agentless-websso/validateWebSSOToken", {
+    webssotoken: nusso,
+  });
   return response?.data?.netid;
 }
 
@@ -52,14 +54,8 @@ async function redeemSsoToken(event) {
   const netid = await getNetIdFromToken(nusso);
   if (netid) {
     try {
-      const response = await axios.get(
-        `${process.env.NUSSO_BASE_URL}validate-with-directory-search-response`,
-        {
-          headers: {
-            apikey: process.env.NUSSO_API_KEY,
-            webssotoken: nusso,
-          },
-        }
+      const response = await invokeNuApi(
+        `/directory-search/res/netid/bas/${netid}`
       );
       return fillInBlanks({ ...response.data.results[0], uid: netid });
     } catch (err) {
@@ -79,10 +75,13 @@ async function redeemSsoToken(event) {
 }
 
 function fillInBlanks(response) {
-  const { uid } = response;
-  response.displayName = ifEmpty(response.displayName, [uid]);
-  response.mail = ifEmpty(response.mail, `${uid}@e.northwestern.edu`);
-  return response;
+  const { uid, displayName, givenName, mail } = response;
+  return {
+    uid,
+    givenName,
+    displayName: ifEmpty(displayName, [uid]),
+    mail: ifEmpty(mail, `${uid}@e.northwestern.edu`),
+  };
 }
 
 function ifEmpty(val, replacement) {

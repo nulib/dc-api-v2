@@ -20,13 +20,13 @@ describe("auth callback", function () {
       .render();
 
     nock(process.env.NUSSO_BASE_URL)
-      .get("/validateWebSSOToken")
+      .get("/agentless-websso/validateWebSSOToken")
       .reply(200, { netid: "uid123" });
   });
 
   it("redeems the NUSSO token", async () => {
     nock(process.env.NUSSO_BASE_URL)
-      .get("/validate-with-directory-search-response")
+      .get("/directory-search/res/netid/bas/uid123")
       .reply(200, {
         results: [
           { displayName: ["Some User"], mail: "some.user@example.com" },
@@ -53,7 +53,7 @@ describe("auth callback", function () {
 
   it("fills in the blanks if the directory search result is incomplete", async () => {
     nock(process.env.NUSSO_BASE_URL)
-      .get("/validate-with-directory-search-response")
+      .get("/directory-search/res/netid/bas/uid123")
       .reply(200, {
         results: [{ displayName: [], mail: "" }],
       });
@@ -82,7 +82,7 @@ describe("auth callback", function () {
 
   it("assembles a user object from the netID if directory search fails", async () => {
     nock(process.env.NUSSO_BASE_URL)
-      .get("/validate-with-directory-search-response")
+      .get("/directory-search/res/netid/bas/uid123")
       .reply(500, {
         fault: {
           faultstring:
