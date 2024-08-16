@@ -19,7 +19,7 @@ Globals:
     Architectures:
       - x86_64
     MemorySize: 128
-    Timeout: 3
+    Timeout: 10
     Environment:
       Variables:
         API_TOKEN_NAME: !Ref ApiTokenName
@@ -455,7 +455,6 @@ Resources:
       Description: Gets a Work's representative thumbnail.
       #* Layers:
       #*   - !Ref apiDependencies
-      Timeout: 10
       Policies:
         Version: 2012-10-17
         Statement:
