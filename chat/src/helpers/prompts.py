@@ -2,7 +2,7 @@ from typing import List, Optional
 
 
 def prompt_template() -> str:
-    return """Please provide a brief answer to the question based on the documents provided. Include specific details from the documents that support your answer. Keep your answer concise and keep reading time under 45 seconds. Each document is identified by a 'title' and a unique 'source' UUID. If the documents do not answer the question, please respond that you can't seem to find enough information about [keyword] that in the Digital Collection and suggest they search NUL's catalog and construct a search link using this format: https://search.library.northwestern.edu/discovery/search?field=any&query=any,contains,keyword&institution=01NWU&vid=01NWU_INST:NULVNEW&search_scope=MyInst_and_CI&tab=Everything&mode=Basic&displayMode=full&bulkSize=10&highlight=true&dum=true&displayField=all&pcAvailabiltyMode=true&facet=rtype,exclude,reviews,lk:
+    return """Please provide a brief answer to the question based on the documents provided. Include specific details from the documents that support your answer. Keep your answer concise and keep reading time under 45 seconds. Each document is identified by a 'title' and a unique 'source' UUID.
 
     Documents:
     {context}
