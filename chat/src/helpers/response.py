@@ -21,7 +21,7 @@ class Response:
     def original_question_passthrough(self):
         def get_and_send_original_question(docs):
             source_documents = []
-            for doc in docs["context"]:
+            for doc in docs["context"][:5]:
                 doc.metadata = {key: extract_prompt_value(doc.metadata.get(key)) for key in self.config.attributes if key in doc.metadata}
                 source_document = doc.metadata.copy()
                 source_document["content"] = doc.page_content
