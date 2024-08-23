@@ -82,7 +82,7 @@ class TestMetrics(TestCase):
         self.assertEqual(result["k"], 40)
         self.assertEqual(result["question"], self.question)
         self.assertEqual(result["ref"], "test")
-        self.assertEqual(result["size"], 5)
+        self.assertEqual(result["size"], 20)
         self.assertEqual(
             result["source_documents"],
             [
