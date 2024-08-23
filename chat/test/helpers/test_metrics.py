@@ -99,10 +99,10 @@ class TestMetrics(TestCase):
 
         expected_result = {
             "answer": 12,
-            "prompt": 322,
+            "prompt": 329,
             "question": 5,
             "source_documents": 527,
-            "total": 866
+            "total": 873
         }
 
         self.assertEqual(result, expected_result)
