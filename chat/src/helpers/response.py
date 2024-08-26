@@ -26,12 +26,17 @@ class Response:
                 source_document = doc.metadata.copy()
                 source_document["content"] = doc.page_content
                 source_documents.append(source_document)
-
-            original_question = {
+            
+            socket_message = {
                 "question": self.config.question,
                 "source_documents": source_documents[:5]
             }
-            self.config.socket.send(original_question)
+            self.config.socket.send(socket_message)
+            
+            original_question = {
+                "question": self.config.question,
+                "source_documents": source_documents
+            }
             self.original_question = original_question
 
             docs["source_documents"] = source_documents
