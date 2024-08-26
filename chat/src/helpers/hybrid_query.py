@@ -11,9 +11,9 @@ def filter(query: dict):
         }
     }
 
-def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 10, **kwargs: Any):
+def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 40, **kwargs: Any):
     result = {
-        "size": kwargs.get("size", 5),
+        "size": kwargs.get("size", 20),
         "query": {
             "hybrid": {
                 "queries": [

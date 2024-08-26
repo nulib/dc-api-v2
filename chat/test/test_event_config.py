@@ -56,7 +56,7 @@ class TestEventConfig(TestCase):
             "k": 40,
             "openai_api_version": "2024-02-01",
             "question": "test question",
-            "size": 5,
+            "size": 20,
             "ref": "test ref",
             "temperature": 0.2,
             "text_key": "id",

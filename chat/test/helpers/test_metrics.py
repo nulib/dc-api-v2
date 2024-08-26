@@ -23,38 +23,7 @@ class TestMetrics(TestCase):
         self.question = "What is your name?"
         self.original_question = {
             "question": self.question,
-            "source_documents": [
-                {
-                    "accession_number": "SourceDoc:1",
-                    "api_link": "https://api.dc.library.northwestern.edu/api/v2/works/881e8cae-67be-4e04-9970-7eafb52b2c5c",
-                    "canonical_link": "https://dc.library.northwestern.edu/items/881e8cae-67be-4e04-9970-7eafb52b2c5c",
-                    "title": "Source Document One!"
-                },
-                {
-                    "accession_number": "SourceDoc:2",
-                    "api_link": "https://api.dc.library.northwestern.edu/api/v2/works/ac0b2a0d-8f80-420a-b1a1-63b6ac2299f1",
-                    "canonical_link": "https://dc.library.northwestern.edu/items/ac0b2a0d-8f80-420a-b1a1-63b6ac2299f1",
-                    "title": "Source Document Two!"
-                },
-                {
-                    "accession_number": "SourceDoc:3",
-                    "api_link": "https://api.dc.library.northwestern.edu/api/v2/works/11569bb5-1b89-4fa9-bdfb-2caf2ded5aa5",
-                    "canonical_link": "https://dc.library.northwestern.edu/items/11569bb5-1b89-4fa9-bdfb-2caf2ded5aa5",
-                    "title": "Source Document Three!"
-                },
-                {
-                    "accession_number": "SourceDoc:4",
-                    "api_link": "https://api.dc.library.northwestern.edu/api/v2/works/211eeeca-d56e-4c6e-9123-1612d72258f9",
-                    "canonical_link": "https://dc.library.northwestern.edu/items/211eeeca-d56e-4c6e-9123-1612d72258f9",
-                    "title": "Source Document Four!"
-                },
-                {
-                    "accession_number": "SourceDoc:5",
-                    "api_link": "https://api.dc.library.northwestern.edu/api/v2/works/10e45e7a-8011-4ac5-97df-efa6a5439d0e",
-                    "canonical_link": "https://dc.library.northwestern.edu/items/10e45e7a-8011-4ac5-97df-efa6a5439d0e",
-                    "title": "Source Document Five!"
-                }
-            ],
+            "source_documents": self.generate_source_documents(20),
         }
         self.event = {
             "body": json.dumps({
@@ -75,6 +44,17 @@ class TestMetrics(TestCase):
         self.response = {
             "output_text": "This is a test response.",
         }
+
+    def generate_source_documents(self, count):
+        return [
+            {
+                "accession_number": f"SourceDoc:{i+1}",
+                "api_link": f"https://api.dc.library.northwestern.edu/api/v2/works/{i+1:0>32}",
+                "canonical_link": f"https://dc.library.northwestern.edu/items/{i+1:0>32}",
+                "title": f"Source Document {i+1}!"
+            }
+            for i in range(count)
+        ]
     
     def test_debug_response(self):
         result = debug_response(self.config, self.response, self.original_question)
@@ -82,16 +62,11 @@ class TestMetrics(TestCase):
         self.assertEqual(result["k"], 40)
         self.assertEqual(result["question"], self.question)
         self.assertEqual(result["ref"], "test")
-        self.assertEqual(result["size"], 5)
+        self.assertEqual(result["size"], 20)
+        self.assertEqual(len(result["source_documents"]), 20)
         self.assertEqual(
             result["source_documents"],
-            [
-                "https://api.dc.library.northwestern.edu/api/v2/works/881e8cae-67be-4e04-9970-7eafb52b2c5c",
-                "https://api.dc.library.northwestern.edu/api/v2/works/ac0b2a0d-8f80-420a-b1a1-63b6ac2299f1",
-                "https://api.dc.library.northwestern.edu/api/v2/works/11569bb5-1b89-4fa9-bdfb-2caf2ded5aa5",
-                "https://api.dc.library.northwestern.edu/api/v2/works/211eeeca-d56e-4c6e-9123-1612d72258f9",
-                "https://api.dc.library.northwestern.edu/api/v2/works/10e45e7a-8011-4ac5-97df-efa6a5439d0e"
-            ]
+            [doc["api_link"] for doc in self.original_question["source_documents"]]
         )
 
     def test_token_usage(self):
@@ -101,8 +76,8 @@ class TestMetrics(TestCase):
             "answer": 12,
             "prompt": 329,
             "question": 5,
-            "source_documents": 527,
-            "total": 873
+            "source_documents": 1602,
+            "total": 1948
         }
 
         self.assertEqual(result, expected_result)
