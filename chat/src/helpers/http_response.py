@@ -10,7 +10,7 @@ def extract_prompt_value(v):
     else:
         return v
 
-class Response:
+class HTTPResponse:
     def __init__(self, config):
         self.config = config
         self.store = {}
@@ -26,20 +26,13 @@ class Response:
                 source_document = doc.metadata.copy()
                 source_document["content"] = doc.page_content
                 source_documents.append(source_document)
-            
-            socket_message = {
-                "question": self.config.question,
-                "source_documents": source_documents[:5]
-            }
-            self.config.socket.send(socket_message)
-
+                
             original_question = {
                 "question": self.config.question,
-                "source_documents": source_documents
+                "source_documents": source_documents,
             }
+                
             self.original_question = original_question
-
-            docs["source_documents"] = source_documents
             return docs
         
         return RunnablePassthrough(get_and_send_original_question)
@@ -63,3 +56,5 @@ class Response:
                 "source_documents": [],
             }
         return response
+
+        

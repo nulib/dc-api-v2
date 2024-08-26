@@ -10,23 +10,21 @@ from setup import (
     openai_chat_client,
 )
 from typing import List
-from handlers.streaming_socket_callback_handler import StreamingSocketCallbackHandler
 from helpers.apitoken import ApiToken
 from helpers.prompts import document_template, prompt_template
-from websocket import Websocket
 
 CHAIN_TYPE = "stuff"
 DOCUMENT_VARIABLE_NAME = "context"
 K_VALUE = 40
 MAX_K = 100
 MAX_TOKENS = 1000
-SIZE = 20
+SIZE = 5
 TEMPERATURE = 0.2
 TEXT_KEY = "id"
 VERSION = "2024-02-01"
 
 @dataclass
-class EventConfig:
+class HTTPEventConfig:
     """
     The EventConfig class represents the configuration for an event.
     Default values are set for the following properties which can be overridden in the payload message.
@@ -58,7 +56,6 @@ class EventConfig:
     request_context: dict = field(init=False)
     temperature: float = field(init=False)
     size: int = field(init=False)
-    socket: Websocket = field(init=False, default=None)
     stream_response: bool = field(init=False)
     text_key: str = field(init=False)
 
@@ -162,18 +159,7 @@ class EventConfig:
                 "text_key": self.text_key,
             },
         }
-
-    def setup_websocket(self, socket=None):
-        if socket is None:
-            connection_id = self.request_context.get("connectionId")
-            endpoint_url = f'https://{self.request_context.get("domainName")}/{self.request_context.get("stage")}'
-            self.socket = Websocket(
-                endpoint_url=endpoint_url, connection_id=connection_id, ref=self.ref
-            )
-        else:
-            self.socket = socket
-        return self.socket
-
+    
     def setup_llm_request(self):
         self._setup_vector_store()
         self._setup_chat_client()
@@ -186,8 +172,6 @@ class EventConfig:
             azure_deployment=self.deployment_name,
             azure_endpoint=self.azure_endpoint,
             openai_api_version=self.openai_api_version,
-            callbacks=[StreamingSocketCallbackHandler(self.socket, stream=self.stream_response)],
-            streaming=True,
             max_tokens=self.max_tokens
         )
 
