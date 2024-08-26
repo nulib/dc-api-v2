@@ -21,18 +21,20 @@ class Response:
     def original_question_passthrough(self):
         def get_and_send_original_question(docs):
             source_documents = []
-            for doc in docs["context"][:5]:
+            for doc in docs["context"]:
                 doc.metadata = {key: extract_prompt_value(doc.metadata.get(key)) for key in self.config.attributes if key in doc.metadata}
                 source_document = doc.metadata.copy()
                 source_document["content"] = doc.page_content
                 source_documents.append(source_document)
-                
+
             original_question = {
                 "question": self.config.question,
-                "source_documents": source_documents,
+                "source_documents": source_documents[:5]
             }
             self.config.socket.send(original_question)
             self.original_question = original_question
+
+            docs["source_documents"] = source_documents
             return docs
         
         return RunnablePassthrough(get_and_send_original_question)
