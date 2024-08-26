@@ -32,7 +32,7 @@ class Response:
                 "source_documents": source_documents[:5]
             }
             self.config.socket.send(socket_message)
-            
+
             original_question = {
                 "question": self.config.question,
                 "source_documents": source_documents
