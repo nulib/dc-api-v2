@@ -242,6 +242,48 @@ Resources:
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
     #* Metadata:
     #*   BuildMethod: nodejs20.x
+  ChatSyncFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      #* Layers:
+      #*   - !Ref ChatDependencies
+      MemorySize: 1024
+      Handler: handlers/chat_sync.handler
+      Timeout: 300
+      Environment:
+        Variables:
+          API_TOKEN_SECRET: !Ref ApiTokenSecret
+          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
+          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
+          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
+          ENV_PREFIX: !Ref EnvironmentPrefix
+          HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
+          HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
+          HONEYBADGER_REVISION: !Ref HoneybadgerRevision
+          METRICS_LOG_GROUP: !Ref ChatMetricsLog
+          OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
+          OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
+      FunctionUrlConfig:
+        AuthType: NONE
+      Policies:
+      - Statement:
+        - Effect: Allow
+          Action:
+          - 'es:ESHttpGet'
+          - 'es:ESHttpPost'
+          Resource: '*'
+      # - Statement:
+      #   - Effect: Allow
+      #     Action:
+      #     - logs:CreateLogStream
+      #     - logs:PutLogEvents
+      #     Resource: !Sub "${ChatMetricsLog.Arn}:*"  
+    #* Metadata:
+    #*   BuildMethod: nodejs20.x
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:
