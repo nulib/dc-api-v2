@@ -501,6 +501,9 @@ components:
         embedding_model:
           type: string
           description: The name of the inference model used to generate the `embedding` from the resource's content.
+        embedding_text_length:
+          type: string
+          description: The length of the embedding text in bytes.
         file_sets:
           type: array
           description: File sets associated with the resource.
@@ -763,6 +766,7 @@ components:
         - description
         - embedding
         - embedding_model
+        - embedding_text_length
         - file_sets
         - folder_name
         - folder_number
