@@ -29,7 +29,11 @@ describe("auth callback", function () {
       .get("/directory-search/res/netid/bas/uid123")
       .reply(200, {
         results: [
-          { displayName: ["Some User"], mail: "some.user@example.com" },
+          {
+            displayName: ["Some User"],
+            mail: "some.user@example.com",
+            eduPersonPrimaryAffiliation: "staff",
+          },
         ],
       });
 
@@ -48,6 +52,7 @@ describe("auth callback", function () {
     expect(apiToken.token.sub).to.eq("uid123");
     expect(apiToken.token.name).to.eq("Some User");
     expect(apiToken.token.email).to.eq("some.user@example.com");
+    expect(apiToken.token.primaryAffiliation).to.eq("staff");
     expect(apiToken.isLoggedIn()).to.be.true;
   });
 
@@ -77,6 +82,7 @@ describe("auth callback", function () {
     expect(apiToken.token.sub).to.eq("uid123");
     expect(apiToken.token.name).to.eq("uid123");
     expect(apiToken.token.email).to.eq("uid123@e.northwestern.edu");
+    expect(apiToken.token.primaryAffiliation).to.be.undefined;
     expect(apiToken.isLoggedIn()).to.be.true;
   });
 

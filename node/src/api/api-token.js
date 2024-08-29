@@ -34,6 +34,7 @@ class ApiToken {
       name: user?.displayName?.[0],
       email: user?.mail,
       isLoggedIn: !!user,
+      primaryAffiliation: user?.primaryAffiliation,
     };
 
     return this.update();
