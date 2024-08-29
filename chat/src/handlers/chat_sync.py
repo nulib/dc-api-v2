@@ -17,8 +17,6 @@ RESPONSE_TYPES = {
 }
 
 def handler(event, context):
-    print(f'Event: {event}')
-
     config = HTTPEventConfig(event)
 
     if not config.is_logged_in:
@@ -27,7 +25,7 @@ def handler(event, context):
     if config.question is None or config.question == "":
         return {"statusCode": 400, "body": "Question cannot be blank"}
     
-    if not os.getenv("SKIP_WEAVIATE_SETUP"):
+    if not os.getenv("SKIP_LLM_REQUEST"):
         config.setup_llm_request()
         response = HTTPResponse(config)
         final_response = response.prepare_response()

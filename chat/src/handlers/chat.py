@@ -13,7 +13,7 @@ logging.getLogger('honeybadger').addHandler(logging.StreamHandler())
 RESPONSE_TYPES = {
     "base": ["answer", "ref"],
     "debug": ["answer", "attributes", "azure_endpoint", "deployment_name", "is_superuser", "k", "openai_api_version", "prompt", "question", "ref", "temperature", "text_key", "token_counts"],
-    "log": ["answer", "deployment_name", "is_superuser", "k", "openai_api_version", "prompt", "question", "ref", "size", "source_documents", "temperature", "token_counts"],
+    "log": ["answer", "deployment_name", "is_superuser", "k", "openai_api_version", "prompt", "question", "ref", "size", "source_documents", "temperature", "token_counts", "is_dev_team"],
     "error": ["question", "error", "source_documents"]
 }
 
@@ -22,7 +22,7 @@ def handler(event, context):
     socket = event.get('socket', None)
     config.setup_websocket(socket)
 
-    if not config.is_logged_in:
+    if not (config.is_logged_in or config.is_superuser):
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
 
@@ -34,16 +34,17 @@ def handler(event, context):
     if config.debug_mode:
         config.socket.send(debug_message)
 
-    if not os.getenv("SKIP_WEAVIATE_SETUP"):
+    if not os.getenv("SKIP_LLM_REQUEST"):
         config.setup_llm_request()
-        response = Response(config)
-        final_response = response.prepare_response()
-        if "error" in final_response:
-            logging.error(f'Error: {final_response["error"]}')
-            config.socket.send({"type": "error", "message": "Internal Server Error"})
-            return {"statusCode": 500, "body": "Internal Server Error"}
-        else:
-            config.socket.send(reshape_response(final_response, 'debug' if config.debug_mode else 'base'))
+
+    response = Response(config)
+    final_response = response.prepare_response()
+    if "error" in final_response:
+        logging.error(f'Error: {final_response["error"]}')
+        config.socket.send({"type": "error", "message": "Internal Server Error"})
+        return {"statusCode": 500, "body": "Internal Server Error"}
+    else:
+        config.socket.send(reshape_response(final_response, 'debug' if config.debug_mode else 'base'))
 
     log_group = os.getenv('METRICS_LOG_GROUP')
     log_stream = context.log_stream_name
