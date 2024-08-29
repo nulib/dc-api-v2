@@ -75,12 +75,14 @@ async function redeemSsoToken(event) {
 }
 
 function fillInBlanks(response) {
-  const { uid, displayName, givenName, mail } = response;
+  const { uid, displayName, eduPersonPrimaryAffiliation, givenName, mail } =
+    response;
   return {
     uid,
     givenName,
     displayName: ifEmpty(displayName, [uid]),
     mail: ifEmpty(mail, `${uid}@e.northwestern.edu`),
+    primaryAffiliation: eduPersonPrimaryAffiliation,
   };
 }
 
