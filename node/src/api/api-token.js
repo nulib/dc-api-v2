@@ -1,4 +1,8 @@
-const { apiTokenSecret, dcApiEndpoint } = require("../environment");
+const {
+  apiTokenSecret,
+  dcApiEndpoint,
+  devTeamNetIds,
+} = require("../environment");
 const jwt = require("jsonwebtoken");
 
 function emptyToken() {
@@ -35,8 +39,8 @@ class ApiToken {
       email: user?.mail,
       isLoggedIn: !!user,
       primaryAffiliation: user?.primaryAffiliation,
+      isDevTeam: !!user && user?.uid && devTeamNetIds().includes(user?.uid),
     };
-
     return this.update();
   }
 
@@ -100,6 +104,10 @@ class ApiToken {
 
   hasEntitlement(entitlement) {
     return this.token.entitlements.has(entitlement);
+  }
+
+  isDevTeam() {
+    return this.token.isDevTeam;
   }
 
   isLoggedIn() {
