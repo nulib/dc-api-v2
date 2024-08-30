@@ -26,6 +26,7 @@ Globals:
         API_TOKEN_SECRET: !Ref ApiTokenSecret
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
+        DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
         OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
         ENV_PREFIX: !Ref EnvironmentPrefix
         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
@@ -63,6 +64,9 @@ Parameters:
   DcUrl:
     Type: String
     Description: URL of Digital Collections website
+  DevTeamNetIds:
+    Type: String
+    Description: Northwestern NetIDs of the development team
   FfmpegLayer:
     Type: String
     Description: "FFMPEG Lambda Layer ARN"

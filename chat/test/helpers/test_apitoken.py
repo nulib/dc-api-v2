@@ -1,15 +1,16 @@
 # ruff: noqa: E402
 import os
 import sys
+
 sys.path.append('./src')
 
 from helpers.apitoken import ApiToken
-from test.fixtures.apitoken import SUPER_TOKEN, TEST_SECRET, TEST_TOKEN
+from test.fixtures.apitoken import DEV_TEAM_TOKEN, SUPER_TOKEN, TEST_SECRET, TEST_TOKEN
 from unittest import mock, TestCase
 
 
 
-
+@mock.patch.dict(os.environ, {"DEV_TEAM_NET_IDS": "abc123"})
 @mock.patch.dict(os.environ, {"API_TOKEN_SECRET": TEST_SECRET})
 class TestFunction(TestCase):
     def test_empty_token(self):
@@ -28,6 +29,11 @@ class TestFunction(TestCase):
         self.assertIsInstance(subject, ApiToken)
         self.assertTrue(subject.is_logged_in())
         self.assertTrue(subject.is_superuser())
+
+    def test_devteam_token(self):
+        subject = ApiToken(DEV_TEAM_TOKEN)
+        self.assertIsInstance(subject, ApiToken)
+        self.assertTrue(subject.is_dev_team())
 
     def test_invalid_token(self):
         subject = ApiToken("INVALID_TOKEN")

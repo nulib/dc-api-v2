@@ -74,6 +74,21 @@ describe("ApiToken", function () {
     });
   });
 
+  describe("isDevTeam", function () {
+    it("sets the isDevTeam flag to true", async () => {
+      const user = {
+        uid: "abc123",
+        displayName: ["A. Developer"],
+        mail: "user@example.com",
+      };
+      const token = new ApiToken();
+      token.user(user);
+
+      expect(token.isDevTeam()).to.be.true;
+      expect(token.isLoggedIn()).to.be.true;
+    });
+  });
+
   describe("entitlements", function () {
     it("addEntitlement() adds an entitlement to the token", async () => {
       const payload = {

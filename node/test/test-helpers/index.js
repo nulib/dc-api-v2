@@ -11,6 +11,7 @@ const TestEnvironment = {
   API_TOKEN_NAME: "dcapiTEST",
   DC_URL: "https://thisisafakedcurl",
   DC_API_ENDPOINT: "https://thisisafakeapiurl",
+  DEV_TEAM_NET_IDS: "abc123,def456",
   NUSSO_BASE_URL: "https://nusso-base.com/",
   NUSSO_API_KEY: "abc123",
   WEBSOCKET_URI: "wss://thisisafakewebsocketapiurl",

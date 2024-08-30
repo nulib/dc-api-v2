@@ -8,6 +8,7 @@ def debug_response(config, response, original_question):
         "attributes": config.attributes,
         "azure_endpoint": config.azure_endpoint,
         "deployment_name": config.deployment_name,
+        "is_dev_team": config.api_token.is_dev_team(),
         "is_superuser": config.api_token.is_superuser(),
         "k": config.k,
         "openai_api_version": config.openai_api_version,

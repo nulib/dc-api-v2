@@ -40,6 +40,10 @@ function dcUrl() {
   return process.env.DC_URL;
 }
 
+function devTeamNetIds() {
+  return process.env.DEV_TEAM_NET_IDS.split(",");
+}
+
 function openSearchEndpoint() {
   return process.env.OPENSEARCH_ENDPOINT;
 }
@@ -61,6 +65,7 @@ module.exports = {
   appInfo,
   dcApiEndpoint,
   dcUrl,
+  devTeamNetIds,
   openSearchEndpoint,
   prefix,
   region,
