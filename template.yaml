@@ -200,6 +200,30 @@ Resources:
             ApiId: !Ref dcApi
             Path: /auth/logout
             Method: GET
+  getAuthTokenFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-auth-token.handler
+      Description: Function to retrieve raw JWT.
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Environment:
+        Variables:
+          NUSSO_API_KEY: !Ref NussoApiKey
+          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/token
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /auth/token
+            Method: HEAD
   getAuthWhoAmIFunction:
     Type: AWS::Serverless::Function
     Properties:
