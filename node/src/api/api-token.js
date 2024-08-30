@@ -10,6 +10,7 @@ function emptyToken() {
     isLoggedIn: false,
   };
 }
+
 class ApiToken {
   constructor(signedToken) {
     if (signedToken) {
@@ -73,6 +74,10 @@ class ApiToken {
   expire() {
     this._shouldExpire = true;
     return this.update();
+  }
+
+  expireAt(dateTime) {
+    this.token.exp = Math.floor(Number(dateTime) / 1000);
   }
 
   update() {
