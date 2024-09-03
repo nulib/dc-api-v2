@@ -22,13 +22,85 @@ tags:
   - name: Search
     description: >
       Endpoints for searching the index.
+  - name: Authentication
+    description: >
+      Endpoints for authenticating and obtaining information about the current user.
   - name: OAI-PMH
     description: >
       Endpoint implementing the Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH).
       As OAI-PMH is not a REST protocol, it is difficult to represent using OpenAPI/Swagger documentation.
       For full documentation and examples, please see the [official specification](https://www.openarchives.org/pmh/).
       Note: all 'from' and 'until' query parameters are required to follow the format: 'YYYY:MM:DDThh:mm:ss.ffffffZ'. If you do not need nanosecond precision for your request, then pad the date with zero values, e.g. '2023-01-13T00:00:00.000000Z'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  
+security:
+  - anonymous: []
+  - bearerAuth: []
 paths:
+  /auth/login:
+    get:
+      operationId: getAuthLogin
+      description: Initiate a user login
+      tags:
+        - Authentication
+      parameters:
+        - name: goto
+          in: query
+          required: false
+          description: URL to redirect to after login
+          schema:
+            type: string
+            format: uri
+            default: /auth/whoami
+      responses:
+        302:
+          description: A redirect to the login page
+  /auth/token:
+    get:
+      operationId: getAuthToken
+      description: Obtain a bearer auth token for the logged in user
+      tags:
+        - Authentication
+      parameters:
+        - name: ttl
+          in: query
+          required: false
+          description: TTL in seconds for the token expiration
+          schema:
+            type: number
+            minimum: 0
+            maximum: 604800
+            default: 86400
+      responses:
+        200:
+          description: Authentication token response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires:
+                    type: string
+                    format: date-time
+  /auth/whoami:
+    get:
+      operationId: getAuthWhoami
+      description: Obtain information about the logged in user
+      tags:
+        - Authentication
+      responses:
+        200:
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
   /collections:
     get:
       operationId: getCollections
