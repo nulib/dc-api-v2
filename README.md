@@ -162,11 +162,11 @@ In a nutshell:
 2. Edit the Markdown files in the `docs/docs` directory.
 3. To run `mkdocs` locally and preview your work:
    ```shell
-   pip install poetry # only has to be done once
    cd docs
-   poetry install
+   python -m venv ./.venv
+   pip install -r requirements.txt
    sg open all 8000
-   poetry run mkdocs serve -a 0.0.0.0:8000
+   mkdocs serve -a 0.0.0.0:8000
    ```
    Docs will be accessible at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/
 

@@ -11,7 +11,9 @@ exports.handler = wrap(async (event) => {
   const callbackUrl = `${dcApiEndpoint()}/auth/callback`;
   const url = `${process.env.NUSSO_BASE_URL}get-ldap-redirect-url`;
   const returnPath =
-    event.queryStringParameters?.goto || event.headers?.referer;
+    event.queryStringParameters?.goto ||
+    event.headers?.referer ||
+    `${dcApiEndpoint()}/auth/whoami`;
 
   if (!returnPath) {
     return {
