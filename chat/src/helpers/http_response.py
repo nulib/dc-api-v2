@@ -27,6 +27,8 @@ class HTTPResponse:
                 source_document["content"] = doc.page_content
                 source_documents.append(source_document)
                 
+            self.context = source_documents
+
             original_question = {
                 "question": self.config.question,
                 "source_documents": source_documents,
@@ -49,6 +51,7 @@ class HTTPResponse:
                 | self.debug_response_passthrough()
             )
             response = chain.invoke(self.config.question)
+            response["context"] = self.context
         except Exception as err:
             response = {
                 "question": self.config.question,
