@@ -10,8 +10,8 @@ honeybadger.configure()
 logging.getLogger('honeybadger').addHandler(logging.StreamHandler())
 
 RESPONSE_TYPES = {
-    "base": ["answer", "ref"],
-    "debug": ["answer", "attributes", "azure_endpoint", "deployment_name", "is_superuser", "k", "openai_api_version", "prompt", "question", "ref", "temperature", "text_key", "token_counts"],
+    "base": ["answer", "ref", "context"],
+    "debug": ["answer", "attributes", "azure_endpoint", "deployment_name", "is_superuser", "k", "openai_api_version", "prompt", "question", "ref", "temperature", "text_key", "token_counts", "context"],
     "log": ["answer", "deployment_name", "is_superuser", "k", "openai_api_version", "prompt", "question", "ref", "size", "source_documents", "temperature", "token_counts"],
     "error": ["question", "error", "source_documents"]
 }
