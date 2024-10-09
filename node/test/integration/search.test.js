@@ -206,5 +206,55 @@ describe("Search routes", () => {
         "?sort=create_date%3Aasc%2Cmodified_date%3Adesc"
       );
     });
+
+    it("allows excluding fields via query string parameters for GET requests", async () => {
+      const originalQuery = {
+        query: { query_string: { query: "*" } },
+        _source: { exclude: ["title"] },
+      };
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .queryParams({ _source_excludes: "title" })
+        .render();
+      const authQuery = new RequestPipeline(originalQuery)
+        .authFilter(helpers.preprocess(event))
+        .toJson();
+
+      mock
+        .post("/dc-v2-work/_search", authQuery)
+        .reply(200, helpers.testFixture("mocks/search.json"));
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.pagination.query_url).to.contain(
+        "?_source_excludes=title"
+      );
+    });
+
+    it("allows including fields via query string parameters for GET requests", async () => {
+      const originalQuery = {
+        query: { query_string: { query: "*" } },
+        _source: { include: ["title", "accession_number"] },
+      };
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .queryParams({ _source_includes: "title,accession_number" })
+        .render();
+      const authQuery = new RequestPipeline(originalQuery)
+        .authFilter(helpers.preprocess(event))
+        .toJson();
+
+      mock
+        .post("/dc-v2-work/_search", authQuery)
+        .reply(200, helpers.testFixture("mocks/search.json"));
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.pagination.query_url).to.contain(
+        "?_source_includes=title%2Caccession_number"
+      );
+    });
   });
 });
