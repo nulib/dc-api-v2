@@ -96,6 +96,26 @@ const constructSearchContext = async (event) => {
   searchContext.size = queryStringParameters.size || searchContext.size || 10;
   searchContext.from = queryStringParameters.from || searchContext.from || 0;
 
+  if (
+    queryStringParameters?._source_excludes ||
+    searchContext._source?.exclude
+  ) {
+    searchContext._source = searchContext._source || {};
+    searchContext._source.exclude =
+      queryStringParameters?._source_excludes.split(",") ||
+      searchContext._source.exclude;
+  }
+
+  if (
+    queryStringParameters?._source_includes ||
+    searchContext._source?.include
+  ) {
+    searchContext._source = searchContext._source || {};
+    searchContext._source.include =
+      queryStringParameters?._source_includes.split(",") ||
+      searchContext._source.include;
+  }
+
   if (queryStringParameters?.sort || searchContext.sort)
     searchContext.sort =
       parseSortParameter(queryStringParameters) || searchContext.sort;
@@ -104,7 +124,6 @@ const constructSearchContext = async (event) => {
     const page = Number(queryStringParameters.page || 1);
     searchContext.from = (page - 1) * searchContext.size;
   }
-
   return searchContext;
 };
 

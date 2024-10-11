@@ -60,6 +60,20 @@ components:
       description: Comma-delimited list of fields to sort search results (e.g. "create_date:asc,modified_date:desc")
       schema:
         type: string
+    _source_excludes:
+      name: _source_excludes
+      in: query
+      required: false
+      description: Comma-delimited list of fields to exclude from search results (e.g. "embedding,embedding_text_length")
+      schema:
+        type: string
+    _source_includes:
+      name: _source_includes
+      in: query
+      required: false
+      description: Comma-delimited list of fields to include in search results (e.g. "title,accession_number")
+      schema:
+        type: string
     as:
       name: as
       in: query
