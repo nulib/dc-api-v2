@@ -26,6 +26,11 @@ components:
         id:
           type: string
           format: uuuid
+        iiif_collection:
+          type: string
+          format: uri
+          nullable: true
+          desciption: IIIF collection url 
         indexed_at:
           type: string
           format: date-time
@@ -57,6 +62,7 @@ components:
         - featured
         - finding_aid_url
         - id
+        - iiif_collection
         - indexed_at
         - keywords
         - modified_date
