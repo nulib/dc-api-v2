@@ -196,8 +196,8 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
+      Layers:
+        - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat.handler
       Timeout: 300
@@ -230,8 +230,8 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
-    #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    Metadata:
+      BuildMethod: nodejs20.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -239,8 +239,8 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
+      Layers:
+        - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat_sync.handler
       Timeout: 300
