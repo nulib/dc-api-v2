@@ -6,7 +6,9 @@
 # layer from the build.
 
 AWSTemplateFormatVersion: "2010-09-09"
-Transform: AWS::Serverless-2016-10-31
+Transform:
+  - AWS::Serverless-2016-10-31
+  - AWS::LanguageExtensions
 Description: >
   dc-api-v2
 
@@ -27,12 +29,12 @@ Globals:
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
         DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
-        OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
         ENV_PREFIX: !Ref EnvironmentPrefix
         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
         HONEYBADGER_ENV: !Ref HoneybadgerEnv
         HONEYBADGER_REVISION: !Ref HoneybadgerRevision
         READING_ROOM_IPS: !Ref ReadingRoomIPs
+        SECRETS_PATH: !Ref SecretsPath
 Parameters:
   ApiTokenName:
     Type: String
@@ -40,15 +42,6 @@ Parameters:
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
-  AzureOpenaiApiKey:
-    Type: String
-    Description: Azure OpenAI API Key
-  AzureOpenaiLlmDeploymentId:
-    Type: String
-    Description: Azure OpenAI LLM Deployment ID
-  AzureOpenaiResourceName:
-    Type: String
-    Description: Azure OpenAI Resource Name
   CustomDomainCertificateArn:
     Type: String
     Description: SSL Certificate for the Custom Domain Name
@@ -71,12 +64,6 @@ Parameters:
     Type: String
     Description: "FFMPEG Lambda Layer ARN"
     Default: "arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:11"
-  OpenSearchModelId:
-    Type: String
-    Description: OpenSearch Model ID
-  OpenSearchEndpoint:
-    Type: String
-    Description: OpenSearch endpoint
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -109,48 +96,79 @@ Parameters:
     Type: String
     Description: MediaConvert role ARN
     Default: ""
-  NussoApiKey:
-    Type: String
-    Description: API key for auth server
-  NussoBaseUrl:
-    Type: String
-    Description: Auth server URL
   PyramidBucket:
     Type: String
-    Description: Meadow pyramid bucket
+    Description: Meadow Pyramid Bucket
   ReadingRoomIPs:
     Type: String
     Description: Comma-delimited list of IP addresses to serve private resources to
   RepositoryEmail:
     Type: String
     Description: Verified email address to use as sender
+  SecretsPath:
+    Type: String
+    Description: Prefix to use when loading configs from Secrets Manager
   StreamingBucket:
     Type: String
-    Description: Meadow streaming bucket
+    Description: Meadow Streaming Bucket
 Resources:
-  #* apiDependencies:
-  #*   Type: AWS::Serverless::LayerVersion
-  #*   Properties:
-  #*     LayerName: !Sub "${AWS::StackName}-api-dependencies"
-  #*     Description: Dependencies for API handlers
-  #*     ContentUri: ./layers/api_dependencies
-  #*     CompatibleRuntimes:
-  #*       - nodejs20.x
-  #*     LicenseInfo: Apache-2.0
-  #*   Metadata:
-  #*     BuildMethod: nodejs20.x
+  apiDependencies:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${AWS::StackName}-api-dependencies"
+      Description: Dependencies for API handlers
+      ContentUri: ./layers/api_dependencies
+      CompatibleRuntimes:
+        - nodejs20.x
+      LicenseInfo: Apache-2.0
+    Metadata:
+      BuildMethod: nodejs20.x
+  # Configuration
+  apiConfiguration:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub "${SecretsPath}/config/dcapi"
+      SecretString:
+        Fn::ToJsonString:
+          api_token_secret: !Ref ApiTokenSecret
+          base_url: !Sub "https://${CustomDomainHost}.${CustomDomainZone}/api/v2"
+  readSecretsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: GetSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretsPath}/*"
+          - Sid: BatchGetSecrets
+            Effect: Allow
+            Action:
+              - secretsmanager:BatchGetSecretValue
+            Resource: "*"
+  readIndexPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ESHTTPPolicy
+            Effect: Allow
+            Action:
+              - es:ESHttp*
+            Resource: "*"
   # V2 API
   getAuthCallbackFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers/get-auth-callback.handler
       Description: NUSSO callback function.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          NUSSO_API_KEY: !Ref NussoApiKey
-          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -169,12 +187,10 @@ Resources:
     Properties:
       Handler: handlers/get-auth-login.handler
       Description: Performs NUSSO login.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          NUSSO_API_KEY: !Ref NussoApiKey
-          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -187,12 +203,10 @@ Resources:
     Properties:
       Handler: handlers/get-auth-logout.handler
       Description: Performs NUSSO logout.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          NUSSO_API_KEY: !Ref NussoApiKey
-          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -205,12 +219,10 @@ Resources:
     Properties:
       Handler: handlers/get-auth-token.handler
       Description: Function to retrieve raw JWT.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          NUSSO_API_KEY: !Ref NussoApiKey
-          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -229,12 +241,10 @@ Resources:
     Properties:
       Handler: handlers/get-auth-whoami.handler
       Description: Exchanges valid JWT token for user information.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          NUSSO_API_KEY: !Ref NussoApiKey
-          NUSSO_BASE_URL: !Ref NussoBaseUrl
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -247,16 +257,11 @@ Resources:
     Properties:
       Handler: handlers/get-collections.handler
       Description: Gets Collections.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -275,16 +280,11 @@ Resources:
     Properties:
       Handler: handlers/get-collection-by-id.handler
       Description: Gets a Collection by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -303,16 +303,11 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-by-id.handler
       Description: Gets a FileSet by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -331,19 +326,14 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-auth.handler
       Description: Authorizes access to a file set.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -362,8 +352,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-download.handler
       Description: Downloads a file set.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Environment:
         Variables:
           STEP_FUNCTION_ENDPOINT: !Ref AWS::NoValue
@@ -383,24 +373,20 @@ Resources:
           GET_DOWNLOAD_LINK_FUNCTION: !GetAtt getDownloadLinkFunction.Arn
           SEND_TEMPLATED_EMAIL_FUNCTION: !GetAtt sendTemplatedEmailFunction.Arn
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-          - Sid: ExecuteAVDownloadStepFunction
-            Effect: Allow
-            Action:
-              - states:StartExecution
-            Resource:
-              - !Ref avDownloadStateMachine
-          - Sid: BucketAccess
-            Effect: Allow
-            Action:
-              - s3:GetObject
-            Resource: !Sub "arn:aws:s3:::${PyramidBucket}/*"
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: ExecuteAVDownloadStepFunction
+              Effect: Allow
+              Action:
+                - states:StartExecution
+              Resource:
+                - !Ref avDownloadStateMachine
+            - Sid: BucketAccess
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub "arn:aws:s3:::${PyramidBucket}/*"
       Events:
         ApiGet:
           Type: HttpApi
@@ -419,19 +405,14 @@ Resources:
     Properties:
       Handler: handlers/get-work-auth.handler
       Description: Authorizes access to a work.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -450,19 +431,14 @@ Resources:
     Properties:
       Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -481,16 +457,11 @@ Resources:
     Properties:
       Handler: handlers/get-thumbnail.handler
       Description: Gets a Work's representative thumbnail.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         CollectionApiGet:
           Type: HttpApi
@@ -522,16 +493,11 @@ Resources:
       Handler: handlers/get-similar.handler
       Timeout: 100
       Description: Gets works similar to a specific work.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         WorkApiGet:
           Type: HttpApi
@@ -550,16 +516,11 @@ Resources:
     Properties:
       Handler: handlers/search.postSearch
       Description: Handles OpenSearch search requests, Works only by default.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         SearchApi:
           Type: HttpApi
@@ -578,16 +539,11 @@ Resources:
     Properties:
       Handler: handlers/search.getSearch
       Description: Handles paging requests
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         SearchApiGet:
           Type: HttpApi
@@ -619,8 +575,10 @@ Resources:
       Handler: handlers/options-request.handler
       Timeout: 3
       Description: Handles all OPTIONS requests
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         Everything:
           Type: HttpApi
@@ -633,16 +591,11 @@ Resources:
     Properties:
       Handler: handlers/get-shared-link-by-id.handler
       Description: Gets a shared link document by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         ApiGet:
           Type: HttpApi
@@ -661,17 +614,12 @@ Resources:
     Properties:
       Handler: handlers/oai.handler
       Description: Transforms works into OAI Records.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Timeout: 60
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - !Ref readIndexPolicy
       Events:
         GetApiGet:
           Type: HttpApi
@@ -697,25 +645,24 @@ Resources:
       Location: ./chat/template.yaml
       Parameters:
         ApiTokenSecret: !Ref ApiTokenSecret
-        AzureOpenaiApiKey: !Ref AzureOpenaiApiKey
-        AzureOpenaiLlmDeploymentId: !Ref AzureOpenaiLlmDeploymentId
-        AzureOpenaiResourceName: !Ref AzureOpenaiResourceName
         EnvironmentPrefix: !Ref EnvironmentPrefix
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
         HoneybadgerEnv: !Ref HoneybadgerEnv
         HoneybadgerRevision: !Ref HoneybadgerRevision
-        OpenSearchEndpoint: !Ref OpenSearchEndpoint
-        OpenSearchModelId: !Ref OpenSearchModelId
+        SecretsPath: !Ref SecretsPath
+        SecretsPolicy: !Ref readSecretsPolicy
   chatWebsocketEndpoint:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers/get-chat-endpoint.handler
       Description: Returns the URI of the chat websocket API.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Environment:
         Variables:
           WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         GetApiGet:
           Type: HttpApi
@@ -728,25 +675,26 @@ Resources:
     Properties:
       Handler: handlers/post-chat-feedback.handler
       Description: Handles feedback from the chat.
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
       Environment:
         Variables:
           CHAT_FEEDBACK_BUCKET: !Ref chatFeedbackBucket
           CHAT_FEEDBACK_TOPIC_ARN: !Ref chatFeedbackTopic
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: BucketAccess
-            Effect: Allow
-            Action:
-              - s3:PutObject
-            Resource: !Sub "arn:aws:s3:::${chatFeedbackBucket}/*"
-          - Sid: TopicAccess
-            Effect: Allow
-            Action:
-              - sns:Publish
-            Resource: !Ref chatFeedbackTopic
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: BucketAccess
+              Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub "arn:aws:s3:::${chatFeedbackBucket}/*"
+            - Sid: TopicAccess
+              Effect: Allow
+              Action:
+                - sns:Publish
+              Resource: !Ref chatFeedbackTopic
       Events:
         PostApi:
           Type: HttpApi
@@ -773,8 +721,10 @@ Resources:
       Handler: handlers/default-request.handler
       Timeout: 3
       Description: Handles all other requests
-      #* Layers:
-      #*   - !Ref apiDependencies
+      Layers:
+        - !Ref apiDependencies
+      Policies:
+        - !Ref readSecretsPolicy
       Events:
         Everything:
           Type: HttpApi
@@ -790,18 +740,19 @@ Resources:
       DefinitionUri: ./state_machines/av_download.json
       Name: !Sub "${AWS::StackName}-av-download-state-machine"
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: LambaInvokePermissions
-            Effect: Allow
-            Action:
-              - lambda:InvokeFunction
-            Resource:
-              - !GetAtt startAudioTranscodeFunction.Arn
-              - !GetAtt startTranscodeFunction.Arn
-              - !GetAtt transcodeStatusFunction.Arn
-              - !GetAtt getDownloadLinkFunction.Arn
-              - !GetAtt sendTemplatedEmailFunction.Arn
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: LambaInvokePermissions
+              Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource:
+                - !GetAtt startAudioTranscodeFunction.Arn
+                - !GetAtt startTranscodeFunction.Arn
+                - !GetAtt transcodeStatusFunction.Arn
+                - !GetAtt getDownloadLinkFunction.Arn
+                - !GetAtt sendTemplatedEmailFunction.Arn
   avDownloadEmailTemplate:
     Type: AWS::SES::Template
     Properties:
@@ -1009,13 +960,14 @@ Resources:
       Layers:
         - !Ref FfmpegLayer
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: BucketAccess
-            Effect: Allow
-            Action:
-              - s3:PutObject
-            Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: BucketAccess
+              Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
       Environment:
         Variables:
           MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
@@ -1032,19 +984,20 @@ Resources:
           MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
           MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: PassMediaConvertRole
-            Effect: Allow
-            Action:
-              - iam:PassRole
-            Resource:
-              - !Ref MediaConvertRoleArn
-          - Sid: StartTranscodeJob
-            Effect: Allow
-            Action:
-              - mediaconvert:CreateJob
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: PassMediaConvertRole
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !Ref MediaConvertRoleArn
+            - Sid: StartTranscodeJob
+              Effect: Allow
+              Action:
+                - mediaconvert:CreateJob
+              Resource: "*"
   transcodeStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1056,14 +1009,15 @@ Resources:
         Variables:
           MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: TranscodeJobStatus
-            Effect: Allow
-            Action:
-              - mediaconvert:GetJob
-              - mediaconvert:ListJobs
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: TranscodeJobStatus
+              Effect: Allow
+              Action:
+                - mediaconvert:GetJob
+                - mediaconvert:ListJobs
+              Resource: "*"
   getDownloadLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1072,13 +1026,14 @@ Resources:
       Handler: get-download-link.handler
       Description: Creates presigned url
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: BucketAccess
-            Effect: Allow
-            Action:
-              - s3:GetObject
-            Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: BucketAccess
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -1087,13 +1042,14 @@ Resources:
       Handler: send-templated-email.handler
       Description: Sends email
       Policies:
-        Version: 2012-10-17
-        Statement:
-          - Sid: SESSendEmail
-            Effect: Allow
-            Action:
-              - ses:SendTemplatedEmail
-            Resource: "*"
+        - !Ref readSecretsPolicy
+        - Version: 2012-10-17
+          Statement:
+            - Sid: SESSendEmail
+              Effect: Allow
+              Action:
+                - ses:SendTemplatedEmail
+              Resource: "*"
 
   # API Gateway Resources
   dcApi:

@@ -1,3 +1,4 @@
+import secrets # noqa
 import boto3
 import json
 import logging
