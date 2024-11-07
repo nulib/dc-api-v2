@@ -5,6 +5,7 @@ const EventBuilder = require("./event-builder.js");
 
 process.env.HONEYBADGER_DISABLED = "true";
 process.env.HONEYBADGER_ENV = "test";
+process.env.__SKIP_SECRETS__ = "true";
 
 const TestEnvironment = {
   API_TOKEN_SECRET: "abc123",
