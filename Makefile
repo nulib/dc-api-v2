@@ -60,7 +60,7 @@ style-python: deps-python
 style-python-fix: deps-python
 	cd chat && ruff check --fix . 
 test-python: deps-python
-	cd chat && SKIP_LLM_REQUEST=True PYTHONPATH=src:test python -m unittest discover -v
+	cd chat && __SKIP_SECRETS__=true SKIP_LLM_REQUEST=True PYTHONPATH=src:test python -m unittest discover -v
 python-version:
 	cd chat && python --version
 build: .aws-sam/build.toml
