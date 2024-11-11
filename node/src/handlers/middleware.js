@@ -59,7 +59,12 @@ const _initializeEnvironment = async function () {
     secrets[Name.split("/").reverse()[0]] = JSON.parse(SecretString);
   }
 
-  putenv("OPENSEARCH_ENDPOINT", secrets.index?.endpoint);
+  let { endpoint } = secrets.index;
+  if (URL.canParse(endpoint)) {
+    endpoint = new URL(endpoint).hostname;
+  }
+
+  putenv("OPENSEARCH_ENDPOINT", endpoint);
   putenv("OPENSEARCH_MODEL_ID", secrets.index?.embedding_model);
   putenv("NUSSO_API_KEY", secrets.nusso?.api_key);
   putenv("NUSSO_BASE_URL", secrets.nusso?.base_url);

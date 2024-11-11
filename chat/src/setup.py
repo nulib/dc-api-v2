@@ -2,6 +2,7 @@ from langchain_openai import AzureChatOpenAI
 from handlers.opensearch_neural_search import OpenSearchNeuralSearch
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+from urllib.parse import urlparse
 import os
 import boto3
 
@@ -16,10 +17,18 @@ def openai_chat_client(**kwargs):
         **kwargs,
     )
 
+def opensearch_endpoint():
+    endpoint = os.getenv("OPENSEARCH_ENDPOINT")
+    parsed = urlparse(endpoint)
+    if parsed.netloc != '':
+        return parsed.netloc
+    else:
+        return endpoint
+    
 def opensearch_client(region_name=os.getenv("AWS_REGION")):
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(region=region_name, service="es", refreshable_credentials=session.get_credentials())
-    endpoint = os.getenv("OPENSEARCH_ENDPOINT")
+    endpoint = opensearch_endpoint()
 
     return OpenSearch(
         hosts=[{'host': endpoint, 'port': 443}],
@@ -35,7 +44,7 @@ def opensearch_vector_store(region_name=os.getenv("AWS_REGION")):
     docsearch = OpenSearchNeuralSearch(
         index=prefix("dc-v2-work"),
         model_id=os.getenv("OPENSEARCH_MODEL_ID"),
-        endpoint=os.getenv("OPENSEARCH_ENDPOINT"),
+        endpoint=opensearch_endpoint(),
         connection_class=RequestsHttpConnection,
         http_auth=awsauth,
         text_field= "id"
