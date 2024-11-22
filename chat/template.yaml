@@ -5,15 +5,6 @@ Parameters:
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
-  AzureOpenaiApiKey:
-    Type: String
-    Description: Azure OpenAI API Key
-  AzureOpenaiLlmDeploymentId:
-    Type: String
-    Description: Azure OpenAI LLM Deployment ID
-  AzureOpenaiResourceName:
-    Type: String
-    Description: Azure OpenAI Resource Name
   EnvironmentPrefix:
     Type: String
     Description: Prefix for Index names
@@ -30,12 +21,12 @@ Parameters:
     Type: String
     Description: Honeybadger Revision
     Default: ""
-  OpenSearchEndpoint:
+  SecretsPath:
     Type: String
-    Description: OpenSearch Endpoint
-  OpenSearchModelId:
+    Description: Prefix to use when loading configs from Secrets Manager
+  SecretsPolicy:
     Type: String
-    Description: OpenSearch Model ID
+    Description: Policy that allows reading of required secrets
 Resources:
   ApiGwAccountConfig:
     Type: "AWS::ApiGateway::Account"
@@ -184,18 +175,18 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ChatFunction
       Principal: apigateway.amazonaws.com
-  #* ChatDependencies:
-  #*   Type: AWS::Serverless::LayerVersion
-  #*   Properties:
-  #*     LayerName:
-  #*       Fn::Sub: "${AWS::StackName}-dependencies"
-  #*     Description: Dependencies for streaming chat function
-  #*     ContentUri: ./dependencies
-  #*     CompatibleRuntimes:
-  #*       - python3.10
-  #*     LicenseInfo: "Apache-2.0"
-  #*   Metadata:
-  #*     BuildMethod: python3.10
+  ChatDependencies:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: "${AWS::StackName}-dependencies"
+      Description: Dependencies for streaming chat function
+      ContentUri: ./dependencies
+      CompatibleRuntimes:
+        - python3.10
+      LicenseInfo: "Apache-2.0"
+    Metadata:
+      BuildMethod: python3.10
   ChatFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -203,25 +194,22 @@ Resources:
       Runtime: python3.10
       Architectures:
         - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
+      Layers:
+        - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat.handler
       Timeout: 300
       Environment:
         Variables:
           API_TOKEN_SECRET: !Ref ApiTokenSecret
-          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
-          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
-          OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
-          OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
+          SECRETS_PATH: !Ref SecretsPath
       Policies:
+      - !Ref SecretsPolicy
       - Statement:
         - Effect: Allow
           Action:
@@ -240,8 +228,8 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
-    #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    Metadata:
+      BuildMethod: nodejs20.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -249,27 +237,24 @@ Resources:
       Runtime: python3.10
       Architectures:
         - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
+      Layers:
+        - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat_sync.handler
       Timeout: 300
       Environment:
         Variables:
           API_TOKEN_SECRET: !Ref ApiTokenSecret
-          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
-          AZURE_OPENAI_LLM_DEPLOYMENT_ID: !Ref AzureOpenaiLlmDeploymentId
-          AZURE_OPENAI_RESOURCE_NAME: !Ref AzureOpenaiResourceName
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
-          OPENSEARCH_ENDPOINT: !Ref OpenSearchEndpoint
-          OPENSEARCH_MODEL_ID: !Ref OpenSearchModelId
+          SECRETS_PATH: !Ref SecretsPath
       FunctionUrlConfig:
         AuthType: NONE
       Policies:
+      - !Ref SecretsPolicy
       - Statement:
         - Effect: Allow
           Action:
@@ -282,8 +267,8 @@ Resources:
       #     - logs:CreateLogStream
       #     - logs:PutLogEvents
       #     Resource: !Sub "${ChatMetricsLog.Arn}:*"  
-    #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    Metadata:
+      BuildMethod: nodejs20.x
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:

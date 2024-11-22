@@ -1,4 +1,8 @@
 const {
+  BatchGetSecretValueCommand,
+  SecretsManagerClient,
+} = require("@aws-sdk/client-secrets-manager");
+const {
   addCorsHeaders,
   addEtag,
   decodeEventBody,
@@ -14,9 +18,16 @@ const {
 const debug = require("debug")("api.middleware");
 const Honeybadger = require("../honeybadger-setup");
 const { StatusCodes } = require("http-status-codes");
+const { SECRETS_PATH } = process.env;
+const SecretPaths = [
+  `${SECRETS_PATH}/infrastructure/index`,
+  `${SECRETS_PATH}/infrastructure/nusso`,
+];
 
 const wrap = function (handler) {
   return async (event, context) => {
+    await _initializeEnvironment();
+
     let response;
     try {
       event = __processRequest(event);
@@ -29,6 +40,35 @@ const wrap = function (handler) {
     }
     return __processResponse(event, response);
   };
+};
+
+const _initializeEnvironment = async function () {
+  if (process.env.__SKIP_SECRETS__) return;
+
+  const putenv = (name, value) => {
+    if (!process.env[name]) process.env[name] = value;
+  };
+
+  const client = new SecretsManagerClient();
+  const cmd = new BatchGetSecretValueCommand({
+    SecretIdList: Object.values(SecretPaths),
+  });
+  const { SecretValues } = await client.send(cmd);
+  const secrets = {};
+  for (const { Name, SecretString } of SecretValues) {
+    secrets[Name.split("/").reverse()[0]] = JSON.parse(SecretString);
+  }
+
+  let { endpoint } = secrets.index;
+  if (URL.canParse(endpoint)) {
+    endpoint = new URL(endpoint).hostname;
+  }
+
+  putenv("OPENSEARCH_ENDPOINT", endpoint);
+  putenv("OPENSEARCH_MODEL_ID", secrets.index?.embedding_model);
+  putenv("NUSSO_API_KEY", secrets.nusso?.api_key);
+  putenv("NUSSO_BASE_URL", secrets.nusso?.base_url);
+  putenv("__SKIP_SECRETS__", "true");
 };
 
 const _convertErrorToResponse = function (error) {
