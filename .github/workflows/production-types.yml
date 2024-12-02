@@ -72,7 +72,7 @@ jobs:
         id: open-types-pr
         working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
-          pr=$(gh pr create --base main --title "Update types for DC API release v${{ steps.package-version.outputs.current-version}}" --body "A new version of `nulib/dc-api-v2` has been released. Please review changes and release a new version of the types package if needed." --reviewer adamjarling,mathewjordan)
+          pr=$(gh pr create --base main --title "Update types for DC API release v${{ steps.package-version.outputs.current-version}}" --body "A new version of `nulib/dc-api-v2` has been released. Please review changes and release a new version of the types package if needed." --reviewer mathewjordan)
           echo "pr=$pr" >> $GITHUB_OUTPUT
       - name: Report PR Creation
         run: |
@@ -88,5 +88,5 @@ jobs:
       - name: Open issue in nulib/repodev_planning_and_docs
         working-directory: "${{env.TMP_REPODEVDIR}}"
         run: |
-          gh issue create -t "Update nulib/dcapi-types for API release v${{ steps.package-version.outputs.current-version}}" -b "Review PR: ${{ steps.open-types-pr.outputs.pr}} and release nulib/dcapi-types if needed." -a adamjarling,mathewjordan -l "digital collections" -l "front end"
+          gh issue create -t "Update nulib/dcapi-types for API release v${{ steps.package-version.outputs.current-version}}" -b "Review PR: ${{ steps.open-types-pr.outputs.pr}} and release nulib/dcapi-types if needed." -a mathewjordan -l "digital collections" -l "front end"
         shell: bash
