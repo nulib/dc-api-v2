@@ -17,7 +17,8 @@ def load_secrets():
   response = client.batch_get_secret_value(SecretIdList=[
     f'{SecretsPath}/config/dcapi',
     f'{SecretsPath}/infrastructure/index',
-    f'{SecretsPath}/infrastructure/azure_openai'
+    f'{SecretsPath}/infrastructure/azure_openai',
+    f'{SecretsPath}/config/dcapi'
   ])
 
   secrets = {

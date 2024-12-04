@@ -14,6 +14,15 @@ def filter(query: dict):
 def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 40, **kwargs: Any):
     result = {
         "size": kwargs.get("size", 20),
+        "_source": {
+            "include": ["abstract", "accession_number", "alternate_title", "api_link", "ark", "canonical_link", 
+                        "collection", "contributor", "creator", "date_created_edtf", "description", "genre", 
+                        "id", "iiif_manifest", "language", "library_unit", "license", "location", "physical_description_material", 
+                        "physical_description_size", "provenance", "publisher", "rights_holder", "rights_statement", 
+                        "scope_and_contents", "series", "style_period", "subject", "table_of_contents", "technique", 
+                        "thumbnail", "title", "visibility", "work_type"],
+            "exclude": ["embedding", "embedding_model"]
+        },
         "query": {
             "hybrid": {
                 "queries": [
