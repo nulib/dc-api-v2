@@ -1,12 +1,11 @@
 import secrets # noqa
 import boto3
-import json
 import logging
 import os
 from datetime import datetime
 from event_config import EventConfig
-from helpers.response import Response
 from honeybadger import honeybadger
+from chat.src.agent.search_agent import search_agent
 
 honeybadger.configure()
 logging.getLogger('honeybadger').addHandler(logging.StreamHandler())
@@ -30,36 +29,9 @@ def handler(event, context):
     if config.question is None or config.question == "":
         config.socket.send({"type": "error", "message": "Question cannot be blank"})
         return {"statusCode": 400, "body": "Question cannot be blank"}
+
+
     
-    debug_message = config.debug_message()
-    if config.debug_mode:
-        config.socket.send(debug_message)
-
-    if not os.getenv("SKIP_LLM_REQUEST"):
-        config.setup_llm_request()
-
-    response = Response(config)
-    final_response = response.prepare_response()
-    if "error" in final_response:
-        logging.error(f'Error: {final_response["error"]}')
-        config.socket.send({"type": "error", "message": "Internal Server Error"})
-        return {"statusCode": 500, "body": "Internal Server Error"}
-    else:
-        config.socket.send(reshape_response(final_response, 'debug' if config.debug_mode else 'base'))
-
-    log_group = os.getenv('METRICS_LOG_GROUP')
-    log_stream = context.log_stream_name
-    if log_group and ensure_log_stream_exists(log_group, log_stream):
-        log_client = boto3.client('logs')
-        log_message = reshape_response(final_response, 'log')
-        log_events = [
-            {
-                'timestamp': timestamp(),
-                'message': json.dumps(log_message)
-            }
-        ]
-        log_client.put_log_events(logGroupName=log_group, logStreamName=log_stream, logEvents=log_events)
-    return {"statusCode": 200}
 
 def reshape_response(response, type):
     return {k: response[k] for k in RESPONSE_TYPES[type]}

@@ -28,7 +28,7 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
 # Define the function that calls the model
 def call_model(state: MessagesState):
     messages = state["messages"]
-    response = model.invoke(messages, model=os.getenv("AZURE_DEPLOYMENT_NAME"))
+    response = model.invoke(messages, model=os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID"))
     # We return a list, because this will get added to the existing list
     return {"messages": [response]}
 
@@ -56,4 +56,4 @@ workflow.add_edge("tools", "agent")
 checkpointer = MemorySaver()
 
 # Compile the graph
-app = workflow.compile(checkpointer=checkpointer, debug=True)
+search_agent = workflow.compile(checkpointer=checkpointer, debug=True)
