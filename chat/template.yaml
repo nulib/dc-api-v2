@@ -183,15 +183,15 @@ Resources:
       Description: Dependencies for streaming chat function
       ContentUri: ./dependencies
       CompatibleRuntimes:
-        - python3.10
+        - python3.12
       LicenseInfo: "Apache-2.0"
     Metadata:
-      BuildMethod: python3.10
+      BuildMethod: python3.12
   ChatFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Runtime: python3.10
+      Runtime: python3.12
       Architectures:
         - x86_64
       Layers:
@@ -234,7 +234,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Runtime: python3.10
+      Runtime: python3.12
       Architectures:
         - x86_64
       Layers:

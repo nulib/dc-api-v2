@@ -4,11 +4,7 @@ import json
 from dataclasses import dataclass, field
 
 from langchain_core.prompts import ChatPromptTemplate
-from setup import (
-    opensearch_client,
-    opensearch_vector_store,
-    openai_chat_client,
-)
+
 from typing import List
 from handlers.streaming_socket_callback_handler import StreamingSocketCallbackHandler
 from helpers.apitoken import ApiToken
@@ -25,6 +21,7 @@ TEMPERATURE = 0.2
 TEXT_KEY = "id"
 VERSION = "2024-02-01"
 
+
 @dataclass
 class EventConfig:
     """
@@ -32,16 +29,38 @@ class EventConfig:
     Default values are set for the following properties which can be overridden in the payload message.
     """
 
-    DEFAULT_ATTRIBUTES = ["accession_number", "alternate_title", "api_link", "canonical_link", "caption", "collection", 
-                          "contributor", "date_created", "date_created_edtf", "description", "genre", "id", "identifier", 
-                          "keywords", "language", "notes", "physical_description_material", "physical_description_size", 
-                          "provenance", "publisher", "rights_statement", "subject", "table_of_contents", "thumbnail", 
-                          "title", "visibility", "work_type"]
+    DEFAULT_ATTRIBUTES = [
+        "accession_number",
+        "alternate_title",
+        "api_link",
+        "canonical_link",
+        "caption",
+        "collection",
+        "contributor",
+        "date_created",
+        "date_created_edtf",
+        "description",
+        "genre",
+        "id",
+        "identifier",
+        "keywords",
+        "language",
+        "notes",
+        "physical_description_material",
+        "physical_description_size",
+        "provenance",
+        "publisher",
+        "rights_statement",
+        "subject",
+        "table_of_contents",
+        "thumbnail",
+        "title",
+        "visibility",
+        "work_type",
+    ]
 
     api_token: ApiToken = field(init=False)
-    attributes: List[str] = field(init=False)
     debug_mode: bool = field(init=False)
-    document_prompt: ChatPromptTemplate = field(init=False)
     event: dict = field(default_factory=dict)
     is_dev_team: bool = field(init=False)
     is_logged_in: bool = field(init=False)
@@ -63,7 +82,6 @@ class EventConfig:
     def __post_init__(self):
         self.payload = json.loads(self.event.get("body", "{}"))
         self.api_token = ApiToken(signed_token=self.payload.get("auth"))
-        self.attributes = self._get_attributes()
         self.debug_mode = self._is_debug_mode_enabled()
         self.is_dev_team = self.api_token.is_dev_team()
         self.is_logged_in = self.api_token.is_logged_in()
@@ -78,7 +96,6 @@ class EventConfig:
         self.stream_response = self.payload.get("stream_response", not self.debug_mode)
         self.temperature = self._get_temperature()
         self.text_key = self._get_text_key()
-        self.document_prompt = self._get_document_prompt()
         self.prompt = ChatPromptTemplate.from_template(self.prompt_text)
 
     def _get_payload_value_with_superuser_check(self, key, default):
@@ -86,20 +103,6 @@ class EventConfig:
             return self.payload.get(key, default)
         else:
             return default
-
-    def _get_attributes_function(self):
-        try:
-            opensearch = opensearch_client()
-            mapping = opensearch.indices.get_mapping(index="dc-v2-work")
-            return list(next(iter(mapping.values()))['mappings']['properties'].keys())
-        except StopIteration:
-            return []
-
-    def _get_attributes(self):
-        return self._get_payload_value_with_superuser_check("attributes", self.DEFAULT_ATTRIBUTES)
-        return self._get_payload_value_with_superuser_check(
-            "deployment_name", os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")
-        )
 
     def _get_k(self):
         value = self._get_payload_value_with_superuser_check("k", K_VALUE)
@@ -117,18 +120,11 @@ class EventConfig:
     def _get_text_key(self):
         return self._get_payload_value_with_superuser_check("text_key", TEXT_KEY)
 
-    def _get_document_prompt(self):
-        return ChatPromptTemplate.from_template(document_template(self.attributes))
-
     def debug_message(self):
         return {
             "type": "debug",
             "message": {
-                "attributes": self.attributes,
-                "azure_endpoint": self.azure_endpoint,
-                "deployment_name": self.deployment_name,
                 "k": self.k,
-                "openai_api_version": self.openai_api_version,
                 "prompt": self.prompt_text,
                 "question": self.question,
                 "ref": self.ref,

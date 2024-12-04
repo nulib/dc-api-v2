@@ -1,7 +1,7 @@
 import json
 
 from langchain_core.tools import tool
-from opensearch_client import opensearch_vector_store
+from setup import opensearch_vector_store
 
 @tool(response_format="content_and_artifact")
 def search(query: str):
