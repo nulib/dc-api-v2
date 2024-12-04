@@ -8,9 +8,9 @@ class Websocket:
         self.ref = ref if ref else {}
 
     def send(self, data):
-        if isinstance(data, str):
-            data = {"message": data}
-        data["ref"] = self.ref
+        # if isinstance(data, str):
+        #     data = {"message": data}
+        # data["ref"] = self.ref
         data_as_bytes = bytes(json.dumps(data), "utf-8")
 
         if self.connection_id == "debug":
@@ -18,3 +18,9 @@ class Websocket:
         else:
             self.client.post_to_connection(Data=data_as_bytes, ConnectionId=self.connection_id)
         return data
+
+    def __str__(self):
+        return f"Websocket({self.connection_id}, {self.ref})"
+    
+    def __repr__(self):
+        return str(self)

@@ -266,8 +266,8 @@ Resources:
     Properties:
       Handler: handlers/get-collections.handler
       Description: Gets Collections.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -289,8 +289,8 @@ Resources:
     Properties:
       Handler: handlers/get-collection-by-id.handler
       Description: Gets a Collection by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -312,8 +312,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-by-id.handler
       Description: Gets a FileSet by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -335,8 +335,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-auth.handler
       Description: Authorizes access to a file set.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -361,8 +361,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-download.handler
       Description: Downloads a file set.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           STEP_FUNCTION_ENDPOINT: !Ref AWS::NoValue
@@ -419,8 +419,8 @@ Resources:
     Properties:
       Handler: handlers/get-work-auth.handler
       Description: Authorizes access to a work.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -445,8 +445,8 @@ Resources:
     Properties:
       Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -471,8 +471,8 @@ Resources:
     Properties:
       Handler: handlers/get-thumbnail.handler
       Description: Gets a Work's representative thumbnail.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -507,8 +507,8 @@ Resources:
       Handler: handlers/get-similar.handler
       Timeout: 100
       Description: Gets works similar to a specific work.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -530,8 +530,8 @@ Resources:
     Properties:
       Handler: handlers/search.postSearch
       Description: Handles OpenSearch search requests, Works only by default.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -553,8 +553,8 @@ Resources:
     Properties:
       Handler: handlers/search.getSearch
       Description: Handles paging requests
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -605,8 +605,8 @@ Resources:
     Properties:
       Handler: handlers/get-shared-link-by-id.handler
       Description: Gets a shared link document by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -628,8 +628,8 @@ Resources:
     Properties:
       Handler: handlers/oai.handler
       Description: Transforms works into OAI Records.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Timeout: 60
       Policies:
         - !Ref readSecretsPolicy
@@ -670,8 +670,8 @@ Resources:
     Properties:
       Handler: handlers/get-chat-endpoint.handler
       Description: Returns the URI of the chat websocket API.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
@@ -689,8 +689,8 @@ Resources:
     Properties:
       Handler: handlers/post-chat-feedback.handler
       Description: Handles feedback from the chat.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           CHAT_FEEDBACK_BUCKET: !Ref chatFeedbackBucket

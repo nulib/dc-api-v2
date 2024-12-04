@@ -52,6 +52,16 @@ Resources:
       Name: ChatWebSocket
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.message"
+  CheckpointBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -196,20 +206,22 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
-      Layers:
-        - !Ref ChatDependencies
+      #* Layers:
+      #*   - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat.handler
       Timeout: 300
       Environment:
         Variables:
           API_TOKEN_NAME: !Ref ApiTokenName
+          CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          NO_COLOR: 1
       Policies:
       - !Ref SecretsPolicy
       - Statement:
