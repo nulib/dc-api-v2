@@ -5,6 +5,9 @@ Parameters:
   ApiTokenSecret:
     Type: String
     Description: Secret Key for Encrypting JWTs (must match IIIF server)
+  AzureOpenaiApiKey:
+    Type: String
+    Description: OpenAI API Key
   EnvironmentPrefix:
     Type: String
     Description: Prefix for Index names
@@ -202,6 +205,7 @@ Resources:
       Environment:
         Variables:
           API_TOKEN_SECRET: !Ref ApiTokenSecret
+          AZURE_OPENAI_API_KEY: !Ref AzureOpenaiApiKey
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
