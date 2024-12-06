@@ -18,7 +18,7 @@ This only needs to be done once.
 
 ### Deploy a development stack
 
-1. [Log into AWS](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/) using your `staging-admin` profile.
+1. [Log into AWS](http://docs.rdc.library.northwestern.edu/2._Developer_Guides/Environment_and_Tools/AWS-Authentication/) using your `staging-superuser` profile.
 2. Pick a unique stack name, e.g., `dc-api-chat-[YOUR_INITIALS]`
 3. Create or synchronize the development stack
    ```bash

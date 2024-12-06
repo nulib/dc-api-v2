@@ -1,5 +1,6 @@
 import secrets  # noqa
 import boto3
+import json
 import logging
 import os
 from datetime import datetime
@@ -65,7 +66,19 @@ def handler(event, context):
         config={"configurable": {"thread_id": config.ref}},
     )
 
-    print(response)
+    log_group = os.getenv('METRICS_LOG_GROUP')
+    log_stream = context.log_stream_name
+    if log_group and ensure_log_stream_exists(log_group, log_stream):
+        log_client = boto3.client('logs')
+        log_events = [
+            {
+                'timestamp': timestamp(),
+                'message': json.dumps(response)
+            }
+        ]
+        log_client.put_log_events(logGroupName=log_group, logStreamName=log_stream, logEvents=log_events)
+        
+    return {"statusCode": 200}
 
 
 def reshape_response(response, type):
