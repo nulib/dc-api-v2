@@ -6,7 +6,7 @@ from setup import opensearch_vector_store
 @tool(response_format="content_and_artifact")
 def search(query: str):
     """Perform a semantic search of Northwestern University Library digital collections. When answering a search query, ground your answer in the context of the results with references to the document's metadata."""
-    query_results = opensearch_vector_store.similarity_search(query, size=20)
+    query_results = opensearch_vector_store().similarity_search(query, size=20)
     return json.dumps(query_results, default=str), query_results
 
 @tool(response_format="content_and_artifact")
@@ -29,7 +29,7 @@ def aggregate(aggregation_query: str):
         - Number of works by work type: work_type
     """
     try:
-        response = opensearch_vector_store.aggregations_search(aggregation_query)
+        response = opensearch_vector_store().aggregations_search(aggregation_query)
         return json.dumps(response, default=str), response
     except Exception as e:
         return json.dumps({"error": str(e)}), None

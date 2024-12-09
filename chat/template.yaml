@@ -208,6 +208,7 @@ Resources:
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          NO_COLOR: 1
       Policies:
       - !Ref SecretsPolicy
       - Statement:
@@ -230,37 +231,37 @@ Resources:
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
     #* Metadata:
     #*   BuildMethod: nodejs20.x
-  ChatSyncFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./src
-      Runtime: python3.12
-      Architectures:
-        - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
-      MemorySize: 1024
-      Handler: handlers/chat_sync.handler
-      Timeout: 300
-      Environment:
-        Variables:
-          API_TOKEN_NAME: !Ref ApiTokenName
-          ENV_PREFIX: !Ref EnvironmentPrefix
-          HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
-          HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
-          HONEYBADGER_REVISION: !Ref HoneybadgerRevision
-          METRICS_LOG_GROUP: !Ref ChatMetricsLog
-          SECRETS_PATH: !Ref SecretsPath
-      FunctionUrlConfig:
-        AuthType: NONE
-      Policies:
-      - !Ref SecretsPolicy
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'es:ESHttpGet'
-          - 'es:ESHttpPost'
-          Resource: '*'
+  # ChatSyncFunction:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: ./src
+  #     Runtime: python3.12
+  #     Architectures:
+  #       - x86_64
+  #     #* Layers:
+  #     #*   - !Ref ChatDependencies
+  #     MemorySize: 1024
+  #     Handler: handlers/chat_sync.handler
+  #     Timeout: 300
+  #     Environment:
+  #       Variables:
+  #         API_TOKEN_NAME: !Ref ApiTokenName
+  #         ENV_PREFIX: !Ref EnvironmentPrefix
+  #         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
+  #         HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
+  #         HONEYBADGER_REVISION: !Ref HoneybadgerRevision
+  #         METRICS_LOG_GROUP: !Ref ChatMetricsLog
+  #         SECRETS_PATH: !Ref SecretsPath
+  #     FunctionUrlConfig:
+  #       AuthType: NONE
+  #     Policies:
+  #     - !Ref SecretsPolicy
+  #     - Statement:
+  #       - Effect: Allow
+  #         Action:
+  #         - 'es:ESHttpGet'
+  #         - 'es:ESHttpPost'
+  #         Resource: '*'
       # - Statement:
       #   - Effect: Allow
       #     Action:
