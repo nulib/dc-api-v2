@@ -25,7 +25,6 @@ Globals:
     Environment:
       Variables:
         API_TOKEN_NAME: !Ref ApiTokenName
-        API_TOKEN_SECRET: !Ref ApiTokenSecret
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
         DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
@@ -112,18 +111,18 @@ Parameters:
     Type: String
     Description: Meadow Streaming Bucket
 Resources:
-  apiDependencies:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: !Sub "${AWS::StackName}-api-dependencies"
-      Description: Dependencies for API handlers
-      ContentUri: ./layers/api_dependencies
-      CompatibleRuntimes:
-        - nodejs20.x
-      LicenseInfo: Apache-2.0
-    Metadata:
-      BuildMethod: nodejs20.x
-  # Configuration
+  #* apiDependencies:
+  #*   Type: AWS::Serverless::LayerVersion
+  #*   Properties:
+  #*     LayerName: !Sub "${AWS::StackName}-api-dependencies"
+  #*     Description: Dependencies for API handlers
+  #*     ContentUri: ./layers/api_dependencies
+  #*     CompatibleRuntimes:
+  #*       - nodejs20.x
+  #*     LicenseInfo: Apache-2.0
+  #*   Metadata:
+  #*     BuildMethod: nodejs20.x
+  #* Configuration
   apiConfiguration:
     Type: AWS::SecretsManager::Secret
     Properties:
@@ -165,8 +164,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-callback.handler
       Description: NUSSO callback function.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:
@@ -187,8 +186,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-login.handler
       Description: Performs NUSSO login.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:
@@ -203,8 +202,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-logout.handler
       Description: Performs NUSSO logout.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:
@@ -219,8 +218,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-token.handler
       Description: Function to retrieve raw JWT.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:
@@ -241,8 +240,8 @@ Resources:
     Properties:
       Handler: handlers/get-auth-whoami.handler
       Description: Exchanges valid JWT token for user information.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:
@@ -257,8 +256,8 @@ Resources:
     Properties:
       Handler: handlers/get-collections.handler
       Description: Gets Collections.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -280,8 +279,8 @@ Resources:
     Properties:
       Handler: handlers/get-collection-by-id.handler
       Description: Gets a Collection by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -303,8 +302,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-by-id.handler
       Description: Gets a FileSet by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -326,8 +325,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-auth.handler
       Description: Authorizes access to a file set.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -352,8 +351,8 @@ Resources:
     Properties:
       Handler: handlers/get-file-set-download.handler
       Description: Downloads a file set.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           STEP_FUNCTION_ENDPOINT: !Ref AWS::NoValue
@@ -405,8 +404,8 @@ Resources:
     Properties:
       Handler: handlers/get-work-auth.handler
       Description: Authorizes access to a work.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -431,8 +430,8 @@ Resources:
     Properties:
       Handler: handlers/get-work-by-id.handler
       Description: Gets a Work by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           USE_PROXIED_IP: true
@@ -457,8 +456,8 @@ Resources:
     Properties:
       Handler: handlers/get-thumbnail.handler
       Description: Gets a Work's representative thumbnail.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -493,8 +492,8 @@ Resources:
       Handler: handlers/get-similar.handler
       Timeout: 100
       Description: Gets works similar to a specific work.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -516,8 +515,8 @@ Resources:
     Properties:
       Handler: handlers/search.postSearch
       Description: Handles OpenSearch search requests, Works only by default.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -539,8 +538,8 @@ Resources:
     Properties:
       Handler: handlers/search.getSearch
       Description: Handles paging requests
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -575,8 +574,8 @@ Resources:
       Handler: handlers/options-request.handler
       Timeout: 3
       Description: Handles all OPTIONS requests
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:
@@ -591,8 +590,8 @@ Resources:
     Properties:
       Handler: handlers/get-shared-link-by-id.handler
       Description: Gets a shared link document by id.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
         - !Ref readIndexPolicy
@@ -614,8 +613,8 @@ Resources:
     Properties:
       Handler: handlers/oai.handler
       Description: Transforms works into OAI Records.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Timeout: 60
       Policies:
         - !Ref readSecretsPolicy
@@ -644,7 +643,6 @@ Resources:
     Properties:
       Location: ./chat/template.yaml
       Parameters:
-        ApiTokenSecret: !Ref ApiTokenSecret
         EnvironmentPrefix: !Ref EnvironmentPrefix
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
         HoneybadgerEnv: !Ref HoneybadgerEnv
@@ -656,8 +654,8 @@ Resources:
     Properties:
       Handler: handlers/get-chat-endpoint.handler
       Description: Returns the URI of the chat websocket API.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
@@ -675,8 +673,8 @@ Resources:
     Properties:
       Handler: handlers/post-chat-feedback.handler
       Description: Handles feedback from the chat.
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Environment:
         Variables:
           CHAT_FEEDBACK_BUCKET: !Ref chatFeedbackBucket
@@ -721,8 +719,8 @@ Resources:
       Handler: handlers/default-request.handler
       Timeout: 3
       Description: Handles all other requests
-      Layers:
-        - !Ref apiDependencies
+      #* Layers:
+      #*   - !Ref apiDependencies
       Policies:
         - !Ref readSecretsPolicy
       Events:

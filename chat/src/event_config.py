@@ -1,14 +1,11 @@
-import os
 import json
 
 from dataclasses import dataclass, field
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from typing import List
-from handlers.streaming_socket_callback_handler import StreamingSocketCallbackHandler
 from helpers.apitoken import ApiToken
-from helpers.prompts import document_template, prompt_template
+from helpers.prompts import prompt_template
 from websocket import Websocket
 
 CHAIN_TYPE = "stuff"
