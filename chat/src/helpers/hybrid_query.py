@@ -14,6 +14,9 @@ def filter(query: dict):
 def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: int = 40, **kwargs: Any):
     result = {
         "size": kwargs.get("size", 20),
+        "_source": {
+            "exclude": ["embedding"]
+        },
         "query": {
             "hybrid": {
                 "queries": [
