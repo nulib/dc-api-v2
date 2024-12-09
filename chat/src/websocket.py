@@ -18,3 +18,9 @@ class Websocket:
         else:
             self.client.post_to_connection(Data=data_as_bytes, ConnectionId=self.connection_id)
         return data
+
+    def __str__(self):
+        return f"Websocket({self.connection_id}, {self.ref})"
+    
+    def __repr__(self):
+        return str(self)

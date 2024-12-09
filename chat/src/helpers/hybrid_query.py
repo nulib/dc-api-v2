@@ -15,6 +15,7 @@ def hybrid_query(query: str, model_id: str, vector_field: str = "embedding", k: 
     result = {
         "size": kwargs.get("size", 20),
         "_source": {
+            "include": ["title", "description", "collection.title", "id", "collection.id"],
             "exclude": ["embedding"]
         },
         "query": {

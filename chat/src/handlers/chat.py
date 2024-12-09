@@ -5,13 +5,13 @@ import logging
 import os
 from datetime import datetime
 from event_config import EventConfig
-from honeybadger import honeybadger
+# from honeybadger import honeybadger
 from agent.search_agent import search_agent
 from langchain_core.messages import HumanMessage
 from agent.agent_handler import AgentHandler
 
-honeybadger.configure()
-logging.getLogger("honeybadger").addHandler(logging.StreamHandler())
+# honeybadger.configure()
+# logging.getLogger("honeybadger").addHandler(logging.StreamHandler())
 
 RESPONSE_TYPES = {
     "base": ["answer", "ref"],
