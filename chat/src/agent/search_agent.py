@@ -3,20 +3,17 @@ import os
 from typing import Literal
 
 from agent.tools import search, aggregate
-from langchain_core.runnables.config import RunnableConfig
 from langchain_core.messages.base import BaseMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from setup import openai_chat_client
-from websocket import Websocket
-
 
 tools = [search, aggregate]
 
 tool_node = ToolNode(tools)
 
-model = openai_chat_client().bind_tools(tools)
+model = openai_chat_client(streaming=True).bind_tools(tools)
 
 # Define the function that determines whether to continue or not
 def should_continue(state: MessagesState) -> Literal["tools", END]:
@@ -30,15 +27,11 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
 
 
 # Define the function that calls the model
-def call_model(state: MessagesState, config: RunnableConfig):
+def call_model(state: MessagesState):
     messages = state["messages"]
-    socket = config["configurable"].get("socket", None)
     response: BaseMessage = model.invoke(messages, model=os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID"))
     # We return a list, because this will get added to the existing list
     # if socket is not none and the response content is not an empty string
-    if socket is not None and response.content != "":
-        print("Sending response to socket")
-        socket.send({"type": "answer", "message": response.content})
     return {"messages": [response]}
 
 

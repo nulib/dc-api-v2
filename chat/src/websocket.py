@@ -16,7 +16,6 @@ class Websocket:
         if self.connection_id == "debug":
             print(data)
         else:
-            print(f"Sending data to {self.connection_id}: {data}")
             self.client.post_to_connection(Data=data_as_bytes, ConnectionId=self.connection_id)
         return data
 

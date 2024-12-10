@@ -1,7 +1,6 @@
 import secrets  # noqa
 import boto3
 import json
-import logging
 import os
 from datetime import datetime
 from event_config import EventConfig
@@ -71,11 +70,11 @@ def handler(event, context):
             logGroupName=log_group, logStreamName=log_stream, logEvents=log_events
         )
 
-    callbacks = [AgentHandler()]
+    callbacks = [AgentHandler(config.socket, config.ref)]
     try:
         search_agent.invoke(
             {"messages": [HumanMessage(content=config.question)]},
-            config={"configurable": {"thread_id": config.ref, "socket": config.socket}, "callbacks": callbacks, "metadata": {"socket": config.socket}},
+            config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks},
             debug=False
         )
     except Exception as e:
