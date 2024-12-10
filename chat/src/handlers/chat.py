@@ -72,10 +72,18 @@ def handler(event, context):
         )
 
     callbacks = [AgentHandler()]
-    response = search_agent.invoke(
-        {"messages": [HumanMessage(content=config.question)]},
-        config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks, "metadata": {"socket": config.socket}},
-    )
+    try:
+        search_agent.invoke(
+            {"messages": [HumanMessage(content=config.question)]},
+            config={"configurable": {"thread_id": config.ref, "socket": config.socket}, "callbacks": callbacks, "metadata": {"socket": config.socket}},
+            debug=False
+        )
+    except Exception as e:
+        print(f"Error: {e}")
+        error_response = {"type": "error", "message": "An unexpected error occurred. Please try again later."}
+        if config.socket:
+            config.socket.send(error_response)
+        return {"statusCode": 500, "body": json.dumps(error_response)}
 
     return {"statusCode": 200}
 
