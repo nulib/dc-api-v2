@@ -2,9 +2,9 @@ import os
 
 from typing import Literal
 
+from agent.dynamodb_saver import DynamoDBSaver
 from agent.tools import search, aggregate
 from langchain_core.messages.base import BaseMessage
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from setup import openai_chat_client
@@ -54,8 +54,6 @@ workflow.add_conditional_edges(
 # Add a normal edge from `tools` to `agent`
 workflow.add_edge("tools", "agent")
 
-# Initialize memory to persist state between graph runs
-checkpointer = MemorySaver()
+checkpointer = DynamoDBSaver("checkpoints", "checkpoint-writes", "us-east-1")
 
-# Compile the graph
 search_agent = workflow.compile(checkpointer=checkpointer)
