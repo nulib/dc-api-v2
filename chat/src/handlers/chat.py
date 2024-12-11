@@ -2,6 +2,7 @@ import secrets  # noqa
 import boto3
 import json
 import os
+import traceback
 from datetime import datetime
 from event_config import EventConfig
 # from honeybadger import honeybadger
@@ -78,11 +79,12 @@ def handler(event, context):
     try:
         search_agent.invoke(
             {"messages": [HumanMessage(content=config.question)]},
-            config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks},
+            config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks, "metadata": {"model_deployment": os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")}},
             debug=False
         )
     except Exception as e:
         print(f"Error: {e}")
+        print(traceback.format_exc())
         error_response = {"type": "error", "message": "An unexpected error occurred. Please try again later."}
         if config.socket:
             config.socket.send(error_response)

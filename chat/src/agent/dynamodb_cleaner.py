@@ -44,7 +44,6 @@ def delete_thread(table_name, thread_id, region_name=os.getenv("AWS_REGION")):
             items.extend(response.get('Items', []))
 
         if not items:
-            print(f"No items found with thread_id: {thread_id}")
             return
 
         # Prepare delete requests in batches of 25 (DynamoDB limit for BatchWriteItem)
@@ -55,8 +54,6 @@ def delete_thread(table_name, thread_id, region_name=os.getenv("AWS_REGION")):
                     'sort_key': item['sort_key']  # Ensure you use the correct sort key name
                 }
                 batch.delete_item(Key=key)
-
-        print(f"Successfully deleted {len(items)} items with thread_id: {thread_id}")
 
     except ClientError as e:
         print(f"An error occurred: {e.response['Error']['Message']}")

@@ -5,6 +5,8 @@ from langchain_core.messages import BaseMessage
 import langchain_core.messages as langchain_messages
 import time
 import json
+import bz2
+import base64
 
 from langchain_core.runnables import RunnableConfig
 
@@ -30,11 +32,13 @@ class JsonPlusSerializer(JsonPlusSerializer):
             raise TypeError(f'Object of type {o.__class__.__name__} is not JSON serializable')
 
         json_str = json.dumps(obj, default=default)
-        return 'json', json_str
+        compressed_str = base64.b64encode(bz2.compress(json_str.encode("utf-8"))).decode("utf-8")
+        return 'compressed_json', compressed_str
 
     def loads_typed(self, data: Tuple[str, Any]) -> Any:
-        type_, json_str = data
-
+        type_, compressed_str = data
+        json_str = bz2.decompress(base64.b64decode(compressed_str)).decode("utf-8")
+        
         def object_hook(dct):
             if '__type__' in dct:
                 type_name = dct['__type__']
@@ -48,7 +52,6 @@ class JsonPlusSerializer(JsonPlusSerializer):
 
         obj = json.loads(json_str, object_hook=object_hook)
         return obj
-
     
 class DynamoDBSaver(BaseCheckpointSaver):
     """A checkpoint saver that stores checkpoints in DynamoDB using JSON-compatible formats."""
@@ -74,7 +77,7 @@ class DynamoDBSaver(BaseCheckpointSaver):
         thread_id = config["configurable"]["thread_id"]
         checkpoint_ns = config["configurable"].get("checkpoint_ns", "")
         checkpoint_id = get_checkpoint_id(config)
-
+        
         if checkpoint_id:
             # Need to scan for item with matching checkpoint_id
             response = self.table.query(
@@ -139,7 +142,7 @@ class DynamoDBSaver(BaseCheckpointSaver):
 
         # Retrieve metadata directly
         metadata = item['metadata']
-        metadata = self.serde.loads(metadata)
+        metadata = self.serde.loads_typed(("compressed_json", metadata))
         # Get parent config if any
         parent_checkpoint_id = item.get('parent_checkpoint_id')
         if parent_checkpoint_id:
@@ -197,12 +200,11 @@ class DynamoDBSaver(BaseCheckpointSaver):
 
             # Retrieve the checkpoint data directly
             checkpoint_data = item['checkpoint']
-
             checkpoint = self.serde.loads_typed((checkpoint_type, checkpoint_data))
 
             # Retrieve metadata directly
             metadata = item['metadata']
-            metadata = self.serde.loads(metadata)
+            metadata = self.serde.loads_typed(("compressed_json", metadata))
 
             parent_checkpoint_id = item.get('parent_checkpoint_id')
             if parent_checkpoint_id:

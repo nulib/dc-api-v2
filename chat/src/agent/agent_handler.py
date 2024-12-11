@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from websocket import Websocket
 
@@ -26,6 +26,9 @@ class AgentHandler(BaseCallbackHandler):
         self.socket = socket
         self.ref = ref
         super().__init__(*args, **kwargs)
+
+    def on_llm_start(self, serialized: dict[str, Any], prompts: list[str], metadata: Optional[dict[str, Any]] = None, **kwargs: Dict[str, Any]):
+        self.socket.send({"type": "start", "ref": self.ref, "message": {"model": metadata.get("model_deployment")}})
 
     def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
         content = response.generations[0][0].text
