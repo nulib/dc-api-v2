@@ -55,11 +55,14 @@ class OpenSearchNeuralSearch(VectorStore):
 
         return documents_with_scores
     
-    def aggregations_search(self, field: str, **kwargs: Any) -> dict:
+    def aggregations_search(self, agg_field: str, term_field: str = None, term: str = None, **kwargs: Any) -> dict:
         """Perform a search with aggregations and return the aggregation results."""
+        query = {"match_all": {}} if (term is None or term == "") else {"match": {term_field: term}}
+        
         dsl = {
             "size": 0,
-            "aggs": {"aggregation_result": {"terms": {"field": field}}},
+            "query": query,
+            "aggs": {"aggregation_result": {"terms": {"field": agg_field}}},
         }
 
         response = self.client.search(

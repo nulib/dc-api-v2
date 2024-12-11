@@ -45,6 +45,8 @@ class AgentHandler(BaseCallbackHandler):
         match output.name:
             case "aggregate":
                 self.socket.send({"type": "aggregation_result", "ref": self.ref, "message": output.artifact.get("aggregation_result", {})})
+            case "discover_fields":
+                pass
             case "search":
                 try:
                     docs: List[Dict[str, Any]] = [doc.metadata for doc in output.artifact]

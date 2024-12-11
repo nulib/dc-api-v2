@@ -3,13 +3,13 @@ import os
 from typing import Literal
 
 from agent.dynamodb_saver import DynamoDBSaver
-from agent.tools import search, aggregate
+from agent.tools import aggregate, discover_fields, search
 from langchain_core.messages.base import BaseMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from setup import openai_chat_client
 
-tools = [search, aggregate]
+tools = [discover_fields, search, aggregate]
 
 tool_node = ToolNode(tools)
 
