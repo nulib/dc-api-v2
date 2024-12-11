@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 from event_config import EventConfig
 # from honeybadger import honeybadger
+from agent.dynamodb_cleaner import delete_checkpoint
 from agent.search_agent import search_agent
 from langchain_core.messages import HumanMessage
 from agent.agent_handler import AgentHandler
@@ -56,6 +57,9 @@ def handler(event, context):
     if not (config.is_logged_in or config.is_superuser):
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
+
+    if config.forget:
+        delete_checkpoint(config.ref)
 
     if config.question is None or config.question == "":
         config.socket.send({"type": "error", "message": "Question cannot be blank"})
