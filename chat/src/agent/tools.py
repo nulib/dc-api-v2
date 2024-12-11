@@ -4,6 +4,9 @@ from langchain_core.tools import tool
 from setup import opensearch_vector_store
 
 def get_keyword_fields(properties, prefix=''):
+    """
+    Filters a nested list of opensearch mappings and returns a flat list of keyword fields
+    """
     keyword_fields = []
     for field_name, field_mapping in properties.items():
         current_path = f"{prefix}{field_name}"
@@ -28,7 +31,6 @@ def discover_fields():
     fields = opensearch.client.indices.get_mapping(index=opensearch.index)
     top_properties = list(fields.values())[0]['mappings']['properties']
     result = get_keyword_fields(top_properties)
-    
     return json.dumps(result, default=str), result
 
 @tool(response_format="content_and_artifact")
@@ -53,10 +55,6 @@ def aggregate(agg_field: str, term_field: str, term: str):
     You must use the discover_fields tool first to obtain the list of appropriate fields for aggregration in the index.
     
     Do not use any fields that do not exist in the list returned by discover_fields!
-
-    Examples:
-        - Number of collections: collection.title.keyword
-        - Number of works by work type: work_type
     """
     try:
         response = opensearch_vector_store().aggregations_search(agg_field, term_field, term)
