@@ -202,6 +202,8 @@ Resources:
       Environment:
         Variables:
           API_TOKEN_NAME: !Ref ApiTokenName
+          CHECKPOINT_TABLE: !Ref CheckpointTable
+          CHECKPOINT_WRITES_TABLE: !Ref CheckpointWritesTable
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
@@ -223,6 +225,22 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpPost'
           Resource: '*'
+      - Statement:
+        - Effect: Allow
+          Action:
+            - 'dynamodb:BatchGetItem'
+            - 'dynamodb:BatchWriteItem'
+            - 'dynamodb:ConditionCheckItem'
+            - 'dynamodb:DeleteItem'
+            - 'dynamodb:GetItem'
+            - 'dynamodb:PutItem'
+            - 'dynamodb:Query'
+            - 'dynamodb:Scan'
+            - 'dynamodb:UpdateItem'
+            - 'dynamodb:WriteItem'
+          Resource:
+            - !GetAtt CheckpointTable.Arn
+            - !GetAtt CheckpointWritesTable.Arn
       - Statement:
         - Effect: Allow
           Action:
@@ -270,6 +288,34 @@ Resources:
       #     Resource: !Sub "${ChatMetricsLog.Arn}:*"  
     #* Metadata:
     #*   BuildMethod: nodejs20.x
+  CheckpointTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: thread_id
+          AttributeType: S
+        - AttributeName: sort_key
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: thread_id
+          KeyType: HASH
+        - AttributeName: sort_key
+          KeyType: RANGE      
+  CheckpointWritesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: thread_id
+          AttributeType: S
+        - AttributeName: sort_key
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: thread_id
+          KeyType: HASH
+        - AttributeName: sort_key
+          KeyType: RANGE
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:

@@ -7,6 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from helpers.apitoken import ApiToken
 from helpers.prompts import prompt_template
 from websocket import Websocket
+from uuid import uuid4
 
 CHAIN_TYPE = "stuff"
 DOCUMENT_VARIABLE_NAME = "context"
@@ -88,7 +89,7 @@ class EventConfig:
         self.prompt_text = self._get_prompt_text()
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")
-        self.ref = self.payload.get("ref")
+        self.ref = self.payload.get("ref", uuid4().hex)
         self.size = self._get_size()
         self.stream_response = self.payload.get("stream_response", not self.debug_mode)
         self.temperature = self._get_temperature()

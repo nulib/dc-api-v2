@@ -17,9 +17,6 @@ from langgraph.checkpoint.base import (
     get_checkpoint_id,
 )
 
-
-import json
-from typing import Any, Tuple
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
 class JsonPlusSerializer(JsonPlusSerializer):
@@ -260,6 +257,7 @@ class DynamoDBSaver(BaseCheckpointSaver):
             'type': type_,
             'checkpoint': checkpoint_data,
             'metadata': self.serde.dumps_typed(metadata)[1],
+            'timestamp': checkpoint_created_at,
         }
 
         self.table.put_item(Item=item)
@@ -301,5 +299,6 @@ class DynamoDBSaver(BaseCheckpointSaver):
                     'channel': channel,
                     'type': type_,
                     'value': value_data,
+                    'timestamp': int(time.time() * 1000),
                 }
                 batch.put_item(Item=item)

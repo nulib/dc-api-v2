@@ -54,6 +54,6 @@ workflow.add_conditional_edges(
 # Add a normal edge from `tools` to `agent`
 workflow.add_edge("tools", "agent")
 
-checkpointer = DynamoDBSaver("checkpoints", "checkpoint-writes", "us-east-1")
+checkpointer = DynamoDBSaver(os.getenv("CHECKPOINT_TABLE"), os.getenv("CHECKPOINT_WRITES_TABLE"), os.getenv("AWS_REGION", "us-east-1"))
 
 search_agent = workflow.compile(checkpointer=checkpointer)
