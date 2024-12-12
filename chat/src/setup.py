@@ -1,4 +1,4 @@
-from langchain_openai import AzureChatOpenAI
+from langchain_aws import ChatBedrock
 from handlers.opensearch_neural_search import OpenSearchNeuralSearch
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -13,11 +13,9 @@ def prefix(value):
     return "-".join(filter(None, [env_prefix, value]))
 
 
-def openai_chat_client(**kwargs):
-    return AzureChatOpenAI(
-        openai_api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        api_version=os.getenv("AZURE_API_VERSION", "2024-08-01-preview"),
-        azure_endpoint=f"https://{os.getenv("AZURE_OPENAI_RESOURCE_NAME")}.openai.azure.com",
+def chat_client(**kwargs):
+    return ChatBedrock(
+        model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
         **kwargs,
     )
 
