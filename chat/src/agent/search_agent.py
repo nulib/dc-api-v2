@@ -8,21 +8,21 @@ from langchain_core.messages.base import BaseMessage
 from langchain_core.messages.system import SystemMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
-from setup import openai_chat_client
+from setup import chat_client
 
 # Keep your answer concise and keep reading time under 45 seconds.
 
 system_message = """
 Please provide a brief answer to the question using the tools provided. Include specific details from multiple documents that 
 support your answer. Answer in raw markdown, but not within a code block. When citing source documents, construct Markdown 
-links using the document's canonical_link field.
+links using the document's canonical_link field. Do not include intermediate messages explaining your process.
 """
 
 tools = [discover_fields, search, aggregate]
 
 tool_node = ToolNode(tools)
 
-model = openai_chat_client(streaming=True).bind_tools(tools)
+model = chat_client(streaming=True).bind_tools(tools)
 
 # Define the function that determines whether to continue or not
 def should_continue(state: MessagesState) -> Literal["tools", END]:
@@ -38,7 +38,7 @@ def should_continue(state: MessagesState) -> Literal["tools", END]:
 # Define the function that calls the model
 def call_model(state: MessagesState):
     messages = [SystemMessage(content=system_message)] + state["messages"]
-    response: BaseMessage = model.invoke(messages, model=os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID"))
+    response: BaseMessage = model.invoke(messages) # , model=os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")
     # We return a list, because this will get added to the existing list
     # if socket is not none and the response content is not an empty string
     return {"messages": [response]}
