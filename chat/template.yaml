@@ -5,9 +5,6 @@ Parameters:
   ApiTokenName:
     Type: String
     Description: Name of the jwt that DC API issues
-  CheckpointBucketName:
-    Type: String
-    Description: Name of the S3 bucket for storing chat checkpoints
   EnvironmentPrefix:
     Type: String
     Description: Prefix for Index names
@@ -55,10 +52,9 @@ Resources:
       Name: ChatWebSocket
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.message"
-  CheckpointS3Bucket:
+  CheckpointBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      BucketName: !Ref CheckpointBucketName
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration:
@@ -216,9 +212,7 @@ Resources:
       Environment:
         Variables:
           API_TOKEN_NAME: !Ref ApiTokenName
-          CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucketName
-          CHECKPOINT_TABLE: !Ref CheckpointTable
-          CHECKPOINT_WRITES_TABLE: !Ref CheckpointWritesTable
+          CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
@@ -243,22 +237,6 @@ Resources:
       - Statement:
         - Effect: Allow
           Action:
-            - 'dynamodb:BatchGetItem'
-            - 'dynamodb:BatchWriteItem'
-            - 'dynamodb:ConditionCheckItem'
-            - 'dynamodb:DeleteItem'
-            - 'dynamodb:GetItem'
-            - 'dynamodb:PutItem'
-            - 'dynamodb:Query'
-            - 'dynamodb:Scan'
-            - 'dynamodb:UpdateItem'
-            - 'dynamodb:WriteItem'
-          Resource:
-            - !GetAtt CheckpointTable.Arn
-            - !GetAtt CheckpointWritesTable.Arn
-      - Statement:
-        - Effect: Allow
-          Action:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
@@ -271,8 +249,8 @@ Resources:
           - s3:DeleteObject
           - s3:ListObjectsV2
           Resource:
-          - !Sub "arn:aws:s3:::${CheckpointS3Bucket}"
-          - !Sub "arn:aws:s3:::${CheckpointS3Bucket}/*"
+          - !Sub "arn:aws:s3:::${CheckpointBucket}"
+          - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   # ChatSyncFunction:
@@ -314,34 +292,6 @@ Resources:
       #     Resource: !Sub "${ChatMetricsLog.Arn}:*"  
     #* Metadata:
     #*   BuildMethod: nodejs20.x
-  CheckpointTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: thread_id
-          AttributeType: S
-        - AttributeName: sort_key
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: thread_id
-          KeyType: HASH
-        - AttributeName: sort_key
-          KeyType: RANGE      
-  CheckpointWritesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: thread_id
-          AttributeType: S
-        - AttributeName: sort_key
-          AttributeType: S
-      BillingMode: PAY_PER_REQUEST
-      KeySchema:
-        - AttributeName: thread_id
-          KeyType: HASH
-        - AttributeName: sort_key
-          KeyType: RANGE
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:

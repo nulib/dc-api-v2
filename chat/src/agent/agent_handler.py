@@ -53,7 +53,7 @@ class AgentHandler(BaseCallbackHandler):
             case "search":
                 try:
                     docs: List[Dict[str, Any]] = [doc.metadata for doc in output.artifact]
-                    self.socket.send({"type": "source_documents", "ref": self.ref, "message": docs})
+                    self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
                 except json.decoder.JSONDecodeError as e:
                     print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")
             case _:
