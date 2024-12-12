@@ -7,16 +7,12 @@ def load_secrets():
   EnvironmentMap = [
     ['API_TOKEN_SECRET', 'dcapi', 'api_token_secret'],
     ['OPENSEARCH_ENDPOINT', 'index', 'endpoint'],
-    ['OPENSEARCH_MODEL_ID', 'index', 'embedding_model'],
-    ['AZURE_OPENAI_API_KEY', 'azure_openai', 'api_key'],
-    ['AZURE_OPENAI_LLM_DEPLOYMENT_ID', 'azure_openai', 'llm_deployment_id'],
-    ['AZURE_OPENAI_RESOURCE_NAME', 'azure_openai', 'resource_name']
+    ['OPENSEARCH_MODEL_ID', 'index', 'embedding_model']
   ]
 
   client = boto3.client("secretsmanager")
   response = client.batch_get_secret_value(SecretIdList=[
     f'{SecretsPath}/infrastructure/index',
-    f'{SecretsPath}/infrastructure/azure_openai',
     f'{SecretsPath}/config/dcapi'
   ])
 

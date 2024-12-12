@@ -251,6 +251,12 @@ Resources:
           Resource:
           - !Sub "arn:aws:s3:::${CheckpointBucket}"
           - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          - bedrock:InvokeModelWithResponseStream
+          Resource: "*"
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   # ChatSyncFunction:

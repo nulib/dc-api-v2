@@ -6,7 +6,6 @@ import traceback
 from datetime import datetime
 from event_config import EventConfig
 # from honeybadger import honeybadger
-from agent.dynamodb_cleaner import delete_checkpoint
 from agent.search_agent import search_agent
 from langchain_core.messages import HumanMessage
 from agent.agent_handler import AgentHandler
@@ -19,11 +18,9 @@ RESPONSE_TYPES = {
     "debug": [
         "answer",
         "attributes",
-        "azure_endpoint",
         "deployment_name",
         "is_superuser",
         "k",
-        "openai_api_version",
         "prompt",
         "question",
         "ref",
@@ -36,7 +33,6 @@ RESPONSE_TYPES = {
         "deployment_name",
         "is_superuser",
         "k",
-        "openai_api_version",
         "prompt",
         "question",
         "ref",
@@ -59,8 +55,8 @@ def handler(event, context):
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
 
-    if config.forget:
-        delete_checkpoint(config.ref)
+    # if config.forget:
+    #     delete_checkpoint(config.ref)
 
     if config.question is None or config.question == "":
         config.socket.send({"type": "error", "message": "Question cannot be blank"})
@@ -79,8 +75,8 @@ def handler(event, context):
     try:
         search_agent.invoke(
             {"messages": [HumanMessage(content=config.question)]},
-            config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks, "metadata": {"model_deployment": os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")}},
-            debug=False
+            config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks},
+            debug=True
         )
     except Exception as e:
         print(f"Error: {e}")
