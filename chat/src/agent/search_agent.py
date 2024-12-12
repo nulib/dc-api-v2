@@ -2,7 +2,7 @@ import os
 
 from typing import Literal
 
-from agent.dynamodb_saver import DynamoDBSaver
+from agent.s3_saver import S3Saver
 from agent.tools import aggregate, discover_fields, search
 from langchain_core.messages.base import BaseMessage
 from langchain_core.messages.system import SystemMessage
@@ -62,6 +62,11 @@ workflow.add_conditional_edges(
 # Add a normal edge from `tools` to `agent`
 workflow.add_edge("tools", "agent")
 
-checkpointer = DynamoDBSaver(os.getenv("CHECKPOINT_TABLE"), os.getenv("CHECKPOINT_WRITES_TABLE"), os.getenv("AWS_REGION", "us-east-1"))
+# checkpointer = DynamoDBSaver(os.getenv("CHECKPOINT_TABLE"), os.getenv("CHECKPOINT_WRITES_TABLE"), os.getenv("AWS_REGION", "us-east-1"))
+
+checkpointer = S3Saver(
+    bucket_name=os.getenv("CHECKPOINT_BUCKET_NAME"), 
+    region_name=os.getenv("AWS_REGION"), 
+    compression="gzip")
 
 search_agent = workflow.compile(checkpointer=checkpointer)

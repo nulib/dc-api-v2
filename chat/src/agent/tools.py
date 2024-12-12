@@ -42,7 +42,7 @@ def search(query: str):
 @tool(response_format="content_and_artifact")
 def aggregate(agg_field: str, term_field: str, term: str):
     """
-    Perform a quantitative aggregation on the OpenSearch index.
+    Perform a quantitative aggregation on the OpenSearch index. Use this tool for quantitative questions like "How many...?" or "What are the most common...?"
     
     Args:
         agg_field (str): The field to aggregate on.
@@ -55,6 +55,8 @@ def aggregate(agg_field: str, term_field: str, term: str):
     You must use the discover_fields tool first to obtain the list of appropriate fields for aggregration in the index.
     
     Do not use any fields that do not exist in the list returned by discover_fields!
+    
+    See sum_other_doc_count to get the total count of documents, even if the aggregation is limited by size.
     """
     try:
         response = opensearch_vector_store().aggregations_search(agg_field, term_field, term)
