@@ -6,6 +6,7 @@ import traceback
 from datetime import datetime
 from event_config import EventConfig
 # from honeybadger import honeybadger
+from agent.s3_saver import delete_checkpoints
 from agent.search_agent import search_agent
 from langchain_core.messages import HumanMessage
 from agent.agent_handler import AgentHandler
@@ -55,8 +56,8 @@ def handler(event, context):
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
 
-    # if config.forget:
-    #     delete_checkpoint(config.ref)
+    if config.forget:
+        delete_checkpoints(os.getenv("CHECKPOINT_BUCKET_NAME"), config.ref)
 
     if config.question is None or config.question == "":
         config.socket.send({"type": "error", "message": "Question cannot be blank"})
@@ -76,7 +77,7 @@ def handler(event, context):
         search_agent.invoke(
             {"messages": [HumanMessage(content=config.question)]},
             config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks},
-            debug=True
+            debug=False
         )
     except Exception as e:
         print(f"Error: {e}")

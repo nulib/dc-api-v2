@@ -31,10 +31,15 @@ class AgentHandler(BaseCallbackHandler):
         self.socket.send({"type": "start", "ref": self.ref, "message": {"model": metadata.get("model_deployment")}})
 
     def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
-        content = response.generations[0][0].text
+        response_generation = response.generations[0][0]
+        content = response_generation.text
+        stop_reason = response_generation.message.response_metadata.get("stop_reason", "unknown")
         if content != "":
             self.socket.send({"type": "stop", "ref": self.ref})
             self.socket.send({"type": "answer", "ref": self.ref, "message": content})
+        if stop_reason == "end_turn":
+            self.socket.send({"type": "final_message", "ref": self.ref})
+            
         
     def on_llm_new_token(self, token: str, **kwargs: Dict[str, Any]):
         if token != "":
@@ -59,3 +64,6 @@ class AgentHandler(BaseCallbackHandler):
                     print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")
             case _:
                 print(f"Unhandled tool_end message: {output}")
+
+    def on_agent_finish(self, finish, **kwargs):
+        self.socket.send({"type": "final", "ref": self.ref, "message": "Finished"})
