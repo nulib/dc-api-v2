@@ -1,4 +1,3 @@
-from langchain_aws import ChatBedrock
 from handlers.opensearch_neural_search import OpenSearchNeuralSearch
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -11,13 +10,6 @@ def prefix(value):
     env_prefix = os.getenv("ENV_PREFIX")
     env_prefix = None if env_prefix == "" else env_prefix
     return "-".join(filter(None, [env_prefix, value]))
-
-
-def chat_client(**kwargs):
-    return ChatBedrock(
-        model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-        **kwargs,
-    )
 
 
 def opensearch_endpoint():
