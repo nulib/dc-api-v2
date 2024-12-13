@@ -3,6 +3,7 @@ import json
 import base64
 import bz2
 import gzip
+import os
 import time
 from typing import Any, Dict, Iterator, Optional, Sequence, Tuple, List
 from langchain_core.runnables import RunnableConfig
@@ -118,7 +119,7 @@ class S3Saver(BaseCheckpointSaver):
     def __init__(
         self,
         bucket_name: str,
-        region_name: str = 'us-west-2',
+        region_name: str = os.getenv("AWS_REGION"),
         endpoint_url: Optional[str] = None,
         compression: Optional[str] = None,
     ) -> None:

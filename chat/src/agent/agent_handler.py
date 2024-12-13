@@ -28,7 +28,7 @@ class AgentHandler(BaseCallbackHandler):
         super().__init__(*args, **kwargs)
 
     def on_llm_start(self, serialized: dict[str, Any], prompts: list[str], metadata: Optional[dict[str, Any]] = None, **kwargs: Dict[str, Any]):
-        self.socket.send({"type": "start", "ref": self.ref, "message": {"model": metadata.get("model_deployment")}})
+        self.socket.send({"type": "start", "ref": self.ref, "message": {"model": metadata.get("ls_model_name")}})
 
     def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
         response_generation = response.generations[0][0]
