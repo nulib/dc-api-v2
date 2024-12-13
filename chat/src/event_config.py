@@ -27,36 +27,6 @@ class EventConfig:
     Default values are set for the following properties which can be overridden in the payload message.
     """
 
-    DEFAULT_ATTRIBUTES = [
-        "accession_number",
-        "alternate_title",
-        "api_link",
-        "canonical_link",
-        "caption",
-        "collection",
-        "contributor",
-        "date_created",
-        "date_created_edtf",
-        "description",
-        "genre",
-        "id",
-        "identifier",
-        "keywords",
-        "language",
-        "notes",
-        "physical_description_material",
-        "physical_description_size",
-        "provenance",
-        "publisher",
-        "rights_statement",
-        "subject",
-        "table_of_contents",
-        "thumbnail",
-        "title",
-        "visibility",
-        "work_type",
-    ]
-
     api_token: ApiToken = field(init=False)
     debug_mode: bool = field(init=False)
     event: dict = field(default_factory=dict)
@@ -66,6 +36,7 @@ class EventConfig:
     is_superuser: bool = field(init=False)
     k: int = field(init=False)
     max_tokens: int = field(init=False)
+    model: str = field(init=False)
     payload: dict = field(default_factory=dict)
     prompt_text: str = field(init=False)
     prompt: ChatPromptTemplate = field(init=False)
@@ -88,6 +59,7 @@ class EventConfig:
         self.is_superuser = self.api_token.is_superuser()
         self.k = self._get_k()
         self.max_tokens = min(self.payload.get("max_tokens", MAX_TOKENS), MAX_TOKENS)
+        self.model = self._get_payload_value_with_superuser_check("model", "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
         self.prompt_text = self._get_prompt_text()
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")

@@ -6,46 +6,12 @@ import traceback
 from datetime import datetime
 from event_config import EventConfig
 # from honeybadger import honeybadger
-from agent.s3_saver import delete_checkpoints
-from agent.search_agent import search_agent
-from langchain_core.messages import HumanMessage
+from agent.search_agent import SearchAgent
 from agent.agent_handler import AgentHandler
+from agent.metrics_handler import MetricsHandler
 
 # honeybadger.configure()
 # logging.getLogger("honeybadger").addHandler(logging.StreamHandler())
-
-RESPONSE_TYPES = {
-    "base": ["answer", "ref"],
-    "debug": [
-        "answer",
-        "attributes",
-        "deployment_name",
-        "is_superuser",
-        "k",
-        "prompt",
-        "question",
-        "ref",
-        "temperature",
-        "text_key",
-        "token_counts",
-    ],
-    "log": [
-        "answer",
-        "deployment_name",
-        "is_superuser",
-        "k",
-        "prompt",
-        "question",
-        "ref",
-        "size",
-        "source_documents",
-        "temperature",
-        "token_counts",
-        "is_dev_team",
-    ],
-    "error": ["question", "error", "source_documents"],
-}
-
 
 def handler(event, context):
     config = EventConfig(event)
@@ -56,29 +22,16 @@ def handler(event, context):
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
 
-    if config.forget:
-        delete_checkpoints(os.getenv("CHECKPOINT_BUCKET_NAME"), config.ref)
-
     if config.question is None or config.question == "":
         config.socket.send({"type": "error", "message": "Question cannot be blank"})
         return {"statusCode": 400, "body": "Question cannot be blank"}
 
-    log_group = os.getenv("METRICS_LOG_GROUP")
-    log_stream = context.log_stream_name
-    if log_group and ensure_log_stream_exists(log_group, log_stream):
-        log_client = boto3.client("logs")
-        log_events = [{"timestamp": timestamp(), "message": "Hello world"}]
-    log_client.put_log_events(
-            logGroupName=log_group, logStreamName=log_stream, logEvents=log_events
-        )
-
-    callbacks = [AgentHandler(config.socket, config.ref)]
+    metrics = MetricsHandler()
+    callbacks = [AgentHandler(config.socket, config.ref), metrics]
+    search_agent = SearchAgent(model=config.model, streaming=True)
     try:
-        search_agent.invoke(
-            {"messages": [HumanMessage(content=config.question)]},
-            config={"configurable": {"thread_id": config.ref}, "callbacks": callbacks},
-            debug=False
-        )
+        search_agent.invoke(config.question, config.ref, forget=config.forget, callbacks=callbacks)
+        log_metrics(context, metrics, config)
     except Exception as e:
         print(f"Error: {e}")
         print(traceback.format_exc())
@@ -90,10 +43,29 @@ def handler(event, context):
     return {"statusCode": 200}
 
 
-def reshape_response(response, type):
-    return {k: response[k] for k in RESPONSE_TYPES[type]}
-
-
+def log_metrics(context, metrics, config):
+    log_group = os.getenv("METRICS_LOG_GROUP")
+    log_stream = context.log_stream_name
+    if log_group and ensure_log_stream_exists(log_group, log_stream):
+        log_client = boto3.client("logs")
+        log_events = [{
+            "timestamp": timestamp(), 
+            "message": json.dumps({
+                "answer": metrics.answers,
+                "is_dev_team": config.api_token.is_dev_team(),
+                "is_superuser": config.api_token.is_superuser(),
+                "k": config.k,
+                "model": config.model,
+                "question": config.question,
+                "ref": config.ref,
+                "artifacts": metrics.artifacts,
+                "token_counts": metrics.accumulator,
+            })
+        }]
+        log_client.put_log_events(
+                logGroupName=log_group, logStreamName=log_stream, logEvents=log_events
+            )
+    
 def ensure_log_stream_exists(log_group, log_stream):
     log_client = boto3.client("logs")
     try:

@@ -14,7 +14,6 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ci
       AWS_SECRET_ACCESS_KEY: ci
-      SKIP_LLM_REQUEST: 'True' 
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
