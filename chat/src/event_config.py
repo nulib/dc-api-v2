@@ -92,20 +92,6 @@ class EventConfig:
     def _get_text_key(self):
         return self._get_payload_value_with_superuser_check("text_key", TEXT_KEY)
 
-    def debug_message(self):
-        return {
-            "type": "debug",
-            "message": {
-                "k": self.k,
-                "prompt": self.prompt_text,
-                "question": self.question,
-                "ref": self.ref,
-                "size": self.ref,
-                "temperature": self.temperature,
-                "text_key": self.text_key,
-            },
-        }
-
     def setup_websocket(self, socket=None):
         if socket is None:
             connection_id = self.request_context.get("connectionId")
@@ -120,11 +106,3 @@ class EventConfig:
     def _is_debug_mode_enabled(self):
         debug = self.payload.get("debug", False)
         return debug and self.api_token.is_superuser()
-
-    def _to_bool(self, val):
-        """Converts a value to boolean. If the value is a string, it considers
-        "", "no", "false", "0" as False. Otherwise, it returns the boolean of the value.
-        """
-        if isinstance(val, str):
-            return val.lower() not in ["", "no", "false", "0"]
-        return bool(val)
