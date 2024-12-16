@@ -110,6 +110,15 @@ Parameters:
   StreamingBucket:
     Type: String
     Description: Meadow Streaming Bucket
+  WriteConfigSecret:
+    Type: String
+    Description: Set to something other than "true" to _not_ write configuration secrets
+    Default: "true"
+Conditions:
+  WriteSecret:
+    Fn::Equals:
+    - !Ref WriteConfigSecret
+    - true
 Resources:
   #* apiDependencies:
   #*   Type: AWS::Serverless::LayerVersion
@@ -125,6 +134,7 @@ Resources:
   # Configuration
   apiConfiguration:
     Type: AWS::SecretsManager::Secret
+    Condition: WriteSecret
     Properties:
       Name: !Sub "${SecretsPath}/config/dcapi"
       SecretString:
