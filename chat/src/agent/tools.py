@@ -1,7 +1,7 @@
 import json
 
 from langchain_core.tools import tool
-from setup import opensearch_vector_store
+from core.setup import opensearch_vector_store
 
 def get_keyword_fields(properties, prefix=''):
     """

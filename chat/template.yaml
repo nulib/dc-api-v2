@@ -55,8 +55,6 @@ Resources:
   CheckpointBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
-      VersioningConfiguration:
-        Status: Enabled
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -209,7 +207,7 @@ Resources:
       #* Layers:
       #*   - !Ref ChatDependencies
       MemorySize: 1024
-      Handler: handlers/chat.handler
+      Handler: handlers.chat
       Timeout: 300
       Environment:
         Variables:
@@ -242,8 +240,25 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
-    Metadata:
-      BuildMethod: nodejs20.x
+      - Statement:
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:PutObject
+          - s3:DeleteObject
+          - s3:ListObjectsV2
+          Resource:
+          - !Sub "arn:aws:s3:::${CheckpointBucket}"
+          - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          - bedrock:InvokeModelWithResponseStream
+          Resource: "*"
+    #* Metadata:
+    #*   BuildMethod: nodejs20.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -251,20 +266,22 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
-      Layers:
-        - !Ref ChatDependencies
+      #* Layers:
+      #*   - !Ref ChatDependencies
       MemorySize: 1024
-      Handler: handlers/chat_sync.handler
+      Handler: handlers.chat_sync
       Timeout: 300
       Environment:
         Variables:
           API_TOKEN_NAME: !Ref ApiTokenName
+          CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          NO_COLOR: 1
       FunctionUrlConfig:
         AuthType: NONE
       Policies:
@@ -280,7 +297,7 @@ Resources:
           Action:
           - logs:CreateLogStream
           - logs:PutLogEvents
-          Resource: !Sub "${ChatMetricsLog.Arn}:*"  
+          Resource: !Sub "${ChatMetricsLog.Arn}:*"
       - Statement:
         - Effect: Allow
           Action:
