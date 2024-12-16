@@ -9,10 +9,11 @@ sys.path.append('./src')
 from unittest import mock, TestCase
 from unittest.mock import patch
 from handlers.chat import handler
-from agent.search_agent import SearchAgent
 from helpers.apitoken import ApiToken
 from websocket import Websocket
-from event_config import EventConfig
+
+from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from handlers.model import set_model_override
 
 class MockClient:
     def __init__(self):
@@ -56,14 +57,16 @@ def mock_response(**kwargs):
     },
 )
 
+
 class TestHandler(TestCase):
-    def test_handler_unauthorized(self):        
+    def test_handler_unauthorized(self):
         event = {"socket": Websocket(client=MockClient(), endpoint_url="test", connection_id="test", ref="test")}
         self.assertEqual(handler(event, MockContext()), {'body': 'Unauthorized', 'statusCode': 401})
     
     @patch.object(ApiToken, 'is_logged_in')
     def test_handler_success(self, mock_is_logged_in):
       mock_is_logged_in.return_value = True
+      set_model_override(FakeListChatModel(responses=["one", "two", "three"]))
       event = {"socket": Websocket(client=MockClient(), endpoint_url="test", connection_id="test", ref="test"), "body": '{"question": "Question?"}' }
       self.assertEqual(handler(event, MockContext()), {'statusCode': 200})
 

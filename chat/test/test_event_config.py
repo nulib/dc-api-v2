@@ -1,11 +1,10 @@
 # ruff: noqa: E402
 import json
-import os
 import sys
 sys.path.append('./src')
 
 from event_config import EventConfig
-from unittest import TestCase, mock
+from unittest import TestCase
 
 class TestEventConfig(TestCase):
     def test_defaults(self):

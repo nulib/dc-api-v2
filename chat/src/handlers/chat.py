@@ -9,6 +9,7 @@ from event_config import EventConfig
 from agent.search_agent import SearchAgent
 from agent.agent_handler import AgentHandler
 from agent.metrics_handler import MetricsHandler
+from handlers.model import chat_model
 
 # honeybadger.configure()
 # logging.getLogger("honeybadger").addHandler(logging.StreamHandler())
@@ -28,7 +29,7 @@ def handler(event, context):
 
     metrics = MetricsHandler()
     callbacks = [AgentHandler(config.socket, config.ref), metrics]
-    search_agent = SearchAgent(model=config.model, streaming=True)
+    search_agent = SearchAgent(model=chat_model(event), streaming=True)
     try:
         search_agent.invoke(config.question, config.ref, forget=config.forget, callbacks=callbacks)
         log_metrics(context, metrics, config)

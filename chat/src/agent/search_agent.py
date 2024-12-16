@@ -4,9 +4,9 @@ from typing import Literal, List
 
 from agent.s3_saver import S3Saver, delete_checkpoints
 from agent.tools import aggregate, discover_fields, search
-from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage
 from langchain_core.messages.base import BaseMessage
+from langchain_core.language_models.chat_models import BaseModel
 from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages.system import SystemMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
@@ -21,6 +21,7 @@ links using the document's canonical_link field. Do not include intermediate mes
 class SearchAgent:
     def __init__(
         self,
+        model: BaseModel,
         *,
         checkpoint_bucket: str = os.getenv("CHECKPOINT_BUCKET_NAME"),
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
@@ -30,7 +31,12 @@ class SearchAgent:
 
         tools = [discover_fields, search, aggregate]
         tool_node = ToolNode(tools)
-        model = ChatBedrock(**kwargs).bind_tools(tools)
+
+        try:
+            model = model.bind_tools(tools)
+        except NotImplementedError:
+            print("Model does not support tool binding")
+            pass
 
         # Define the function that determines whether to continue or not
         def should_continue(state: MessagesState) -> Literal["tools", END]:
