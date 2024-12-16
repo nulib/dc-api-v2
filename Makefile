@@ -56,15 +56,15 @@ test-node: deps-node
 deps-python:
 	cd chat/src && pip install -r requirements.txt && pip install -r requirements-dev.txt
 cover-python: deps-python
-	cd chat && coverage run --source=src -m unittest -v && coverage report --skip-empty
+	cd chat && coverage run --source=src -m pytest -v && coverage report --skip-empty
 cover-html-python: deps-python
-	cd chat && coverage run --source=src -m unittest -v && coverage html --skip-empty
+	cd chat && coverage run --source=src -m pytest -v && coverage html --skip-empty
 style-python: deps-python
 	cd chat && ruff check . 
 style-python-fix: deps-python
 	cd chat && ruff check --fix . 
 test-python: deps-python
-	cd chat && __SKIP_SECRETS__=true PYTHONPATH=src:test python -m unittest discover -v
+	cd chat && pytest
 python-version:
 	cd chat && python --version
 build: layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
