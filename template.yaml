@@ -653,6 +653,7 @@ Resources:
     Properties:
       Location: ./chat/template.yaml
       Parameters:
+        ApiTokenName: !Ref ApiTokenName
         EnvironmentPrefix: !Ref EnvironmentPrefix
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
         HoneybadgerEnv: !Ref HoneybadgerEnv

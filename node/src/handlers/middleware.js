@@ -20,6 +20,7 @@ const Honeybadger = require("../honeybadger-setup");
 const { StatusCodes } = require("http-status-codes");
 const { SECRETS_PATH } = process.env;
 const SecretPaths = [
+  `${SECRETS_PATH}/config/dcapi`,
   `${SECRETS_PATH}/infrastructure/index`,
   `${SECRETS_PATH}/infrastructure/nusso`,
 ];
@@ -64,6 +65,7 @@ const _initializeEnvironment = async function () {
     endpoint = new URL(endpoint).hostname;
   }
 
+  putenv("API_TOKEN_SECRET", secrets.dcapi?.api_token_secret);
   putenv("OPENSEARCH_ENDPOINT", endpoint);
   putenv("OPENSEARCH_MODEL_ID", secrets.index?.embedding_model);
   putenv("NUSSO_API_KEY", secrets.nusso?.api_key);
