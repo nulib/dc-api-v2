@@ -122,7 +122,7 @@ Resources:
   #*     LicenseInfo: Apache-2.0
   #*   Metadata:
   #*     BuildMethod: nodejs20.x
-  #* Configuration
+  # Configuration
   apiConfiguration:
     Type: AWS::SecretsManager::Secret
     Properties:
