@@ -1,8 +1,6 @@
-import os
-
 from typing import Literal, List
 
-from agent.s3_saver import S3Saver, delete_checkpoints
+from agent.checkpoint_factory import create_checkpoint_saver
 from agent.tools import aggregate, discover_fields, search
 from langchain_core.messages import HumanMessage
 from langchain_core.messages.base import BaseMessage
@@ -23,11 +21,11 @@ class SearchAgent:
         self,
         model: BaseModel,
         *,
-        checkpoint_bucket: str = os.getenv("CHECKPOINT_BUCKET_NAME"),
+        streaming: bool = True,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
-        **kwargs):
-
-        self.checkpoint_bucket = checkpoint_bucket
+        **kwargs
+    ):
+        self.streaming = streaming
 
         tools = [discover_fields, search, aggregate]
         tool_node = ToolNode(tools)
@@ -35,8 +33,8 @@ class SearchAgent:
         try:
             model = model.bind_tools(tools)
         except NotImplementedError:
-            print("Model does not support tool binding")
             pass
+
 
         # Define the function that determines whether to continue or not
         def should_continue(state: MessagesState) -> Literal["tools", END]:
@@ -73,13 +71,13 @@ class SearchAgent:
         # Add a normal edge from `tools` to `agent`
         workflow.add_edge("tools", "agent")
 
-        checkpointer = S3Saver(bucket_name=checkpoint_bucket, compression="gzip")
-        self.search_agent = workflow.compile(checkpointer=checkpointer)
+        self.checkpointer = create_checkpoint_saver()
+        self.search_agent = workflow.compile(checkpointer=self.checkpointer)
     
     def invoke(self, question: str, ref: str, *, callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
         if forget:
-            delete_checkpoints(self.checkpoint_bucket, ref)
-
+                self.checkpointer.delete_checkpoints(ref)
+            
         return self.search_agent.invoke(
             {"messages": [HumanMessage(content=question)]},
             config={"configurable": {"thread_id": ref}, "callbacks": callbacks},

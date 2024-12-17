@@ -371,31 +371,30 @@ class S3Saver(BaseCheckpointSaver):
 
         return writes
 
-def delete_checkpoints(bucket_name, thread_id, region_name="us-east-1"):
-    """
-    Deletes all items with the specified thread_id from the checkpoint
-    bucket.
-    
-    :param bucket_name: The name of the S3 checkpoint bucket
-    :param thread_id: The thread_id value to delete.
-    :param region_name: The S3 region the bucket is in
-    """
-    session = boto3.Session(region_name=region_name)
-    client = session.client("s3")
-
-    def delete_objects(objects):
-        if objects['Objects']:
-            client.delete_objects(Bucket=bucket_name, Delete=objects)
+    def delete_checkpoints(self, thread_id: str) -> None:
+        """
+        Deletes all items with the specified thread_id from the checkpoint bucket.
         
-    paginator = client.get_paginator("list_objects_v2")
-    pages = paginator.paginate(Bucket=bucket_name, Prefix=f"checkpoints/{thread_id}/")
+        Args:
+            thread_id: The thread_id value to delete
+        """
+        def delete_objects(objects: dict) -> None:
+            if objects['Objects']:
+                self.s3.delete_objects(Bucket=self.bucket_name, Delete=objects)
+            
+        paginator = self.s3.get_paginator("list_objects_v2")
+        prefix = f"checkpoints/{thread_id}/"
+        pages = paginator.paginate(Bucket=self.bucket_name, Prefix=prefix)
 
-    to_delete = dict(Objects=[])
-    for item in pages.search('Contents'):
-        if item is not None:
-            to_delete['Objects'].append(dict(Key=item['Key']))
+        to_delete = {'Objects': []}
+        for item in pages.search('Contents'):
+            if item is not None:
+                to_delete['Objects'].append({'Key': item['Key']})
 
-            if len(to_delete['Objects']) >= 1000:
-                delete_objects(to_delete)
+                # Batch deletions in groups of 1000 (S3's limit)
+                if len(to_delete['Objects']) >= 1000:
+                    delete_objects(to_delete)
+                    to_delete['Objects'] = []
 
-    delete_objects(to_delete)
+        # Delete any remaining objects
+        delete_objects(to_delete)
