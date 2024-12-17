@@ -29,7 +29,8 @@ def handler(event, context):
 
     metrics = MetricsHandler()
     callbacks = [AgentHandler(config.socket, config.ref), metrics]
-    search_agent = SearchAgent(model=chat_model(config), streaming=True)
+    model = chat_model(model=config.model, streaming=config.stream_response)
+    search_agent = SearchAgent(model=model)
     try:
         search_agent.invoke(config.question, config.ref, forget=config.forget, callbacks=callbacks)
         log_metrics(context, metrics, config)
