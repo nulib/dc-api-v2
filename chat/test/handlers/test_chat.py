@@ -8,7 +8,6 @@ import sys
 sys.path.append('./src')
 
 from handlers.chat import handler
-from handlers.model import set_model_override
 from helpers.apitoken import ApiToken
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
@@ -37,8 +36,8 @@ class TestHandler(TestCase):
 
     @patch.object(ApiToken, 'is_logged_in', return_value=True)
     @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
-    def test_handler_success(self, mock_create_saver, mock_is_logged_in):
-        set_model_override(FakeListChatModel(responses=["fake response"]))
+    @patch('handlers.chat.chat_model', return_value=FakeListChatModel(responses=["fake response"]))
+    def test_handler_success(self, mock_chat_model, mock_create_saver, mock_is_logged_in):
         event = {
             "socket": Websocket(client=MockClient(), endpoint_url="test", connection_id="test", ref="test"),
             "body": '{"question": "Question?"}'
