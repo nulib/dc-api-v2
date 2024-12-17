@@ -5,32 +5,30 @@ import sys
 sys.path.append('./src')
 
 from agent.search_agent import SearchAgent
-from handlers.model import chat_model, set_model_override
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
 
 
 class TestSearchAgent(TestCase):
 
-    @patch('agent.search_agent.create_checkpoint_saver', return_value=MemorySaver())
+    @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
     def test_search_agent_init(self, mock_create_saver):
-        set_model_override(FakeListChatModel(responses=["fake response"]))
-        search_agent = SearchAgent(model=chat_model("test"), streaming=True)
+        chat_model = FakeListChatModel(responses=["fake response"])
+        search_agent = SearchAgent(model=chat_model, streaming=True)
         self.assertIsNotNone(search_agent)
 
-    @patch('agent.search_agent.create_checkpoint_saver', return_value=MemorySaver())
+    @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
     def test_search_agent_invoke_simple(self, mock_create_saver):
         expected_response = "This is a mocked LLM response."
-        set_model_override(FakeListChatModel(responses=[expected_response]))
-
-        search_agent = SearchAgent(model=chat_model("test"), streaming=True)
+        chat_model = FakeListChatModel(responses=[expected_response])
+        search_agent = SearchAgent(model=chat_model, streaming=True)
         result = search_agent.invoke(question="What is the capital of France?", ref="test_ref")
 
         self.assertIn("messages", result)
         self.assertGreater(len(result["messages"]), 0)
         self.assertEqual(result["messages"][-1].content, expected_response)
 
-    @patch('agent.search_agent.create_checkpoint_saver')
+    @patch('agent.search_agent.checkpoint_saver')
     def test_search_agent_invocation(self, mock_create_saver):
         # Create a memory saver instance with a Mock for delete_checkpoints
         memory_saver = MemorySaver()
@@ -39,8 +37,8 @@ class TestSearchAgent(TestCase):
         mock_create_saver.return_value = memory_saver
         
         # Test that the SearchAgent invokes the model with the correct messages
-        set_model_override(FakeListChatModel(responses=["first response", "second response"]))
-        search_agent = SearchAgent(model=chat_model("test"), streaming=True)
+        chat_model = FakeListChatModel(responses=["first response", "second response"])
+        search_agent = SearchAgent(model=chat_model, streaming=True)
         
         # First invocation with some question
         result_1 = search_agent.invoke(question="First question?", ref="test_ref")
@@ -55,17 +53,18 @@ class TestSearchAgent(TestCase):
         memory_saver.delete_checkpoints.assert_not_called()
     
 
-    @patch('agent.search_agent.create_checkpoint_saver')
+    @patch('agent.search_agent.checkpoint_saver')
     def test_search_agent_invoke_forget(self, mock_create_saver):
         # Create a memory saver instance with a Mock for delete_checkpoints
         memory_saver = MemorySaver()
         from unittest.mock import Mock
         memory_saver.delete_checkpoints = Mock()
         mock_create_saver.return_value = memory_saver
+        
 
         # Test `forget=True` to ensure that state is reset and doesn't carry over between invocations
-        set_model_override(FakeListChatModel(responses=["first response", "second response"]))
-        search_agent = SearchAgent(model=chat_model("test"), streaming=True)
+        chat_model = FakeListChatModel(responses=["first response", "second response"])
+        search_agent = SearchAgent(model=chat_model, streaming=True)
 
         # First invocation with some question
         result_1 = search_agent.invoke(question="First question?", ref="test_ref")
@@ -77,8 +76,8 @@ class TestSearchAgent(TestCase):
         self.assertEqual(result_2["messages"][-1].content, "second response")
 
         # Now invoke with forget=True, resetting the state
-        set_model_override(FakeListChatModel(responses=["fresh response"]))
-        search_agent = SearchAgent(model=chat_model("test"), streaming=True)
+        new_chat_model = FakeListChatModel(responses=["fresh response"])
+        search_agent = SearchAgent(model=new_chat_model, streaming=True)
 
         # Forget the state for "test_ref"
         result_3 = search_agent.invoke(question="Third question after forgetting?", ref="test_ref", forget=True)

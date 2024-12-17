@@ -1,6 +1,6 @@
 from typing import Literal, List
 
-from agent.checkpoint_factory import create_checkpoint_saver
+from agent.checkpoints import checkpoint_saver
 from agent.tools import aggregate, discover_fields, search
 from langchain_core.messages import HumanMessage
 from langchain_core.messages.base import BaseMessage
@@ -21,12 +21,9 @@ class SearchAgent:
         self,
         model: BaseModel,
         *,
-        streaming: bool = True,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         **kwargs
     ):
-        self.streaming = streaming
-
         tools = [discover_fields, search, aggregate]
         tool_node = ToolNode(tools)
 
@@ -71,7 +68,7 @@ class SearchAgent:
         # Add a normal edge from `tools` to `agent`
         workflow.add_edge("tools", "agent")
 
-        self.checkpointer = create_checkpoint_saver()
+        self.checkpointer = checkpoint_saver()
         self.search_agent = workflow.compile(checkpointer=self.checkpointer)
     
     def invoke(self, question: str, ref: str, *, callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
