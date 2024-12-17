@@ -3,7 +3,7 @@ import sys
 sys.path.append('./src')
 
 from unittest import TestCase
-from websocket import Websocket
+from core.websocket import Websocket
 
 
 class MockClient:

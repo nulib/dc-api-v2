@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from websocket import Websocket
+from core.websocket import Websocket
 
 from json.decoder import JSONDecodeError
 from langchain_core.callbacks import BaseCallbackHandler
@@ -19,7 +19,7 @@ def deserialize_input(input_str):
         except JSONDecodeError:
             return input_str
     
-class AgentHandler(BaseCallbackHandler):
+class SocketCallbackHandler(BaseCallbackHandler):
     def __init__(self, socket: Websocket, ref: str, *args: List[Any], **kwargs: Dict[str, Any]):
         if socket is None:
             raise ValueError("Socket not provided to agent callback handler")
@@ -56,12 +56,9 @@ class AgentHandler(BaseCallbackHandler):
             case "discover_fields":
                 pass
             case "search":
-                try:
-                    result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
-                    docs: List[Dict[str, Any]] = [{k: doc.metadata.get(k) for k in result_fields} for doc in output.artifact]
-                    self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
-                except json.decoder.JSONDecodeError as e:
-                    print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")
+                result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
+                docs: List[Dict[str, Any]] = [{k: doc.metadata.get(k) for k in result_fields} for doc in output.artifact]
+                self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
             case _:
                 print(f"Unhandled tool_end message: {output}")
 

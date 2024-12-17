@@ -4,7 +4,7 @@ import sys
 
 sys.path.append('./src')
 
-from helpers.apitoken import ApiToken
+from core.apitoken import ApiToken
 from test.fixtures.apitoken import DEV_TEAM_TOKEN, SUPER_TOKEN, TEST_SECRET, TEST_TOKEN
 from unittest import mock, TestCase
 

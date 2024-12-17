@@ -1,5 +1,5 @@
 import json
-from setup import websocket_client
+from core.setup import websocket_client
 
 class Websocket:
     def __init__(self, client=None, endpoint_url=None, connection_id=None, ref=None):
@@ -8,9 +8,9 @@ class Websocket:
         self.ref = ref if ref else {}
 
     def send(self, data):
-        # if isinstance(data, str):
-        #     data = {"message": data}
-        # data["ref"] = self.ref
+        if isinstance(data, str):
+            data = {"message": data}
+        data["ref"] = self.ref
         data_as_bytes = bytes(json.dumps(data), "utf-8")
 
         if self.connection_id == "debug":

@@ -1,5 +1,5 @@
 import sys
-from helpers.hybrid_query import hybrid_query
+from search.hybrid_query import hybrid_query
 from unittest import TestCase
 
 sys.path.append('./src')
