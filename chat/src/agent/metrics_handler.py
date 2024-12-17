@@ -13,12 +13,10 @@ class MetricsHandler(BaseCallbackHandler):
     
   def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
     for generation in response.generations[0]:
-      self.answers.append(generation.text)
+      if generation.text != "":
+        self.answers.append(generation.text)
       for k, v in generation.message.usage_metadata.items():
-        if k not in self.accumulator:
-          self.accumulator[k] = v
-        else:
-          self.accumulator[k] += v
+        self.accumulator[k] = self.accumulator.get(k, 0) + v
 
   def on_tool_end(self, output: ToolMessage, **kwargs: Dict[str, Any]):
         match output.name:
