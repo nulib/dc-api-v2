@@ -3,7 +3,7 @@ import json
 import sys
 sys.path.append('./src')
 
-from event_config import EventConfig
+from core.event_config import EventConfig
 from unittest import TestCase
 
 class TestEventConfig(TestCase):

@@ -2,7 +2,7 @@
 import sys
 sys.path.append('./src')
 
-from helpers.prompts import prompt_template, document_template
+from core.prompts import prompt_template, document_template
 from unittest import TestCase
 
 

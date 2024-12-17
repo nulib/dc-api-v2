@@ -1,5 +1,5 @@
 import json
-from setup import websocket_client
+from core.setup import websocket_client
 
 class Websocket:
     def __init__(self, client=None, endpoint_url=None, connection_id=None, ref=None):

@@ -1,10 +1,20 @@
-from handlers.opensearch_neural_search import OpenSearchNeuralSearch
+from persistence.s3_checkpointer import S3Checkpointer
+from search.opensearch_neural_search import OpenSearchNeuralSearch
+from langchain_aws import ChatBedrock
+from langchain_core.language_models.base import BaseModel
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from opensearchpy import OpenSearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from urllib.parse import urlparse
 import os
 import boto3
 
+def chat_model(**kwargs) -> BaseModel:
+    return ChatBedrock(**kwargs)
+
+def checkpoint_saver(**kwargs) -> BaseCheckpointSaver:
+    checkpoint_bucket: str = os.getenv("CHECKPOINT_BUCKET_NAME")
+    return S3Checkpointer(bucket_name=checkpoint_bucket, **kwargs)
 
 def prefix(value):
     env_prefix = os.getenv("ENV_PREFIX")

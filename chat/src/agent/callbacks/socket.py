@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from websocket import Websocket
+from core.websocket import Websocket
 
 from json.decoder import JSONDecodeError
 from langchain_core.callbacks import BaseCallbackHandler
@@ -19,7 +19,7 @@ def deserialize_input(input_str):
         except JSONDecodeError:
             return input_str
     
-class AgentHandler(BaseCallbackHandler):
+class SocketCallbackHandler(BaseCallbackHandler):
     def __init__(self, socket: Websocket, ref: str, *args: List[Any], **kwargs: Dict[str, Any]):
         if socket is None:
             raise ValueError("Socket not provided to agent callback handler")

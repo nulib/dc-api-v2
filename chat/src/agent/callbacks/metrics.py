@@ -4,12 +4,13 @@ from langchain_core.outputs import LLMResult
 from langchain_core.messages.tool import ToolMessage
 import json
 
-class MetricsHandler(BaseCallbackHandler):
+class MetricsCallbackHandler(BaseCallbackHandler):
   def __init__(self, *args, **kwargs):
     self.accumulator = {}
     self.answers = []
     self.artifacts = []
     super().__init__(*args, **kwargs)
+
   def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
     if response is None:
         return
@@ -20,18 +21,16 @@ class MetricsHandler(BaseCallbackHandler):
     for generation in response.generations[0]:
       if generation.text != "":
         self.answers.append(generation.text)
-      for k, v in generation.message.usage_metadata.items():
-        self.accumulator[k] = self.accumulator.get(k, 0) + v
 
-        if not hasattr(generation, 'message') or generation.message is None:
-            continue
-            
-        metadata = getattr(generation.message, 'usage_metadata', None)
-        if metadata is None:
-            continue
-            
-        for k, v in metadata.items():
-            self.accumulator[k] = self.accumulator.get(k, 0) + v
+      if not hasattr(generation, 'message') or generation.message is None:
+          continue
+          
+      metadata = getattr(generation.message, 'usage_metadata', None)
+      if metadata is None:
+          continue
+          
+      for k, v in metadata.items():
+          self.accumulator[k] = self.accumulator.get(k, 0) + v
 
   def on_tool_end(self, output: ToolMessage, **kwargs: Dict[str, Any]):
         match output.name:

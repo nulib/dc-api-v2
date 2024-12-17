@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from helpers.apitoken import ApiToken
-from helpers.prompts import prompt_template
-from websocket import Websocket
+from core.apitoken import ApiToken
+from core.prompts import prompt_template
+from core.websocket import Websocket
 from uuid import uuid4
 
 CHAIN_TYPE = "stuff"

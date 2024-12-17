@@ -205,7 +205,7 @@ Resources:
       #* Layers:
       #*   - !Ref ChatDependencies
       MemorySize: 1024
-      Handler: handlers/chat.handler
+      Handler: handlers.chat
       Timeout: 300
       Environment:
         Variables:
@@ -267,7 +267,7 @@ Resources:
       #* Layers:
       #*   - !Ref ChatDependencies
       MemorySize: 1024
-      Handler: handlers/chat_sync.handler
+      Handler: handlers.chat_sync
       Timeout: 300
       Environment:
         Variables:

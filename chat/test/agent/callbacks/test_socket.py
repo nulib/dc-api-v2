@@ -5,7 +5,7 @@ import sys
 
 sys.path.append("./src")
 
-from agent.agent_handler import AgentHandler
+from agent.callbacks.socket import SocketCallbackHandler
 
 class MockClient:
     def __init__(self):
@@ -14,11 +14,11 @@ class MockClient:
         self.received.append(Data)
         return Data
 
-class TestAgentHandler(TestCase):
+class TestSocketCallbackHandler(TestCase):
     def setUp(self):
         self.mock_socket = MagicMock()
         self.ref = "test_ref"
-        self.handler = AgentHandler(socket=self.mock_socket, ref=self.ref)
+        self.handler = SocketCallbackHandler(socket=self.mock_socket, ref=self.ref)
 
     def test_on_llm_start(self):
         # Given metadata that includes model name
@@ -160,10 +160,10 @@ class TestAgentHandler(TestCase):
             "message": "Finished"
         })
 
-class TestAgentHandlerErrors(TestCase):
+class TestSocketCallbackHandlerErrors(TestCase):
     def test_missing_socket(self):
         with self.assertRaises(ValueError) as context:
-            AgentHandler(socket=None, ref="abc123")
+            SocketCallbackHandler(socket=None, ref="abc123")
         
         self.assertIn("Socket not provided to agent callback handler", str(context.exception))
 

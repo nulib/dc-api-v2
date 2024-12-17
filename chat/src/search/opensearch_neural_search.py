@@ -2,7 +2,7 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from opensearchpy import OpenSearch
 from typing import Any, List, Tuple
-from helpers.hybrid_query import hybrid_query
+from search.hybrid_query import hybrid_query
 
 class OpenSearchNeuralSearch(VectorStore):
     """Read-only OpenSearch vectorstore with neural search."""

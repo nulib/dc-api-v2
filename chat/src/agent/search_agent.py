@@ -1,6 +1,5 @@
 from typing import Literal, List
 
-from agent.checkpoints import checkpoint_saver
 from agent.tools import aggregate, discover_fields, search
 from langchain_core.messages import HumanMessage
 from langchain_core.messages.base import BaseMessage
@@ -9,6 +8,7 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages.system import SystemMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
+from core.setup import checkpoint_saver
 
 DEFAULT_SYSTEM_MESSAGE = """
 Please provide a brief answer to the question using the tools provided. Include specific details from multiple documents that 

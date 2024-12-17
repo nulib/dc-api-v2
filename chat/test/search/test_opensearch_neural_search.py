@@ -3,7 +3,7 @@ import sys
 sys.path.append('./src')
 
 from unittest import TestCase
-from handlers.opensearch_neural_search import OpenSearchNeuralSearch
+from search.opensearch_neural_search import OpenSearchNeuralSearch
 from langchain_core.documents import Document
 
 class MockClient():
