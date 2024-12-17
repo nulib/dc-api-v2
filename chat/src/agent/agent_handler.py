@@ -56,12 +56,9 @@ class AgentHandler(BaseCallbackHandler):
             case "discover_fields":
                 pass
             case "search":
-                try:
-                    result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
-                    docs: List[Dict[str, Any]] = [{k: doc.metadata.get(k) for k in result_fields} for doc in output.artifact]
-                    self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
-                except json.decoder.JSONDecodeError as e:
-                    print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")
+                result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
+                docs: List[Dict[str, Any]] = [{k: doc.metadata.get(k) for k in result_fields} for doc in output.artifact]
+                self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
             case _:
                 print(f"Unhandled tool_end message: {output}")
 
