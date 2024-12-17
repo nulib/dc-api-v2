@@ -30,13 +30,13 @@ class MockContext:
 class TestHandler(TestCase):
 
     @patch.object(ApiToken, 'is_logged_in', return_value=False)
-    @patch('agent.search_agent.create_checkpoint_saver', return_value=MemorySaver())
+    @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
     def test_handler_unauthorized(self, mock_create_saver, mock_is_logged_in):
         event = {"socket": Websocket(client=MockClient(), endpoint_url="test", connection_id="test", ref="test")}
         self.assertEqual(handler(event, MockContext()), {'statusCode': 401, 'body': 'Unauthorized'})
 
     @patch.object(ApiToken, 'is_logged_in', return_value=True)
-    @patch('agent.search_agent.create_checkpoint_saver', return_value=MemorySaver())
+    @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
     def test_handler_success(self, mock_create_saver, mock_is_logged_in):
         set_model_override(FakeListChatModel(responses=["fake response"]))
         event = {
@@ -46,7 +46,7 @@ class TestHandler(TestCase):
         self.assertEqual(handler(event, MockContext()), {'statusCode': 200})
 
     @patch.object(ApiToken, 'is_logged_in', return_value=True)
-    @patch('agent.search_agent.create_checkpoint_saver', return_value=MemorySaver())
+    @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
     def test_handler_question_missing(self, mock_create_saver, mock_is_logged_in):
         mock_client = MockClient()
         mock_websocket = Websocket(client=mock_client, endpoint_url="test", connection_id="test", ref="test")
@@ -57,7 +57,7 @@ class TestHandler(TestCase):
         self.assertEqual(response["message"], "Question cannot be blank")
 
     @patch.object(ApiToken, 'is_logged_in', return_value=True)
-    @patch('agent.search_agent.create_checkpoint_saver', return_value=MemorySaver())
+    @patch('agent.search_agent.checkpoint_saver', return_value=MemorySaver())
     def test_handler_question_typo(self, mock_create_saver, mock_is_logged_in):
         mock_client = MockClient()
         mock_websocket = Websocket(client=mock_client, endpoint_url="test", connection_id="test", ref="test")
