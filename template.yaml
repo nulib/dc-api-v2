@@ -387,6 +387,11 @@ Resources:
               Action:
                 - s3:GetObject
               Resource: !Sub "arn:aws:s3:::${PyramidBucket}/*"
+            - Sid: ESHTTPPolicy
+              Effect: Allow
+              Action:
+                - es:ESHttp*
+              Resource: "*"
       Events:
         ApiGet:
           Type: HttpApi
