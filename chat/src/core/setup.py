@@ -31,7 +31,8 @@ def opensearch_endpoint():
         return endpoint
 
 
-def opensearch_client(region_name=os.getenv("AWS_REGION")):
+def opensearch_client(region_name=None):
+    region_name = region_name or os.getenv("AWS_REGION")  # Evaluate at runtime
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(
         region=region_name,
@@ -48,7 +49,8 @@ def opensearch_client(region_name=os.getenv("AWS_REGION")):
     )
 
 
-def opensearch_vector_store(region_name=os.getenv("AWS_REGION")):
+def opensearch_vector_store(region_name=None):
+    region_name = region_name or os.getenv("AWS_REGION")  # Evaluate at runtime
     session = boto3.Session(region_name=region_name)
     awsauth = AWS4Auth(
         region=region_name,
