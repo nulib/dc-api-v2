@@ -10,7 +10,7 @@ def load_secrets():
     ['OPENSEARCH_MODEL_ID', 'index', 'embedding_model']
   ]
 
-  client = boto3.client("secretsmanager")
+  client = boto3.client("secretsmanager", region_name=os.getenv('AWS_REGION', 'us-east-1'))
   response = client.batch_get_secret_value(SecretIdList=[
     f'{SecretsPath}/infrastructure/index',
     f'{SecretsPath}/config/dcapi'
@@ -28,7 +28,3 @@ def load_secrets():
     if var not in os.environ and value is not None:
       os.environ[var] = value
 
-  os.environ['__SKIP_SECRETS__'] = 'true'
-
-if not os.getenv('__SKIP_SECRETS__'):
-  load_secrets()

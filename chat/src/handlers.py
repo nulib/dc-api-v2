@@ -1,8 +1,8 @@
-import core.secrets  # noqa
 import boto3
 import json
 import logging
 import os
+from core.secrets import load_secrets
 from datetime import datetime
 from core.event_config import EventConfig
 from honeybadger import honeybadger
@@ -10,6 +10,10 @@ from agent.search_agent import SearchAgent
 from agent.callbacks.socket import SocketCallbackHandler
 from agent.callbacks.metrics import MetricsCallbackHandler
 from core.setup import chat_model
+
+if not os.getenv("__SKIP_SECRETS__"):
+    load_secrets()
+    os.environ['__SKIP_SECRETS__'] = 'true'
 
 honeybadger.configure()
 logging.getLogger("honeybadger").addHandler(logging.StreamHandler())
