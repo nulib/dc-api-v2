@@ -16,6 +16,27 @@ support your answer. Answer in raw markdown, but not within a code block. When c
 links using the document's canonical_link field. Do not include intermediate messages explaining your process.
 """
 
+class SearchWorkflow:
+    def __init__(self, model: BaseModel, system_message: str):
+        self.model = model
+        self.system_message = system_message
+
+    def should_continue(self, state: MessagesState) -> Literal["tools", END]:
+        messages = state["messages"]
+        last_message = messages[-1]
+        # If the LLM makes a tool call, then we route to the "tools" node
+        if last_message.tool_calls:
+            return "tools"
+        # Otherwise, we stop (reply to the user)
+        return END
+
+    def call_model(self, state: MessagesState):
+        messages = [SystemMessage(content=self.system_message)] + state["messages"]
+        response: BaseMessage = self.model.invoke(messages)
+        # We return a list, because this will get added to the existing list
+        return {"messages": [response]}
+
+
 class SearchAgent:
     def __init__(
         self,
@@ -32,38 +53,20 @@ class SearchAgent:
         except NotImplementedError:
             pass
 
-
-        # Define the function that determines whether to continue or not
-        def should_continue(state: MessagesState) -> Literal["tools", END]:
-            messages = state["messages"]
-            last_message = messages[-1]
-            # If the LLM makes a tool call, then we route to the "tools" node
-            if last_message.tool_calls:
-                return "tools"
-            # Otherwise, we stop (reply to the user)
-            return END
-
-
-        # Define the function that calls the model
-        def call_model(state: MessagesState):
-            messages = [SystemMessage(content=system_message)] + state["messages"]
-            response: BaseMessage = model.invoke(messages) # , model=os.getenv("AZURE_OPENAI_LLM_DEPLOYMENT_ID")
-            # We return a list, because this will get added to the existing list
-            # if socket is not none and the response content is not an empty string
-            return {"messages": [response]}
+        self.workflow_logic = SearchWorkflow(model=model, system_message=system_message)
 
         # Define a new graph
         workflow = StateGraph(MessagesState)
 
         # Define the two nodes we will cycle between
-        workflow.add_node("agent", call_model)
+        workflow.add_node("agent", self.workflow_logic.call_model)
         workflow.add_node("tools", tool_node)
 
         # Set the entrypoint as `agent`
         workflow.add_edge(START, "agent")
 
         # Add a conditional edge
-        workflow.add_conditional_edges("agent", should_continue)
+        workflow.add_conditional_edges("agent", self.workflow_logic.should_continue)
 
         # Add a normal edge from `tools` to `agent`
         workflow.add_edge("tools", "agent")
@@ -73,7 +76,7 @@ class SearchAgent:
     
     def invoke(self, question: str, ref: str, *, callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
         if forget:
-                self.checkpointer.delete_checkpoints(ref)
+            self.checkpointer.delete_checkpoints(ref)
             
         return self.search_agent.invoke(
             {"messages": [HumanMessage(content=question)]},
