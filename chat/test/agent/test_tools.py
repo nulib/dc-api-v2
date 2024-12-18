@@ -1,10 +1,9 @@
 from unittest import TestCase
-from unittest.mock import patch
 import sys
 
 sys.path.append('./src')
 
-from agent.tools import get_keyword_fields, discover_fields, search, aggregate
+from agent.tools import get_keyword_fields
 from test.fixtures.opensearch import TOP_PROPERTIES
 
 class TestTools(TestCase):
