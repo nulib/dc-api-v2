@@ -26,8 +26,7 @@ jobs:
         run: ruff check .
       - name: Run tests
         run: |
-          coverage run --include='src/**/*' -m unittest
+          coverage run --include='src/**/*' -m pytest
           coverage report
         env:
-          __SKIP_SECRETS__: true
           AWS_REGION: us-east-1

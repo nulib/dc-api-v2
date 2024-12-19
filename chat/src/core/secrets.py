@@ -2,8 +2,7 @@ import boto3
 import json
 import os
 
-def load_secrets():
-  SecretsPath = os.getenv('SECRETS_PATH')
+def load_secrets(SecretsPath=os.getenv('SECRETS_PATH')):
   EnvironmentMap = [
     ['API_TOKEN_SECRET', 'dcapi', 'api_token_secret'],
     ['OPENSEARCH_ENDPOINT', 'index', 'endpoint'],
