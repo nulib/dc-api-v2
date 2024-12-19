@@ -632,3 +632,25 @@ class TestS3Checkpointer(TestCase):
             list(self.checkpointer.list(config))
             
         self.assertIn("Invalid checkpoint key format", str(context.exception))
+
+    @pytest.mark.slow
+    def test_delete_checkpoints_large_batch(self):
+        """Test deleting more than 1000 checkpoints to verify batch deletion logic."""
+        # Create 1001 objects to force batch deletion
+        for i in range(1001):
+            ckpt = Checkpoint(id=f"ckpt_del_{i}")
+            metadata = CheckpointMetadata()
+            config = self.create_config()
+            self.checkpointer.put(config, ckpt, metadata, {})
+
+        # Verify objects were created
+        config = self.create_config()
+        retrieved_before_delete = list(self.checkpointer.list(config))
+        self.assertEqual(len(retrieved_before_delete), 1001)
+
+        # Delete all checkpoints
+        self.checkpointer.delete_checkpoints(THREAD_ID)
+
+        # Verify all objects were deleted
+        retrieved_after_delete = list(self.checkpointer.list(config))
+        self.assertEqual(len(retrieved_after_delete), 0)

@@ -130,3 +130,32 @@ class TestOpenSearchNeuralSearch(TestCase):
                 model_id="test",
                 client=None
             )
+    
+    def test_add_texts_does_nothing(self):
+        """Test that add_texts method exists but does nothing."""
+        try:
+            # Call add_texts with some sample data
+            result = self.search.add_texts(
+                texts=["test1", "test2"],
+                metadatas=[{"id": "1"}, {"id": "2"}]
+            )
+            # Method should return None
+            self.assertIsNone(result)
+        except Exception as e:
+            self.fail(f"add_texts raised an unexpected exception: {e}")
+
+    def test_from_texts_does_nothing(self):
+        """Test that from_texts classmethod exists but does nothing."""
+        try:
+            # Call from_texts with some sample data
+            result = OpenSearchNeuralSearch.from_texts(
+                texts=["test1", "test2"],
+                metadatas=[{"id": "1"}, {"id": "2"}],
+                endpoint="test",
+                index="test",
+                model_id="test"
+            )
+            # Method should return None
+            self.assertIsNone(result)
+        except Exception as e:
+            self.fail(f"from_texts raised an unexpected exception: {e}")
