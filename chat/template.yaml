@@ -2,9 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: Websocket Chat API for dc-api-v2
 Parameters:
-  ApiTokenSecret:
+  ApiTokenName:
     Type: String
-    Description: Secret Key for Encrypting JWTs (must match IIIF server)
+    Description: Name of the jwt that DC API issues
   EnvironmentPrefix:
     Type: String
     Description: Prefix for Index names
@@ -175,33 +175,35 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ChatFunction
       Principal: apigateway.amazonaws.com
-  ChatDependencies:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName:
-        Fn::Sub: "${AWS::StackName}-dependencies"
-      Description: Dependencies for streaming chat function
-      ContentUri: ./dependencies
-      CompatibleRuntimes:
-        - python3.10
-      LicenseInfo: "Apache-2.0"
-    Metadata:
-      BuildMethod: python3.10
+  #* ChatDependencies:
+  #*   Type: AWS::Serverless::LayerVersion
+  #*   Properties:
+  #*     LayerName:
+  #*       Fn::Sub: "${AWS::StackName}-dependencies"
+  #*     Description: Dependencies for streaming chat function
+  #*     ContentUri: ./dependencies
+  #*     CompatibleArchitectures:
+  #*       - x86_64
+  #*     CompatibleRuntimes:
+  #*       - python3.12
+  #*     LicenseInfo: "Apache-2.0"
+  #*   Metadata:
+  #*     BuildMethod: python3.12
   ChatFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Runtime: python3.10
+      Runtime: python3.12
       Architectures:
         - x86_64
-      Layers:
-        - !Ref ChatDependencies
+      #* Layers:
+      #*   - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat.handler
       Timeout: 300
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiTokenSecret
+          API_TOKEN_NAME: !Ref ApiTokenName
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
@@ -228,23 +230,23 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
-    Metadata:
-      BuildMethod: nodejs20.x
+    #* Metadata:
+    #*   BuildMethod: nodejs20.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Runtime: python3.10
+      Runtime: python3.12
       Architectures:
         - x86_64
-      Layers:
-        - !Ref ChatDependencies
+      #* Layers:
+      #*   - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers/chat_sync.handler
       Timeout: 300
       Environment:
         Variables:
-          API_TOKEN_SECRET: !Ref ApiTokenSecret
+          API_TOKEN_NAME: !Ref ApiTokenName
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
@@ -261,14 +263,14 @@ Resources:
           - 'es:ESHttpGet'
           - 'es:ESHttpPost'
           Resource: '*'
-      # - Statement:
-      #   - Effect: Allow
-      #     Action:
-      #     - logs:CreateLogStream
-      #     - logs:PutLogEvents
-      #     Resource: !Sub "${ChatMetricsLog.Arn}:*"  
-    Metadata:
-      BuildMethod: nodejs20.x
+      - Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: !Sub "${ChatMetricsLog.Arn}:*"  
+    #* Metadata:
+    #*   BuildMethod: nodejs20.x
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:

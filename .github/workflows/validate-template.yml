@@ -15,7 +15,7 @@ jobs:
       steps:
         - uses: actions/setup-python@v4
           with:
-            python-version: '3.9' 
+            python-version: '3.12' 
         - uses: aws-actions/setup-sam@v1
         - name: sam fix https://github.com/aws/aws-sam-cli/issues/4527
           run: $(dirname $(readlink $(which sam)))/pip install --force-reinstall "cryptography==38.0.4"
