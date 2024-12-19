@@ -84,7 +84,7 @@ def log_metrics(context, metrics, config):
     log_group = os.getenv("METRICS_LOG_GROUP")
     log_stream = context.log_stream_name
     if log_group and ensure_log_stream_exists(log_group, log_stream):
-        log_client = boto3.client("logs")
+        client = log_client()
         log_events = [{
             "timestamp": timestamp(), 
             "message": json.dumps({
@@ -99,21 +99,23 @@ def log_metrics(context, metrics, config):
                 "token_counts": metrics.accumulator,
             })
         }]
-        log_client.put_log_events(
+        client.put_log_events(
                 logGroupName=log_group, logStreamName=log_stream, logEvents=log_events
             )
     
 def ensure_log_stream_exists(log_group, log_stream):
-    log_client = boto3.client("logs")
+    client = log_client()
     try:
-        log_client.create_log_stream(logGroupName=log_group, logStreamName=log_stream)
+        print(client.create_log_stream(logGroupName=log_group, logStreamName=log_stream))
         return True
-    except log_client.exceptions.ResourceAlreadyExistsException:
+    except client.exceptions.ResourceAlreadyExistsException:
         return True
     except Exception:
         print(f"Could not create log stream: {log_group}:{log_stream}")
         return False
 
+def log_client():
+    return boto3.client("logs", region_name=os.getenv("AWS_REGION", "us-east-1"))
 
 def timestamp():
     return round(datetime.timestamp(datetime.now()) * 1000)
