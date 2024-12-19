@@ -2,9 +2,6 @@ import unittest
 from unittest.mock import patch, MagicMock
 import os
 from opensearchpy import RequestsHttpConnection
-import sys
-
-sys.path.append('./src')
 
 from core.setup import chat_model, checkpoint_saver, prefix, opensearch_endpoint, opensearch_client, opensearch_vector_store, websocket_client
 

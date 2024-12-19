@@ -1,8 +1,5 @@
-import sys
 from search.hybrid_query import hybrid_query
 from unittest import TestCase
-
-sys.path.append('./src')
 
 class TestFunction(TestCase):
     def test_hybrid_query(self):

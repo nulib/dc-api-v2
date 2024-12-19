@@ -1,18 +1,16 @@
 # ruff: noqa: E402
 
+import pytest
 from unittest import TestCase
 from unittest.mock import patch
+from moto import mock_aws
 import json
-import sys
-
-sys.path.append('./src')
 
 from handlers import chat
 from core.apitoken import ApiToken
 from core.websocket import Websocket
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
-
 
 class MockClient:
     def __init__(self):
@@ -26,6 +24,8 @@ class MockContext:
     def __init__(self):
         self.log_stream_name = 'test'
 
+@mock_aws
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestHandler(TestCase):
 
     @patch.object(ApiToken, 'is_logged_in', return_value=False)

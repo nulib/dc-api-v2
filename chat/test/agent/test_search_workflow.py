@@ -3,9 +3,6 @@ from langchain_core.messages.base import BaseMessage
 from langchain_core.messages.system import SystemMessage
 from langgraph.graph import END
 
-import sys
-sys.path.append('./src')
-
 from agent.search_agent import SearchWorkflow
 
 class FakeMessage(BaseMessage):

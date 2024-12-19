@@ -1,8 +1,5 @@
 # ruff: noqa: E402
 import os
-import sys
-
-sys.path.append('./src')
 
 from core.apitoken import ApiToken
 from test.fixtures.apitoken import DEV_TEAM_TOKEN, SUPER_TOKEN, TEST_SECRET, TEST_TOKEN

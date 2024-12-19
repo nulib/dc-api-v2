@@ -2,6 +2,7 @@
 import sys
 sys.path.append("./src")
 
+import pytest
 from unittest import TestCase
 
 import boto3
@@ -58,6 +59,7 @@ CHECKPOINTS = [
 
 
 @mock_aws
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestS3Checkpointer(TestCase):
     def setUp(self):
         """Initialize the mock S3 bucket and S3Checkpointer instance before each test."""

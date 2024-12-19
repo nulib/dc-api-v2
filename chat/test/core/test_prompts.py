@@ -1,7 +1,4 @@
 # ruff: noqa: E402
-import sys
-sys.path.append('./src')
-
 from core.prompts import prompt_template, document_template
 from unittest import TestCase
 

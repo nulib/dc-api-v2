@@ -1,10 +1,7 @@
 # ruff: noqa: E402
-import sys
 from unittest import TestCase
 from unittest.mock import Mock, patch
 from opensearchpy import ConnectionError, AuthenticationException, NotFoundError
-sys.path.append('./src')
-
 from search.opensearch_neural_search import OpenSearchNeuralSearch
 from langchain_core.documents import Document
 

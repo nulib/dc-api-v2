@@ -11,14 +11,11 @@ from agent.callbacks.socket import SocketCallbackHandler
 from agent.callbacks.metrics import MetricsCallbackHandler
 from core.setup import chat_model
 
-if not os.getenv("__SKIP_SECRETS__"):
-    load_secrets()
-    os.environ['__SKIP_SECRETS__'] = 'true'
-
 honeybadger.configure()
 logging.getLogger("honeybadger").addHandler(logging.StreamHandler())
 
 def chat_sync(event, context):
+    load_secrets()
     config = EventConfig(event)
 
     if not config.is_logged_in:
@@ -53,6 +50,7 @@ def chat_sync(event, context):
     }
 
 def chat(event, context):
+    load_secrets()
     config = EventConfig(event)
     socket = event.get("socket", None)
     config.setup_websocket(socket)

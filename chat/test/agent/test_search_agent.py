@@ -1,8 +1,5 @@
 from unittest import TestCase
 from unittest.mock import patch
-import sys
-
-sys.path.append('./src')
 
 from agent.search_agent import SearchAgent
 from langchain_core.language_models.fake_chat_models import FakeListChatModel

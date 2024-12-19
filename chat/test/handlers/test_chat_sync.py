@@ -1,21 +1,23 @@
 # ruff: noqa: E402
 
 import json
-import sys
+import pytest
+from unittest import TestCase
+from unittest.mock import patch
+from moto import mock_aws
+
+from handlers import chat_sync
+from core.apitoken import ApiToken
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
 
-sys.path.append('./src')
-
-from unittest import TestCase
-from unittest.mock import patch
-from handlers import chat_sync
-from core.apitoken import ApiToken
 
 class MockContext:
    def __init__(self):
       self.log_stream_name = 'test'
 
+@mock_aws
+@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 class TestHandler(TestCase):
     def test_handler_unauthorized(self):        
         self.assertEqual(chat_sync({"body": '{ "question": "Question?"}'}, MockContext()), {'body': 'Unauthorized', 'statusCode': 401})

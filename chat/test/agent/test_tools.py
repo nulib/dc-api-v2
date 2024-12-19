@@ -1,9 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
 import json
-import sys
-
-sys.path.append('./src')
 
 from agent.tools import discover_fields, search, aggregate, get_keyword_fields
 from test.fixtures.opensearch import TOP_PROPERTIES

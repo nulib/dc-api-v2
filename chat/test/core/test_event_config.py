@@ -1,11 +1,8 @@
 # ruff: noqa: E402
 import json
-import sys
 import unittest
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
-
-sys.path.append('./src')
 
 from core.apitoken import ApiToken
 from core.event_config import EventConfig
