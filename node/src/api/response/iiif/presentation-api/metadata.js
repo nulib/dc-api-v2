@@ -46,6 +46,10 @@ function metadataLabelFields(source) {
       value: source.genre.map((item) => item.label),
     },
     {
+      label: "Identifier",
+      value: source.identifier,
+    },
+    {
       label: "Last Modified",
       value: formatSingleValuedField(source.modified_date),
     },
