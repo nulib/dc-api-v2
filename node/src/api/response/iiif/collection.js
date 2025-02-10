@@ -29,6 +29,7 @@ async function buildCollection(responseBody, pageInfo) {
       },
     },
     query_url,
+    limit,
   } = pageInfo;
 
   /**
@@ -102,11 +103,12 @@ async function buildCollection(responseBody, pageInfo) {
 
 function getItems(hits, pageInfo, isTopCollection) {
   const itemType = isTopCollection ? "Collection" : "Manifest";
-  const items = hits.map((item) => loadItem(item["_source"], itemType));
+  const items = hits.map((item) => loadItem(item["_source"], itemType, pageInfo.limit));
+  const size = pageInfo.limit;
 
   if (pageInfo?.next_url) {
     items.push({
-      id: pageInfo.next_url,
+      id: size ? `${pageInfo.next_url}&size=${size}` : pageInfo.next_url,
       type: "Collection",
       label: {
         none: ["Next page"],
@@ -121,6 +123,9 @@ function iiifCollectionId(pageInfo) {
   let collectionId = new URL(pageInfo.query_url);
   if (pageInfo.current_page > 1) {
     collectionId.searchParams.set("page", pageInfo.current_page);
+  }
+  if(pageInfo.limit) {
+    collectionId.searchParams.set("size", pageInfo.limit);
   }
   return collectionId;
 }
@@ -155,7 +160,7 @@ function getLinkingPropertyId(pageInfo, baseUrl, queryParam = "q") {
   return result;
 }
 
-function loadItem(item, itemType) {
+function loadItem(item, itemType, size) {
   if (itemType === "Manifest") {
     return {
       id: item.iiif_manifest,
@@ -190,7 +195,7 @@ function loadItem(item, itemType) {
 
   if (itemType === "Collection") {
     return {
-      id: `${item.api_link}?as=iiif`,
+      id: size ? `${item.api_link}?as=iiif&size=${size}` : `${item.api_link}?as=iiif`,
       type: "Collection",
       label: {
         none: [`${item.title}`],

@@ -125,7 +125,10 @@ describe("IIIF Collection response for top level colllections", () => {
     expect(body.summary.none[0]).to.eq(
       "Explore digital resources from the Northwestern University Library collections – including letters, photographs, diaries, maps, and audiovisual materials."
     );
-    expect(body.items.length).to.eq(69);
+    expect(body.items.length).to.eq(68);
     expect(body.items[0].type).to.eq("Collection");
+
+    const url = new URL(body.id);
+    expect(url.searchParams.get('size')).to.eq('100');    
   });
 });

@@ -71,7 +71,7 @@ describe("Paginator", function () {
   it("correctly sets the default size", async () => {
     delete pager.body.size;
     const result = await pager.pageInfo(1275);
-    expect(result.limit).to.eq(10);
+    expect(result.limit).to.eq(100);
   });
 
   it("excludes searchToken when required", async () => {

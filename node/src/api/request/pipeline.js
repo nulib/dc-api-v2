@@ -18,7 +18,7 @@ function filterFor(query, event) {
 module.exports = class RequestPipeline {
   constructor(searchContext) {
     this.searchContext = { ...searchContext };
-    if (!this.searchContext.size) this.searchContext.size = 10;
+    if (!this.searchContext.size) this.searchContext.size = 100;
     if (!this.searchContext.from) this.searchContext.from = 0;
   }
 

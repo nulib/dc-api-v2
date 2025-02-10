@@ -5,12 +5,14 @@ const {
 
 const encodeFields = ["query", "size", "sort", "fields", "_source"];
 
+const defaultSize = 100;
+
 async function decodeSearchToken(token) {
   return JSON.parse(await decompress(token));
 }
 
 async function encodeSearchToken(models, body, format, options) {
-  let token = { body: { size: 10 }, models, format, options };
+  let token = { body: { size: defaultSize }, models, format, options };
   for (const field in body) {
     if (encodeFields.includes(field)) {
       token.body[field] = body[field];
@@ -24,7 +26,7 @@ function from(body) {
 }
 
 function size(body) {
-  return body?.size || 10;
+  return body?.size || defaultSize;
 }
 
 function maxPage(body, count) {

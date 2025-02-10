@@ -146,7 +146,7 @@ describe("Search routes", () => {
 
       const event = helpers
         .mockEvent("GET", "/search")
-        .queryParams({ searchToken })
+        .queryParams({ searchToken, size: 10 })
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(200);
