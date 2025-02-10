@@ -965,7 +965,7 @@ Resources:
   startAudioTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs16.x
+      Runtime: nodejs22.x
       CodeUri: ./lambdas
       Handler: start-audio-transcode.handler
       Description: Performs audio transcode job with ffmpeg
