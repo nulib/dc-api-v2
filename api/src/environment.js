@@ -1,36 +1,9 @@
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
-const {
-  GetSecretValueCommand,
-  SecretsManagerClient,
-} = require("@aws-sdk/client-secrets-manager");
 const PackageInfo = JSON.parse(
   fs.readFileSync(path.join(__dirname, "package.json"))
 );
-
-const { SECRETS_PATH } = process.env;
-const SecretIds = {
-  index: `${SECRETS_PATH}/infrastructure/index`,
-  meadow: "config/meadow",
-};
-let Initialized = false;
-let Secrets = {};
-
-async function initialize() {
-  if (Initialized) return;
-
-  const client = new SecretsManagerClient();
-  for (const source in SecretIds) {
-    const SecretId = SecretIds[source];
-    console.debug("loading", SecretId, "from", source);
-    const cmd = new GetSecretValueCommand({ SecretId });
-    const { SecretString } = await client.send(cmd);
-    Secrets[source] = JSON.parse(SecretString);
-  }
-  Initialized = true;
-  return Secrets;
-}
 
 function apiToken() {
   const token = {
@@ -92,7 +65,6 @@ module.exports = {
   dcApiEndpoint,
   dcUrl,
   devTeamNetIds,
-  initialize,
   openSearchEndpoint,
   prefix,
   region,
