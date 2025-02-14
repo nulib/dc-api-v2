@@ -1,3 +1,7 @@
+const {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} = require("@aws-sdk/client-secrets-manager");
 const { SFNClient, StartExecutionCommand } = require("@aws-sdk/client-sfn");
 const { wrap } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
@@ -12,10 +16,20 @@ const mime = require("mime-types");
 const opensearchResponse = require("../api/response/opensearch");
 const path = require("path");
 
+let Secrets;
+
+const getSecret = (key) => {
+  return process.env[key.toUpperCase()] || Secrets[key];
+};
+
 /**
  * Handler for download file set endpoint
  */
-exports.handler = wrap(async (event) => {
+exports.handler = wrap(async (event, context) => {
+  const secretsManagerClient =
+    context?.injections?.secretsManagerClient || new SecretsManagerClient({});
+  await loadSecrets(secretsManagerClient);
+
   const id = event.pathParameters.id;
   const email = event.queryStringParameters?.email;
   const referer = event.headers?.referer;
@@ -56,6 +70,24 @@ exports.handler = wrap(async (event) => {
     return await opensearchResponse.transform(esResponse);
   }
 });
+
+async function loadSecrets(client) {
+  if (Secrets) return Secrets;
+
+  const SECRETS_PATH =
+    process.env?.API_CONFIG_PREFIX || process.env.SECRETS_PATH;
+  const SecretId = `${SECRETS_PATH}/config/av-download`;
+  try {
+    const cmd = new GetSecretValueCommand({ SecretId });
+    const secretsResponse = await client.send(cmd);
+    if (secretsResponse.SecretString) {
+      Secrets = JSON.parse(secretsResponse.SecretString);
+    }
+  } catch (err) {
+    console.warn("Error loading secrets from", SecretId);
+  }
+  return Secrets;
+}
 
 function isAltFileDownload(doc) {
   const acceptedTypes = [
@@ -109,7 +141,7 @@ function derivativeKey(doc) {
 
 async function getDownloadLink(doc) {
   const clientParams = {};
-  const bucket = process.env.PYRAMID_BUCKET;
+  const bucket = getSecret("pyramid_bucket");
   const key = derivativeKey(doc);
 
   const getObjectParams = {
@@ -173,8 +205,8 @@ const IIIFImageRequest = async (doc) => {
 };
 
 async function processAVDownload(doc, email, referer) {
-  const stepFunctionConfig = process.env.STEP_FUNCTION_ENDPOINT
-    ? { endpoint: process.env.STEP_FUNCTION_ENDPOINT }
+  const stepFunctionConfig = getSecret("step_function_endpoint")
+    ? { endpoint: getSecret("step_function_endpoint") }
     : {};
   const client = new SFNClient(stepFunctionConfig);
 
@@ -182,7 +214,7 @@ async function processAVDownload(doc, email, referer) {
   const url = new URL(fileSet.streaming_url);
 
   const sourceLocation = s3Location(fileSet.streaming_url);
-  const destinationBucket = process.env.MEDIA_CONVERT_DESTINATION_BUCKET;
+  const destinationBucket = getSecret("media_convert_destination_bucket");
   const fileSetId = path.parse(url.pathname).name;
   const fileSetLabel = fileSet.label;
   const workId = fileSet.work_id;
@@ -197,14 +229,16 @@ async function processAVDownload(doc, email, referer) {
   const filename = isAudio(doc) ? `${fileSetId}.mp3` : `${fileSetId}.mp4`;
 
   var params = {
-    stateMachineArn: process.env.AV_DOWNLOAD_STATE_MACHINE_ARN,
+    stateMachineArn: getSecret("av_download_state_machine_arn"),
     input: JSON.stringify({
       configuration: {
-        startAudioTranscodeFunction: process.env.START_AUDIO_TRANSCODE_FUNCTION,
-        startTranscodeFunction: process.env.START_TRANSCODE_FUNCTION,
-        transcodeStatusFunction: process.env.TRANSCODE_STATUS_FUNCTION,
-        getDownloadLinkFunction: process.env.GET_DOWNLOAD_LINK_FUNCTION,
-        sendTemplatedEmailFunction: process.env.SEND_TEMPLATED_EMAIL_FUNCTION,
+        startAudioTranscodeFunction: getSecret(
+          "start_audio_transcode_function"
+        ),
+        startTranscodeFunction: getSecret("start_transcode_function"),
+        transcodeStatusFunction: getSecret("transcode_status_function"),
+        getDownloadLinkFunction: getSecret("get_download_link_function"),
+        sendTemplatedEmailFunction: getSecret("send_templated_email_function"),
       },
       transcodeInput: {
         settings: settings,
@@ -221,8 +255,8 @@ async function processAVDownload(doc, email, referer) {
       },
       sendEmailInput: {
         to: email,
-        template: process.env.AV_DOWNLOAD_EMAIL_TEMPLATE,
-        from: process.env.REPOSITORY_EMAIL,
+        template: getSecret("av_download_email_template"),
+        from: getSecret("repository_email"),
         params: {
           downloadLink: "",
           fileSetId,
@@ -253,7 +287,7 @@ async function processAVDownload(doc, email, referer) {
 
 function s3Location(streaming_url) {
   const url = new URL(streaming_url);
-  return `s3://${process.env.STREAMING_BUCKET}${url.pathname}`;
+  return `s3://${getSecret("streaming_bucket")}${url.pathname}`;
 }
 
 function invalidRequest(code, message) {

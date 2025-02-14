@@ -1,4 +1,4 @@
 nodejs 20.15.0
 java corretto-19.0.1.10.1
-aws-sam-cli 1.107.0
+aws-sam-cli 1.135.0
 python 3.12.2
