@@ -19,14 +19,16 @@ const debug = require("debug")("api.middleware");
 const Honeybadger = require("../honeybadger-setup");
 const { StatusCodes } = require("http-status-codes");
 const { SECRETS_PATH } = process.env;
+const API_CONFIG_PREFIX = process.env?.API_CONFIG_PREFIX || SECRETS_PATH;
 const SecretPaths = [
-  `${SECRETS_PATH}/config/dcapi`,
+  `${API_CONFIG_PREFIX}/config/dcapi`,
   `${SECRETS_PATH}/infrastructure/index`,
   `${SECRETS_PATH}/infrastructure/nusso`,
 ];
 
 const wrap = function (handler) {
   return async (event, context) => {
+    console.log("getSearch event", JSON.stringify(event));
     await _initializeEnvironment();
 
     let response;

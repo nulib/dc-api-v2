@@ -20,17 +20,17 @@ jobs:
       contents: read
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
-      - name: Set CONFIG_ENV from Branch Name
+      - name: Set DEPLOY_ENV from Branch Name
         run: |
           if [[ $BRANCH == 'refs/heads/main' ]]; then
-            echo "CONFIG_ENV=production" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=production" >> $GITHUB_ENV
           else
-            echo "CONFIG_ENV=$(echo $BRANCH | awk -F/ '{print $NF}')" >> $GITHUB_ENV
+            echo "DEPLOY_ENV=$(echo $BRANCH | awk -F/ '{print $NF}')" >> $GITHUB_ENV
           fi
         env:
           BRANCH: ${{ github.ref }}
       - name: Confirm deploy environment
-        run: echo "Deploying to '$CONFIG_ENV' environment"
+        run: echo "Deploying to '$DEPLOY_ENV' environment"
       - name: Set GitHub Deploy Key
         uses: webfactory/ssh-agent@v0.5.3
         with:
@@ -49,16 +49,13 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
           aws-region: us-east-1
-      - run: ln -s .tfvars/dc-api/samconfig.toml .
-      - run: ln -s .tfvars/dc-api/$CONFIG_ENV.parameters .
+      - run: ln -s .tfvars/dc-api/samconfig.${DEPLOY_ENV}.yaml .
       - run: make build
       - run: | 
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --config-env $CONFIG_ENV \
-            --config-file ./samconfig.toml \
-            --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION") \
+            --config-file ./samconfig.${DEPLOY_ENV}.yaml \
           | sed 's/\(Parameter overrides\s*\): .*/\1: ***** REDACTED *****/'
           exit ${PIPESTATUS[0]}
         env:
