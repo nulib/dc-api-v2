@@ -17,7 +17,7 @@ const TestEnvironment = {
   NUSSO_API_KEY: "abc123",
   WEBSOCKET_URI: "wss://thisisafakewebsocketapiurl",
   CHAT_FEEDBACK_BUCKET: "test-chat-feedback-bucket",
-  DEFAULT_SEARCH_SIZE: 10,
+  DEFAULT_SEARCH_SIZE: "10",
 };
 
 for (const v in TestEnvironment) delete process.env[v];

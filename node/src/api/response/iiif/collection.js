@@ -122,8 +122,11 @@ function iiifCollectionId(pageInfo) {
   if (pageInfo.current_page > 1) {
     collectionId.searchParams.set("page", pageInfo.current_page);
   }
-  if(pageInfo.options?.queryStringParameters?.size) {
-    collectionId.searchParams.set("size", pageInfo.options?.queryStringParameters?.size)
+  if (pageInfo.options?.queryStringParameters?.size) {
+    collectionId.searchParams.set(
+      "size",
+      pageInfo.options?.queryStringParameters?.size
+    );
   }
   return collectionId;
 }

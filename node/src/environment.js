@@ -67,7 +67,7 @@ function dcUrl() {
 }
 
 function defaultSearchSize() {
-  return process.env.DEFAULT_SEARCH_SIZE;
+  return Number(process.env.DEFAULT_SEARCH_SIZE || "10");
 }
 
 function devTeamNetIds() {
