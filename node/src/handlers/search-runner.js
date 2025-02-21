@@ -8,6 +8,7 @@ const { search } = require("../api/opensearch");
 const responseTransformer = require("../api/response/transformer");
 const { decodeSearchToken, Paginator } = require("../api/pagination");
 const RequestPipeline = require("../api/request/pipeline");
+const { defaultSearchSize } = require("../environment");
 
 const AllowedQueryParams = ["search_pipeline"];
 
@@ -93,7 +94,7 @@ const constructSearchContext = async (event) => {
 
   const { queryStringParameters = {} } = event;
 
-  searchContext.size = queryStringParameters.size || searchContext.size || 10;
+  searchContext.size = queryStringParameters.size || searchContext.size || defaultSearchSize();
   searchContext.from = queryStringParameters.from || searchContext.from || 0;
 
   if (

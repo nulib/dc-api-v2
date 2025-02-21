@@ -27,6 +27,7 @@ Globals:
         API_TOKEN_NAME: !Ref ApiTokenName
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
+        DEFAULT_SEARCH_SIZE: 100
         DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
         ENV_PREFIX: !Ref EnvironmentPrefix
         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
@@ -56,6 +57,9 @@ Parameters:
   DcUrl:
     Type: String
     Description: URL of Digital Collections website
+  DefaultSearchSize:
+    Type: String
+    Description: Default number of search results per page
   DevTeamNetIds:
     Type: String
     Description: Northwestern NetIDs of the development team

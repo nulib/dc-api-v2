@@ -1,4 +1,5 @@
 const sortJson = require("sort-json");
+const { defaultSearchSize } = require("../../environment");
 
 function filterFor(query, event) {
   const matchTheQuery = query;
@@ -18,7 +19,7 @@ function filterFor(query, event) {
 module.exports = class RequestPipeline {
   constructor(searchContext) {
     this.searchContext = { ...searchContext };
-    if (!this.searchContext.size) this.searchContext.size = 10;
+    if (!this.searchContext.size) this.searchContext.size = defaultSearchSize();
     if (!this.searchContext.from) this.searchContext.from = 0;
   }
 

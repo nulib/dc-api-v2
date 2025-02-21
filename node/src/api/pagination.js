@@ -2,6 +2,7 @@ const {
   decompressFromEncodedURIComponent: decompress,
   compressToEncodedURIComponent: compress,
 } = require("lz-string");
+const { defaultSearchSize } = require("../environment");
 
 const encodeFields = ["query", "size", "sort", "fields", "_source"];
 
@@ -24,7 +25,7 @@ function from(body) {
 }
 
 function size(body) {
-  return body?.size || 10;
+  return body?.size || defaultSearchSize();
 }
 
 function maxPage(body, count) {
