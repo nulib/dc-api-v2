@@ -27,7 +27,7 @@ Globals:
         API_TOKEN_NAME: !Ref ApiTokenName
         DC_API_ENDPOINT: !Ref DcApiEndpoint
         DC_URL: !Ref DcUrl
-        DEFAULT_SEARCH_SIZE: 100
+        DEFAULT_SEARCH_SIZE: "100"
         DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
         ENV_PREFIX: !Ref EnvironmentPrefix
         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
