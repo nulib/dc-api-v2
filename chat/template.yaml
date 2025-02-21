@@ -254,7 +254,7 @@ Resources:
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
       FunctionUrlConfig:
-        AuthType: NONE
+        AuthType: AWS_IAM
       Policies:
       - !Ref SecretsPolicy
       - Statement:
