@@ -6,6 +6,8 @@ const expect = chai.expect;
 const { decodeSearchToken, Paginator } = requireSource("api/pagination");
 
 describe("Paginator", function () {
+  helpers.saveEnvironment();
+
   const requestBody = {
     query: { match_all: {} },
     size: 50,

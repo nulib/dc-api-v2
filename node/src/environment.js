@@ -66,6 +66,10 @@ function dcUrl() {
   return process.env.DC_URL;
 }
 
+function defaultSearchSize() {
+  return Number(process.env.DEFAULT_SEARCH_SIZE || "10");
+}
+
 function devTeamNetIds() {
   return process.env.DEV_TEAM_NET_IDS.split(",");
 }
@@ -91,6 +95,7 @@ module.exports = {
   appInfo,
   dcApiEndpoint,
   dcUrl,
+  defaultSearchSize,
   devTeamNetIds,
   initialize,
   openSearchEndpoint,
