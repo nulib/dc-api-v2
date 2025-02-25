@@ -102,11 +102,12 @@ async function buildCollection(responseBody, pageInfo) {
 
 function getItems(hits, pageInfo, isTopCollection) {
   const itemType = isTopCollection ? "Collection" : "Manifest";
-  const items = hits.map((item) => loadItem(item["_source"], itemType));
+  const size = pageInfo.options?.queryStringParameters?.size;
+  const items = hits.map((item) => loadItem(item["_source"], itemType, size));
 
   if (pageInfo?.next_url) {
     items.push({
-      id: pageInfo.next_url,
+      id: size ? `${pageInfo.next_url}&size=${size}` : pageInfo.next_url,
       type: "Collection",
       label: {
         none: ["Next page"],
@@ -161,7 +162,7 @@ function getLinkingPropertyId(pageInfo, baseUrl, queryParam = "q") {
   return result;
 }
 
-function loadItem(item, itemType) {
+function loadItem(item, itemType, size) {
   if (itemType === "Manifest") {
     return {
       id: item.iiif_manifest,
@@ -196,7 +197,9 @@ function loadItem(item, itemType) {
 
   if (itemType === "Collection") {
     return {
-      id: `${item.api_link}?as=iiif`,
+      id: size
+        ? `${item.api_link}?as=iiif&size=${size}`
+        : `${item.api_link}?as=iiif`,
       type: "Collection",
       label: {
         none: [`${item.title}`],
