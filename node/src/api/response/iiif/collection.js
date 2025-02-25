@@ -107,7 +107,7 @@ function getItems(hits, pageInfo, isTopCollection) {
 
   if (pageInfo?.next_url) {
     items.push({
-      id: size ? `${pageInfo.next_url}&size=${size}` : pageInfo.next_url,
+      id: pageInfo.next_url,
       type: "Collection",
       label: {
         none: ["Next page"],
