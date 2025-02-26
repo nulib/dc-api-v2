@@ -11,13 +11,17 @@ chai.use(require("chai-http"));
 describe("Search routes", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
+  let authQuery;
 
   describe("POST /search/{targets}", () => {
     const handler = searchHandlers.postSearch;
     const originalQuery = { query: { match_all: {} } };
-    const authQuery = new RequestPipeline(originalQuery)
-      .authFilter(helpers.preprocess({}))
-      .toJson();
+
+    beforeEach(() => {
+      authQuery = new RequestPipeline(originalQuery)
+        .authFilter(helpers.preprocess({}))
+        .toJson();
+    });
 
     it("performs a works search by default", async () => {
       mock
@@ -81,12 +85,14 @@ describe("Search routes", () => {
   describe("GET /search", () => {
     const handler = searchHandlers.getSearch;
     const originalQuery = { query: { match_all: {} } };
-    const authQuery = new RequestPipeline(originalQuery)
-      .authFilter(helpers.preprocess({}))
-      .toJson();
     const searchToken =
       "N4IgRg9gJgniBcoCOBXApgJzokBbAhgC4DGAFgPr4A2VCwAvvQDQgDOAlgF5oICMADMzzQ0VVggDaIAO4QMAa3EBdekA";
 
+    beforeEach(() => {
+      authQuery = new RequestPipeline(originalQuery)
+        .authFilter(helpers.preprocess({}))
+        .toJson();
+    });
     it("Does not require a searchToken", async () => {
       const originalQuery = {
         query: { query_string: { query: "*" } },

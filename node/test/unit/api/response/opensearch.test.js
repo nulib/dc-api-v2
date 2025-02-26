@@ -7,6 +7,8 @@ const transformer = requireSource("api/response/opensearch");
 const { Paginator } = requireSource("api/pagination");
 
 describe("OpenSearch response transformer", () => {
+  helpers.saveEnvironment();
+
   let pager;
   beforeEach(() => {
     pager = new Paginator(
