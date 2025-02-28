@@ -2,7 +2,7 @@ from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from opensearchpy import OpenSearch
 from typing import Any, List, Tuple
-from search.hybrid_query import hybrid_query
+from search.hybrid_query import hybrid_query, filter
 
 class OpenSearchNeuralSearch(VectorStore):
     """Read-only OpenSearch vectorstore with neural search."""
@@ -57,11 +57,12 @@ class OpenSearchNeuralSearch(VectorStore):
     
     def aggregations_search(self, agg_field: str, term_field: str = None, term: str = None, **kwargs: Any) -> dict:
         """Perform a search with aggregations and return the aggregation results."""
-        query = {"match_all": {}} if (term is None or term == "") else {"match": {term_field: term}}
+        base_query = {"match_all": {}} if (term is None or term == "") else {"match": {term_field: term}}
+        filtered_query = filter(base_query)
         
         dsl = {
             "size": 0,
-            "query": query,
+            "query": filtered_query,
             "aggs": {"aggregation_result": {"terms": {"field": agg_field}}},
         }
 
