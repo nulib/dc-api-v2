@@ -1,21 +1,28 @@
-from search.hybrid_query import hybrid_query
-from unittest import TestCase
+from search.hybrid_query import hybrid_query, filter
 
-class TestFunction(TestCase):
+class TestFunction:
     def test_hybrid_query(self):
         dsl = hybrid_query("Question?", "MODEL_ID", k=10)
         subject = dsl["query"]["hybrid"]["queries"]
 
-        checks = [
-          (lambda x: x["query_string"]["query"], "Question?"),
-          (lambda x: x["neural"]["embedding"]["model_id"], "MODEL_ID")
-        ]
+        assert len(subject) == 2
 
-        self.assertEqual(len(subject), 2)
+        queries_first = subject[0]["bool"]["must"]
+        assert queries_first[0]["query_string"]["query"] == "Question?"
+        assert {"terms": {"visibility": ["Public", "Institution"]}} in queries_first
+        assert {"term": {"published": True}} in queries_first
 
-        for i in range(2):
-          lookup, expected = checks[i]
-          queries = subject[i]["bool"]["must"]
-          self.assertEqual(lookup(queries[0]), expected)
-          self.assertIn({ "terms": { "visibility": ["Public", "Institution"] } }, queries)
-          self.assertIn({ "term": { "published": True } }, queries)
+        queries_second = subject[1]["bool"]["must"]
+        assert queries_second[0]["neural"]["embedding"]["model_id"] == "MODEL_ID"
+        assert {"terms": {"visibility": ["Public", "Institution"]}} in queries_second
+        assert {"term": {"published": True}} in queries_second
+
+    def test_filter(self):
+        dummy_query = {"match": {"title": "Hello World"}}
+        result = filter(dummy_query)
+        assert "bool" in result
+        assert "must" in result["bool"]
+        must_clause = result["bool"]["must"]
+        assert must_clause[0] == dummy_query
+        assert {"terms": {"visibility": ["Public", "Institution"]}} in must_clause
+        assert {"term": {"published": True}} in must_clause
