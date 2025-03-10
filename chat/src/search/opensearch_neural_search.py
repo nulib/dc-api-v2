@@ -77,6 +77,21 @@ class OpenSearchNeuralSearch(VectorStore):
         )
 
         return response.get("aggregations", {})
+
+    def retrieve_documents(self, doc_ids: List[str]) -> List[Document]:
+        """Retrieve documents from the OpenSearch index based on a list of document IDs."""
+        query = {
+            "query": {
+                "ids": {
+                    "values": doc_ids
+                }
+            }
+        }
+
+        response = self.client.search(index=self.index, body=query, size=len(doc_ids))
+        documents = [Document(page_content=hit["_source"][self.text_field], metadata=hit["_source"]) for hit in response["hits"]["hits"]]
+        return documents
+
     
     def add_texts(self, texts: List[str], metadatas: List[dict], **kwargs: Any) -> None:
        pass
