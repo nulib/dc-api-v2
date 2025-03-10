@@ -59,6 +59,10 @@ class SocketCallbackHandler(BaseCallbackHandler):
                 result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
                 docs: List[Dict[str, Any]] = [{k: doc.metadata.get(k) for k in result_fields} for doc in output.artifact]
                 self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
+            case "retrieve_documents":
+                result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
+                docs: List[Dict[str, Any]] = [{k: doc.get(k) for k in result_fields} for doc in output.artifact]
+                self.socket.send({"type": "retrieved_documents", "ref": self.ref, "message": docs})
             case _:
                 print(f"Unhandled tool_end message: {output}")
 
