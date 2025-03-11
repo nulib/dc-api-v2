@@ -69,7 +69,7 @@ def chat(event, context):
     search_agent = SearchAgent(model=model)
 
     try:
-        search_agent.invoke(config.question, config.ref, forget=config.forget, callbacks=callbacks)
+        search_agent.invoke(config.question, config.ref, forget=config.forget, docs=config.docs, callbacks=callbacks)
         log_metrics(context, metrics, config)
     except Exception as e:
         error_response = {"type": "error", "message": "An unexpected error occurred. Please try again later."}

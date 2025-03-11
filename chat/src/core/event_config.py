@@ -8,6 +8,7 @@ from core.apitoken import ApiToken
 from core.prompts import prompt_template
 from core.websocket import Websocket
 from uuid import uuid4
+from typing import Optional, List
 
 CHAIN_TYPE = "stuff"
 DOCUMENT_VARIABLE_NAME = "context"
@@ -29,6 +30,7 @@ class EventConfig:
 
     api_token: ApiToken = field(init=False)
     debug_mode: bool = field(init=False)
+    docs: Optional[List[str]] = field(init=False, default=None)
     event: dict = field(default_factory=dict)
     forget: bool = field(init=False)
     is_dev_team: bool = field(init=False)
@@ -53,6 +55,7 @@ class EventConfig:
         self.payload = json.loads(self.event.get("body", "{}"))
         self.api_token = ApiToken(signed_token=self.payload.get("auth"))
         self.debug_mode = self._is_debug_mode_enabled()
+        self.docs = self.payload.get("docs", None)
         self.forget = self.payload.get("forget", False)
         self.is_dev_team = self.api_token.is_dev_team()
         self.is_logged_in = self.api_token.is_logged_in()

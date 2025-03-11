@@ -2,6 +2,7 @@ import json
 
 from langchain_core.tools import tool
 from core.setup import opensearch_vector_store
+from typing import List
 
 def get_keyword_fields(properties, prefix=''):
     """
@@ -61,5 +62,34 @@ def aggregate(agg_field: str, term_field: str, term: str):
     try:
         response = opensearch_vector_store().aggregations_search(agg_field, term_field, term)
         return json.dumps(response, default=str), response
+    except Exception as e:
+        return json.dumps({"error": str(e)}), None
+
+@tool(response_format="content_and_artifact")
+def retrieve_documents(doc_ids: List[str]):
+    """
+    Retrieve documents from the OpenSearch index based on a list of document IDs. 
+
+    Use this instead of the search tool if the user has provided docs for context
+    and you need the full metadata. 
+    Provide an answer to their question based on the metadata of the documents.
+
+
+    Args:
+        doc_ids (List[str]): A list of document IDs to fetch.
+
+    Returns:
+        A JSON list of documents that match the given IDs.
+    """
+    
+    try:
+        response = opensearch_vector_store().retrieve_documents(doc_ids)
+        documents = []
+        for doc in response:
+            metadata = doc.metadata
+            if 'embedding' in metadata:
+                metadata.pop('embedding')
+            documents.append(metadata)
+        return json.dumps(documents, default=str), documents
     except Exception as e:
         return json.dumps({"error": str(e)}), None
