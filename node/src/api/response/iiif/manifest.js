@@ -2,6 +2,8 @@ const { IIIFBuilder } = require("iiif-builder");
 const { dcApiEndpoint, dcUrl } = require("../../../environment");
 const { transformError } = require("../error");
 const {
+  addSupplementingAnnotationToCanvas,
+  addThumbnailToCanvas,
   buildAnnotationBody,
   buildImageResourceId,
   buildImageService,
@@ -44,19 +46,7 @@ function transform(response) {
             canvas.width = fileSet.width || 100;
 
             canvas.addLabel(fileSet.label, "none");
-
-            /** Add thumbnail for Canvas */
-            if (fileSet.representative_image_url) {
-              const canvasThumbnail = {
-                id: buildImageResourceId(fileSet.representative_image_url),
-                type: "Image",
-                width: 300,
-                height: 300,
-                format: "image/jpeg",
-                service: buildImageService(fileSet.representative_image_url),
-              };
-              canvas.addThumbnail(canvasThumbnail);
-            }
+            addThumbnailToCanvas(canvas, fileSet);
 
             /** Add "painting" annotation */
             const annotationId = `${canvasId}/annotation/0`;
@@ -72,16 +62,7 @@ function transform(response) {
 
             /** Add "supplementing" annotation */
             if (!isAuxiliary && fileSet.webvtt) {
-              canvas.createAnnotationPage(
-                `${canvasId}/annotations/page/0`,
-                (annotationPageBuilder) => {
-                  annotationPageBuilder.addLabel("Chapters", "en");
-                  annotationPageBuilder.createAnnotation(
-                    buildSupplementingAnnotation({ canvasId, fileSet })
-                  );
-                },
-                true
-              );
+              addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet);
             }
           });
         }
@@ -216,11 +197,87 @@ function transform(response) {
         }
 
         /** Add items (Canvases) from a Work's Filesets */
+
+        /** Access file sets */
+        /** Group file sets by `group_with` field */
+        const fileSetGroups = {};
         source.file_sets
           .filter((fileSet) => fileSet.role === "Access")
-          .forEach((fileSet, index) => {
-            buildCanvasFromFileSet(fileSet, index);
+          .forEach((fileSet) => {
+            if (fileSet.group_with) {
+              if (!fileSetGroups[fileSet.group_with]) {
+                fileSetGroups[fileSet.group_with] = [];
+              }
+              fileSetGroups[fileSet.group_with].push(fileSet);
+            } else {
+              if (!fileSetGroups[fileSet.id]) {
+                fileSetGroups[fileSet.id] = [];
+              }
+              fileSetGroups[fileSet.id].push(fileSet);
+            }
           });
+
+        /** Process grouped file sets */
+        Object.entries(fileSetGroups).forEach(
+          ([currentGroupKey, fileSets], index) => {
+            const canvasId = `${manifestId}/canvas/${index}`;
+            manifest.createCanvas(canvasId, (canvas) => {
+              // Find the file set with ID matching the currentGroupKey and make it primary
+              let matchingFileSetIndex = -1;
+              for (let i = 0; i < fileSets.length; i++) {
+                if (fileSets[i].id === currentGroupKey) {
+                  matchingFileSetIndex = i;
+                  break;
+                }
+              }
+              if (matchingFileSetIndex > -1) {
+                // Remove the matching fileSet and place it at the beginning
+                const matchingFileSet = fileSets.splice(
+                  matchingFileSetIndex,
+                  1
+                )[0];
+                fileSets.unshift(matchingFileSet);
+              }
+              const primaryFileSet = fileSets[0];
+
+              if (isAudioVideo(source.work_type)) {
+                canvas.duration = primaryFileSet.duration || 1;
+              }
+              canvas.height = primaryFileSet.height || 100;
+              canvas.width = primaryFileSet.width || 100;
+              canvas.addLabel(primaryFileSet.label, "none");
+              addThumbnailToCanvas(canvas, primaryFileSet);
+
+              /** Build "Choice" annotation if there are alternates */
+              const annotationId = `${canvasId}/annotation/0`;
+              const choiceBody =
+                fileSets.length > 1
+                  ? {
+                      type: "Choice",
+                      items: fileSets.map((fileSet) =>
+                        buildAnnotationBody(fileSet, source.work_type)
+                      ),
+                    }
+                  : buildAnnotationBody(primaryFileSet, source.work_type);
+
+              canvas.createAnnotation(annotationId, {
+                id: annotationId,
+                type: "Annotation",
+                motivation: "painting",
+                body: choiceBody,
+              });
+
+              /** Add "supplementing" annotation */
+              if (primaryFileSet.webvtt) {
+                addSupplementingAnnotationToCanvas(
+                  canvas,
+                  canvasId,
+                  primaryFileSet
+                );
+              }
+            });
+          }
+        );
 
         source.file_sets
           .filter((fileSet) => fileSet.role === "Auxiliary")
