@@ -16,16 +16,16 @@ class TestChatModel(unittest.TestCase):
 
 class TestCheckpointSaver(unittest.TestCase):
     @patch.dict(os.environ, {"CHECKPOINT_BUCKET_NAME": "test-bucket"})
-    @patch("core.setup.S3Checkpointer")
-    def test_checkpoint_saver_initialization(self, mock_s3_checkpointer):
+    @patch("core.setup.SelectiveCheckpointer")
+    def test_checkpoint_saver_initialization(self, mock_checkpointer):
         kwargs = {"prefix": "test"}
         result = checkpoint_saver(**kwargs)
         
-        mock_s3_checkpointer.assert_called_once_with(
+        mock_checkpointer.assert_called_once_with(
             bucket_name="test-bucket",
             **kwargs
         )
-        self.assertEqual(result, mock_s3_checkpointer.return_value)
+        self.assertEqual(result, mock_checkpointer.return_value)
 
 class TestPrefix(unittest.TestCase):
     def test_prefix_with_env_prefix(self):

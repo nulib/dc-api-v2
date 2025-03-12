@@ -1,4 +1,4 @@
-from persistence.s3_checkpointer import S3Checkpointer
+from persistence.selective_checkpointer import SelectiveCheckpointer
 from search.opensearch_neural_search import OpenSearchNeuralSearch
 from langchain_aws import ChatBedrock
 from langchain_core.language_models.base import BaseModel
@@ -14,7 +14,7 @@ def chat_model(**kwargs) -> BaseModel:
 
 def checkpoint_saver(**kwargs) -> BaseCheckpointSaver:
     checkpoint_bucket: str = os.getenv("CHECKPOINT_BUCKET_NAME")
-    return S3Checkpointer(bucket_name=checkpoint_bucket, **kwargs)
+    return SelectiveCheckpointer(bucket_name=checkpoint_bucket, **kwargs)
 
 def prefix(value):
     env_prefix = os.getenv("ENV_PREFIX")
