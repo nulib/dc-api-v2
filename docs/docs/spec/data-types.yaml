@@ -147,6 +147,7 @@ components:
         group_with:
           type: string
           format: uuid
+          nullable: true
         height:
           type: number
           nullable: true
