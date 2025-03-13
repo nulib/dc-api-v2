@@ -23,6 +23,7 @@ class TestCheckpointSaver(unittest.TestCase):
         
         mock_checkpointer.assert_called_once_with(
             bucket_name="test-bucket",
+            retain_history=False,
             **kwargs
         )
         self.assertEqual(result, mock_checkpointer.return_value)
