@@ -9,31 +9,41 @@ from langgraph.checkpoint.base import (
 )
 from persistence.s3_checkpointer import S3Checkpointer
 
+
+# Split messages into interactions, each one starting with a HumanMessage
+def _split_interactions(messages):
+    if messages is None:
+        return []
+
+    interactions = []
+    current_interaction = []
+
+    for message in messages:
+        if isinstance(message, HumanMessage) and current_interaction:
+            interactions.append(current_interaction)
+            current_interaction = []
+        current_interaction.append(message)
+
+    if current_interaction:
+        interactions.append(current_interaction)
+
+    return interactions
+    
 def _is_tool_message(message):
     if isinstance(message, ToolMessage):
         return True
-    if isinstance(message, AIMessage) and message.additional_kwargs.get('stop_reason', '') == 'tool_use':
+    if isinstance(message, AIMessage) and message.response_metadata.get('stop_reason', '') == 'tool_use':
         return True
     return False
 
 def _prune_messages(messages):
-    if messages is None:
-        return messages
+    interactions = _split_interactions(messages)
+    # Remove all tool-related messages except those related to the most recent interaction
+    for i, interaction in enumerate(interactions[:-1]):
+        interactions[i] = [message for message in interaction if not _is_tool_message(message)]
 
-    last_human_message = None
-    for i, message in reversed(list(enumerate(messages))):
-        if isinstance(message, HumanMessage):
-            last_human_message = i
-            break
-
-    if last_human_message is not None:
-        return [
-            msg
-            for i, msg in enumerate(messages)
-            if not _is_tool_message(msg) or i > last_human_message
-        ]
-
-    return messages
+    # Return the flattened list of messages
+    return [message for interaction in interactions for message in interaction]
 
 class SelectiveCheckpointer(S3Checkpointer):
     """S3 Checkpointer that discards ToolMessages from previous checkpoints."""
@@ -44,7 +54,7 @@ class SelectiveCheckpointer(S3Checkpointer):
         region_name: str = os.getenv("AWS_REGION"),
         endpoint_url: Optional[str] = None,
         compression: Optional[str] = None,
-        retain_history: Optional[bool] = False,
+        retain_history: Optional[bool] = True,
     ) -> None:
         super().__init__(bucket_name, region_name, endpoint_url, compression)
         self.retain_history = retain_history

@@ -14,7 +14,7 @@ def chat_model(**kwargs) -> BaseModel:
 
 def checkpoint_saver(**kwargs) -> BaseCheckpointSaver:
     checkpoint_bucket: str = os.getenv("CHECKPOINT_BUCKET_NAME")
-    return SelectiveCheckpointer(bucket_name=checkpoint_bucket, **kwargs)
+    return SelectiveCheckpointer(bucket_name=checkpoint_bucket, retain_history=False, **kwargs)
 
 def prefix(value):
     env_prefix = os.getenv("ENV_PREFIX")
