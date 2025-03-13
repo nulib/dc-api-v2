@@ -144,6 +144,10 @@ components:
         duration:
           type: number
           nullable: true
+        group_with:
+          type: string
+          format: uuid
+          nullable: true
         height:
           type: number
           nullable: true
@@ -183,6 +187,7 @@ components:
         - description
         - download_url
         - duration
+        - group_with
         - height
         - label
         - mime_type
