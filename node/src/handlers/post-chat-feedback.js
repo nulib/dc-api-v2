@@ -8,18 +8,63 @@ const feedbackSchema = {
   type: "object",
   properties: {
     sentiment: { enum: ["positive", "negative"] },
+    timestamp: { type: "string" },
+    ref: { type: "string" },
+    refIndex: { type: "number" },
     context: {
       type: "object",
       properties: {
         ref: { type: "string" },
-        question: { type: "string" },
-        answer: { type: "string" },
-        source_documents: {
+        initialQuestion: { type: "string" },
+        turns: {
           type: "array",
-          items: { type: "string" },
+          items: {
+            type: "object",
+            properties: {
+              question: { type: "string" },
+              answer: { type: "string" },
+              works: {
+                type: "array",
+                items: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      title: { type: "string" },
+                      visibility: { type: "string" },
+                      work_type: { type: "string" },
+                      thumbnail: { type: "string" },
+                    },
+                  },
+                },
+              },
+              aggregations: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    doc_count_error_upper_bound: { type: "number" },
+                    sum_other_doc_count: { type: "number" },
+                    buckets: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          key: { type: "string" },
+                          doc_count: { type: "number" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            required: ["question", "answer", "works", "aggregations"],
+          },
         },
       },
-      required: ["ref", "question", "answer", "source_documents"],
+      required: ["ref", "initialQuestion", "turns"],
       additionalProperties: false,
     },
     feedback: {
@@ -33,7 +78,14 @@ const feedbackSchema = {
       additionalProperties: false,
     },
   },
-  required: ["sentiment", "context", "feedback"],
+  required: [
+    "sentiment",
+    "timestamp",
+    "ref",
+    "refIndex",
+    "context",
+    "feedback",
+  ],
   additionalProperties: false,
 };
 
@@ -66,12 +118,12 @@ const handler = wrap(async (event, context) => {
       return {
         statusCode: 400,
         headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify(errors.join(", ")),
+        body: errors.join(", "),
       };
     }
     await uploadToS3(
       s3Client,
-      `${content.sentiment}/${content.context.ref}.json`,
+      `${content.sentiment}/${content.ref}_${content.refIndex}.json`,
       content
     );
 
