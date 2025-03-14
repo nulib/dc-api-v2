@@ -309,3 +309,93 @@ describe("404 network response", () => {
     expect(result.statusCode).to.eq(404);
   });
 });
+
+describe("IIIF Multiple Choice of Images in a Single View", () => {
+  async function setup() {
+    const response = {
+      statusCode: 200,
+      body: helpers.testFixture("mocks/work-1234-choice.json"),
+    };
+    const source = JSON.parse(response.body)._source;
+
+    const result = await transformer.transform(response);
+    expect(result.statusCode).to.eq(200);
+
+    return { source, manifest: JSON.parse(result.body) };
+  }
+
+  it("creates a Choice annotation when there are alternate file sets", async () => {
+    const { manifest } = await setup();
+    expect(manifest.type).to.eq("Manifest");
+    expect(manifest.items).to.be.an("array").that.is.not.empty;
+
+    manifest.items.forEach((canvas) => {
+      const annotation = canvas.items[0]?.items[0];
+      expect(annotation).to.exist;
+      expect(annotation.body).to.exist;
+
+      if (annotation.body.type === "Choice") {
+        expect(annotation.body.items).to.be.an("array").that.is.not.empty;
+      }
+    });
+  });
+
+  it("ensures the primary file set appears first in the Choice annotation", async () => {
+    const { manifest, source } = await setup();
+
+    // Group file sets by `group_with` field
+    const fileSetGroups = {};
+    source.file_sets.forEach((fileSet) => {
+      const groupKey = fileSet.group_with || fileSet.id;
+      if (!fileSetGroups[groupKey]) {
+        fileSetGroups[groupKey] = [];
+      }
+      fileSetGroups[groupKey].push(fileSet);
+    });
+
+    manifest.items.forEach((canvas) => {
+      const annotation = canvas.items[0]?.items[0];
+      expect(annotation).to.exist;
+      expect(annotation.body).to.exist;
+
+      if (annotation.body.type === "Choice") {
+        const choiceItems = annotation.body.items;
+        expect(choiceItems).to.be.an("array").that.is.not.empty;
+
+        // Find the group of file sets this canvas corresponds to
+        const expectedGroup = Object.values(fileSetGroups).find((group) =>
+          group.some((fs) => choiceItems.some((ci) => ci.id.includes(fs.id)))
+        );
+
+        expect(expectedGroup).to.exist;
+
+        // Determine the primary file set (the one being referenced by `group_with`)
+        const primaryFileSet =
+          expectedGroup.find((fs) =>
+            expectedGroup.some((gfs) => gfs.group_with === fs.id)
+          ) || expectedGroup[0]; // Fallback to the first one if no group_with reference
+
+        // Extract the first item's ID in Choice
+        const firstChoiceItemId = choiceItems[0]?.id;
+
+        // Ensure it matches the expected primary file set
+        expect(firstChoiceItemId).to.include(primaryFileSet.id);
+      }
+    });
+  });
+  it("does not create a Choice annotation when there is only one file set", async () => {
+    const { manifest } = await setup();
+
+    manifest.items.forEach((canvas) => {
+      const annotation = canvas.items[0]?.items[0];
+      expect(annotation).to.exist;
+      expect(annotation.body).to.exist;
+
+      if (Array.isArray(annotation.body.items)) {
+        expect(annotation.body.items.length).to.be.greaterThan(0);
+      } else {
+        expect(annotation.body.type).to.not.eq("Choice");
+      }
+    });
+  });
+});

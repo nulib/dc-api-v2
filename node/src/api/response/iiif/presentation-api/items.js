@@ -1,5 +1,31 @@
 /**  */
 
+function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
+  canvas.createAnnotationPage(
+    `${canvasId}/annotations/page/0`,
+    (annotationPageBuilder) => {
+      annotationPageBuilder.addLabel("Chapters", "en");
+      annotationPageBuilder.createAnnotation(
+        buildSupplementingAnnotation({ canvasId, fileSet })
+      );
+    },
+    true
+  );
+}
+
+function addThumbnailToCanvas(canvas, fileSet) {
+  if (fileSet.representative_image_url) {
+    canvas.addThumbnail({
+      id: buildImageResourceId(fileSet.representative_image_url),
+      type: "Image",
+      width: 300,
+      height: 300,
+      format: "image/jpeg",
+      service: buildImageService(fileSet.representative_image_url),
+    });
+  }
+}
+
 function annotationType(workType) {
   return workType === "Audio" ? "Sound" : workType;
 }
@@ -14,6 +40,7 @@ function buildAnnotationBody(fileSet, workType) {
       : fileSet.mime_type,
     height: fileSet.height || 100,
     width: fileSet.width || 100,
+    label: { en: [fileSet.label || `Alternate ${workType}`] },
   };
 
   if (isImage(workType))
@@ -79,6 +106,8 @@ function isPDF(mimeType) {
 }
 
 module.exports = {
+  addSupplementingAnnotationToCanvas,
+  addThumbnailToCanvas,
   annotationType,
   buildAnnotationBody,
   buildAnnotationBodyId,
