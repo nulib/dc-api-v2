@@ -19,7 +19,7 @@ links using the document's canonical_link field. Do not include intermediate mes
 question is unclear, ask for clarification.
 """
 
-MAX_RECURSION_LIMIT = 8 
+MAX_RECURSION_LIMIT = 12 
 
 class SearchWorkflow:
     def __init__(self, model: BaseModel, system_message: str):
