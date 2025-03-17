@@ -13,7 +13,7 @@ Description: dc-api-v2 API
 Globals:
   Function:
     CodeUri: ./src
-    Runtime: nodejs20.x
+    Runtime: nodejs22.x
     Architectures:
       - x86_64
     MemorySize: 128
@@ -130,10 +130,10 @@ Resources:
   #*     Description: Dependencies for API handlers
   #*     ContentUri: ./dependencies
   #*     CompatibleRuntimes:
-  #*       - nodejs20.x
+  #*       - nodejs22.x
   #*     LicenseInfo: Apache-2.0
   #*   Metadata:
-  #*     BuildMethod: nodejs20.x
+  #*     BuildMethod: nodejs22.x
   # Configuration
   apiConfiguration:
     Type: AWS::SecretsManager::Secret

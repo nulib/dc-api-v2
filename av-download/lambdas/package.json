@@ -15,6 +15,6 @@
     "aws-sdk": "^2.1640.0"
   },
   "dependencies": {
-    "fluent-ffmpeg": "2.1.2"
+    "fluent-ffmpeg": "2.1.3"
   }
 }

@@ -231,3 +231,4 @@ env.*.json
 *.parameters
 /schemas
 .sam-pids
+av-download/layers/ffmpeg/bin

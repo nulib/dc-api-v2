@@ -55,10 +55,6 @@ Parameters:
   DevTeamNetIds:
     Type: String
     Description: Northwestern NetIDs of the development team
-  FfmpegLayer:
-    Type: String
-    Description: "FFMPEG Lambda Layer ARN"
-    Default: "arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:11"
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -177,7 +173,6 @@ Resources:
     Properties:
       Location: ./av-download/template.yaml
       Parameters:
-        FfmpegLayer: !Ref FfmpegLayer
         MediaConvertDestinationBucket: !Ref MediaConvertDestinationBucket
         MediaConvertEndpoint: !Ref MediaConvertEndpoint
         MediaConvertJobQueueArn: !Ref MediaConvertJobQueueArn

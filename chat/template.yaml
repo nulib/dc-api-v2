@@ -263,7 +263,7 @@ Resources:
           - bedrock:InvokeModelWithResponseStream
           Resource: "*"
     #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    #*   BuildMethod: nodejs22.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -322,7 +322,7 @@ Resources:
           - bedrock:InvokeModelWithResponseStream
           Resource: "*"
     #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    #*   BuildMethod: nodejs22.x
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:

@@ -126,6 +126,6 @@ sync-code: sync
 secrets:
 	ln -s ../tfvars/dc-api/*.yaml .
 clean:
-	rm -rf .aws-sam api/.aws-sam chat/.aws-sam av-download/.aws-sam api/node_modules api/src/node_modules chat/**/__pycache__ chat/.coverage chat/.ruff_cache
+	rm -rf .aws-sam api/.aws-sam chat/.aws-sam av-download/.aws-sam api/node_modules api/src/node_modules av-download/layers chat/**/__pycache__ chat/.coverage chat/.ruff_cache
 reset:
 	for f in $$(find . -maxdepth 2 -name '*.orig'); do mv $$f $${f%%.orig}; done

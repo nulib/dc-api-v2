@@ -18,7 +18,7 @@ Resources:
   rootRedirect:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs22.x
       CodeUri: ./redirect
       Handler: index.handler
       Timeout: 1

@@ -14,7 +14,7 @@ Parameters:
   FfmpegLayer:
     Type: String
     Description: "FFMPEG Lambda Layer ARN"
-    Default: "arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:11"
+    Default: arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:15
   MediaConvertDestinationBucket:
     Type: String
     Description: S3 bucket destination for transcoded AV resource
