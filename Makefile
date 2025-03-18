@@ -32,6 +32,10 @@ help:
 	sam build --cached --parallel
 	mv template.yaml.orig template.yaml
 	mv chat/template.yaml.orig chat/template.yaml
+layers/ffmpeg/bin/ffmpeg:
+	mkdir -p layers/ffmpeg/bin ;\
+	curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
+	tar -C layers/ffmpeg/bin -xJ --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
 deps-node:
 	cd node/src ;\
 	npm list >/dev/null 2>&1 ;\
@@ -63,7 +67,7 @@ test-python: deps-python
 	cd chat && __SKIP_SECRETS__=true SKIP_LLM_REQUEST=True PYTHONPATH=src:test python -m unittest discover -v
 python-version:
 	cd chat && python --version
-build: .aws-sam/build.toml
+build: layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
 serve-http: deps-node
 	@printf '\033[0;31mWARNING: Serving only the local HTTP API. The chat websocket API is not available in local mode.\033[0m\n'
 	rm -rf .aws-sam
@@ -89,4 +93,4 @@ env:
 secrets:
 	ln -s ../tfvars/dc-api/* .
 clean:
-	rm -rf .aws-sam node/node_modules node/src/node_modules python/**/__pycache__ python/.coverage python/.ruff_cache
+	rm -rf .aws-sam node/node_modules node/src/node_modules python/**/__pycache__ python/.coverage python/.ruff_cache layers/ffmpeg
