@@ -60,10 +60,6 @@ Parameters:
   DevTeamNetIds:
     Type: String
     Description: Northwestern NetIDs of the development team
-  FfmpegLayer:
-    Type: String
-    Description: "FFMPEG Lambda Layer ARN"
-    Default: "arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:11"
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -963,6 +959,13 @@ Resources:
               <!--[if gte mso 15]></td></tr></table><![endif]-->
             </body>
           </html>
+  ffmpegLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: "FFMPEG Lambda Layer"
+      ContentUri: ./layers/ffmpeg
+      CompatibleRuntimes:
+        - nodejs18.x
   startAudioTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -973,7 +976,7 @@ Resources:
       Timeout: 900
       MemorySize: 10240
       Layers:
-        - !Ref FfmpegLayer
+        - !Ref ffmpegLayer
       Policies:
         - !Ref readSecretsPolicy
         - Version: 2012-10-17
