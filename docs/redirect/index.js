@@ -8,5 +8,5 @@ exports.handler = async () => {
       location: target
     },
     body: `<p>Redirecting to <a href="${target}">API Documentation</a></p>`
-  }
-}
+  };
+};

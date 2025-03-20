@@ -2,35 +2,17 @@
 
 [![Main API Build Status](https://github.com/nulib/dc-api-v2/actions/workflows/test-node.yml/badge.svg)](https://github.com/nulib/dc-api-v2/actions/workflows/test-node.yml) [![Chat API Build Status](https://github.com/nulib/dc-api-v2/actions/workflows/test-python.yml/badge.svg)](https://github.com/nulib/dc-api-v2/actions/workflows/test-python.yml)
 
-## Chat Websocket API development
-
-See the [chat API's README](chat/README.md).
-
 ## Local development setup
-
-### `samconfig.toml`
-
-The configuration file that tells the `sam` command how to run and deploy the API is called `samconfig.toml`. There are two ways to get that file. From the local project root:
-
-1. For local development only: `ln -s dev/samconfig.toml .`
-2. If you need to be able to deploy: `ln -s /path/to/tfvars/dc-api/samconfig.toml .` (You will need to have a local working copy of the private `tfvars` repo first.)
-
-Whichever you choose, the resulting file will be ignored by `git`.
 
 ### `env.json`
 
-The `env.json` file contains environment variable values for the lambda functions defined in the API for use in local development. An initial (empty) version with all the names of the necessary variables is in `dev/env.json`. Copy (**do not symlink**) this file into the project root and customize it for your own environment. It will also be ignored by `git`.
+The `env.json` file contains environment variable values for the lambda functions defined in the API for use in local development. You can create an `env.json` file containing the values to run the API against your dev data by running:
 
-Some of the values can be found as follows:
+```shell
+make env.json
+```
 
-- `API_TOKEN_SECRET` - already defined; value has to exist but doesn't matter in dev mode
-- `OPENSEARCH_ENDPOINT` - run the following command:
-  ```
-  aws secretsmanager get-secret-value \
-    --secret-id dev-environment/config/meadow --query SecretString \
-    --output text | jq -r '.index.index_endpoint | sub("^https?://";"")'
-  ```
-- `ENV_PREFIX` - The username and environment indicating which index to use. Usually your dev environment user prefix followed by `-dev` (e.g., `mbk-dev`), but if you want to use your test index or someone else's index, adjust the value accordingly.
+If the file already exists, it will not be overwritten unless you include `-B` in the make command.
 
 ## Running the API locally
 
@@ -56,7 +38,7 @@ The API will be available at:
 - `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/search`
 - `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/collections`
 
-[View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documention](https://api.dc.library.northwestern.edu/)
+[View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documentation](https://api.dc.library.northwestern.edu/)
 
 ## Example workflows
 
@@ -97,55 +79,53 @@ Access the app in a browser at: https://USER_PREFIX.dev.rdc.library.northwestern
 # From the repo root
 cd dc-api-v2
 
-#  Make sure you've done an `npm install` recently to update any packages in the `lambdas` directory
-npm install
-
-# Open port 3005 (if needed)
-sg open all 3005
-
-# Login as the staging-admin user
-export AWS_PROFILE=staging-admin
-aws sso login
-
 # Start the API + step function and associated lambdas
 make start-with-step
 
 # Open a second terminal and create the state machine
-aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://state_machines/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole
+make state-machine
 ```
 
 ## Deploying a development branch
 
+There are two ways to deploy a development branch: `make deploy` and `make sync`. The differences are:
+
+- **Changes:** `deploy` deploys a static stack, and requires another `deploy` to update it. `sync` watches for
+  changes in realtime.
+- **Dependencies:** `deploy` uses the `apiDependencies` resource defined in the template for dependencies, while
+  `sync` uses the AWS SAM CLI's built-in development dependency logic.
+
+Either way, the resulting stack will be accessible at `https://dcapi-USER_PREFIX.rdc-staging.library.northwestern.edu`.
+
+An existing `sync` stack can be reused by running `make sync` again, or by running `make sync-code` to only
+sync code changes (no infrastructure/template changes).
+
+### `samconfig.*.yaml`
+
+Both methods involve a `samconfig.USER_PREFIX.yaml` file. This file, with default values, can be created by
+running (for example):
+
+```shell
+make samconfig.mbk.yaml
 ```
-# sam sync --watch will do hot deploys as you make changes. If you don't want this, switch below command to sam sync or deploy
 
-export STACK_NAME=dc-api-yourdevprefix
-export CONFIG_ENV=staging 
+This will create a configuration to stand up the default stacks in both `deploy` mode (API, AV Download, and Chat) and
+`sync` mode (Chat only). To deploy a different combination of features, specify them using the `WITH` option:
 
-sam sync --watch --stack-name $STACK_NAME \             
-  --config-env $CONFIG_ENV \
-  --config-file ./samconfig.toml \
-  --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params CustomDomainHost=$STACK_NAME")
+```shell
+make samconfig.mbk.yaml WITH=API,DOCS
 ```
 
-This will give you API routes like: `https://dc-api-yourdevprefix.rdc-staging.library.northwestern.edu/chat-endpoint`
+Available features are: `API`, `AV_DOWNLOAD`, `CHAT`, and `DOCS`. 
 
-## Deploying the API manually
+⚠️ Be **very** careful including the API in `sync` mode as every change within `/api` will take a long time to deploy.
 
-- Symlink the `*.parameters` file you need from `tfvars/dc-api/` to the application root
-- Set your `CONFIG_ENV` and `HONEYBADGER_REVISION` environment variables
-- Run `sam deploy`
+As with the `env.json` file, `make` will not overwrite an existing file unless you include `-B`.
 
-```sh
-# staging environment example:
+### Tearing down a development stack
 
-ln -s ~/environment/tfvars/dc-api/staging.parameters .
-CONFIG_ENV=staging
-HONEYBADGER_REVISION=$(git rev-parse HEAD)
-sam deploy \
-  --config-env $CONFIG_ENV \
-  --config-file ./samconfig.toml \
-  --parameter-overrides $(while IFS='=' read -r key value; do params+=" $key=$value"; done < ./$CONFIG_ENV.parameters && echo "$params HoneybadgerRevision=$HONEYBADGER_REVISION")
+```shell
+sam delete --stack-name dc-api-USER_PREFIX
 ```
 
 ## Writing Documentation
@@ -168,11 +148,11 @@ In a nutshell:
    sg open all 8000
    mkdocs serve -a 0.0.0.0:8000
    ```
-   Docs will be accessible at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/
+   Docs will be accessible at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/
 
 ### OpenAPI/Swagger Docs
 
-We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at http://[DEV_PREFIX].dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
+We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
 
 The existing spec files ([`openapi.yaml`](docs/docs/spec/openapi.yaml) and [`types.yaml`](docs/docs/spec/types.yaml)) are the best reference for understanding and updating the spec. It's especially important to understand how `openapi.yaml` uses the [`$ref` keyword](https://swagger.io/docs/specification/using-ref/) to refer to reusable elements defined in `types.yaml`.
 
