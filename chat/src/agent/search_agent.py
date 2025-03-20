@@ -1,4 +1,5 @@
 from typing import Literal, List
+from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, ToolMessage
 from agent.tools import aggregate, discover_fields, search, retrieve_documents
 from langchain_core.messages.base import BaseMessage
@@ -19,11 +20,12 @@ links using the document's canonical_link field. Do not include intermediate mes
 question is unclear, ask for clarification.
 """
 
-MAX_RECURSION_LIMIT = 8
+MAX_RECURSION_LIMIT = 16
 
 class SearchWorkflow:
     def __init__(self, model: BaseModel, system_message: str):
         self.model = model
+        self.summarization_model = ChatBedrock(model="us.anthropic.claude-3-5-sonnet-20241022-v2:0", streaming=False)
         self.system_message = system_message
 
     def should_continue(self, state: MessagesState) -> Literal["tools", END]:
@@ -35,6 +37,39 @@ class SearchWorkflow:
         # Otherwise, we stop (reply to the user)
         return END
 
+    def summarize(self, state: MessagesState):
+        messages = state["messages"]
+        question = messages[0].content
+        last_message = messages[-1]
+        if last_message.name not in ["search", "retrieve_documents"]:
+            return {"messages": messages}
+        
+        summary_prompt = f"""
+        Summarize the following content. Return ONLY a valid JSON list where each 
+        document is replaced with a new dict with the `id`, `title`, `canonical_link`, 
+        and `api_link` fields, as well as any other information from the original that 
+        might be useful in answering questions. Flatten any nested structures to retain 
+        only semantically useful information (e.g., [{{'id': id1, 'label': label1}}, 
+        {{'id': id2, 'label': label2}}, {{'id': id3, 'label': label3}}] becomes 
+        [label1, label2, label3]). Be judicious about what information is retained, 
+        but keep enough to answer the question "{question}" and any likely followups.
+
+        It is extremely important that you return only the valid, parsable summarized 
+        JSON with no additional text or explanation, no markdown code fencing, and all 
+        unnecessary whitespace removed.
+
+        {last_message.content}
+        """
+        config = {
+            "callbacks": [], 
+            "metadata": {"source": "summarize"}
+        }
+        summary = self.summarization_model.invoke([HumanMessage(content=summary_prompt)], config=config)
+        print(f'Condensed {len(last_message.content)} bytes to {len(summary.content)} bytes via summarization')
+        last_message.content = summary.content
+
+        return {"messages": messages}
+        
     def call_model(self, state: MessagesState):
         messages = [SystemMessage(content=self.system_message)] + state["messages"]
         response: BaseMessage = self.model.invoke(messages)
@@ -65,7 +100,8 @@ class SearchAgent:
         # Define the two nodes we will cycle between
         workflow.add_node("agent", self.workflow_logic.call_model)
         workflow.add_node("tools", tool_node)
-
+        workflow.add_node("summarize", self.workflow_logic.summarize)
+        
         # Set the entrypoint as `agent`
         workflow.add_edge(START, "agent")
 
@@ -73,7 +109,9 @@ class SearchAgent:
         workflow.add_conditional_edges("agent", self.workflow_logic.should_continue)
 
         # Add a normal edge from `tools` to `agent`
-        workflow.add_edge("tools", "agent")
+        #workflow.add_edge("tools", "agent")
+        workflow.add_edge("tools", "summarize")
+        workflow.add_edge("summarize", "agent")
 
         self.checkpointer = checkpoint_saver()
         self.search_agent = workflow.compile(checkpointer=self.checkpointer)

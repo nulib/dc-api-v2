@@ -1,5 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch
+import json
 import sys
 
 sys.path.append("./src")
@@ -37,47 +38,39 @@ class TestSocketCallbackHandler(TestCase):
 
     def test_on_tool_end_search(self):
         # Mock tool output
-        class MockDoc:
-            def __init__(self, metadata):
-                self.metadata = metadata
-
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = json.dumps(content)
 
-        artifact = [
-            MockDoc(
-                {
-                    "id": 1,
-                    "api_link": "https://example.edu/item/1",
-                    "title": "Result 1",
-                    "visibility": "public",
-                    "work_type": "article",
-                    "thumbnail": "img1",
-                }
-            ),
-            MockDoc(
-                {
-                    "id": 2,
-                    "api_link": "https://example.edu/item/2",
-                    "title": "Result 2",
-                    "visibility": "private",
-                    "work_type": "document",
-                    "thumbnail": "img2",
-                }
-            ),
+        content = [
+            {
+                "id": 1,
+                "api_link": "https://example.edu/item/1",
+                "title": "Result 1",
+                "visibility": "public",
+                "work_type": "article",
+                "thumbnail": "img1",
+            },
+            {
+                "id": 2,
+                "api_link": "https://example.edu/item/2",
+                "title": "Result 2",
+                "visibility": "private",
+                "work_type": "document",
+                "thumbnail": "img2",
+            },
         ]
 
-        output = MockToolMessage("search", artifact)
+        output = MockToolMessage("search", content)
         self.handler.on_tool_end(output)
         self.assertEqual(self.handler.artifacts, [{"type": "source_urls", "artifact": ["https://example.edu/item/1", "https://example.edu/item/2"]}])
 
     def test_on_tool_end_aggregate(self):
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = json.dumps(content)
 
         output = MockToolMessage("aggregate", {"aggregation_result": {"count": 10}})
         self.handler.on_tool_end(output)
@@ -85,9 +78,9 @@ class TestSocketCallbackHandler(TestCase):
 
     def test_on_tool_end_discover_fields(self):
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = json.dumps(content)
 
         output = MockToolMessage("discover_fields", {})
         self.handler.on_tool_end(output)
@@ -136,34 +129,15 @@ class TestSocketCallbackHandler(TestCase):
         self.assertEqual(self.handler.accumulator, {})
     
     def test_on_tool_end_invalid_json(self):
-        import json
-
-        # Mocking ToolMessage and an invalid artifact that simulates JSONDecodeError
-        class MockDoc:
-            def __init__(self, metadata):
-                self.metadata = metadata
-
-        class InvalidArtifact:
-            def __init__(self):
-                self.metadata = self  # Simulate the `metadata` attribute
-
-            def __getitem__(self, item):
-                if item == "api_link":
-                    raise json.decoder.JSONDecodeError("Expecting value", "doc", 0)
-                return None
-
         class MockToolMessage:
-            def __init__(self, name, artifact, content):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
-                self.content = content  # Adding content attribute
+                self.content = content
 
-        # Invalid artifact with a mocked `metadata` attribute
-        invalid_artifact = [
-            InvalidArtifact(),  # This will raise JSONDecodeError on access
-        ]
+        # Invalid content with a mocked `metadata` attribute
+        invalid_content = 'example_content'
 
-        output = MockToolMessage("search", invalid_artifact, "example_content")
+        output = MockToolMessage("search", invalid_content)
 
         with patch("builtins.print") as mock_print:
             self.handler.on_tool_end(output)
@@ -174,9 +148,9 @@ class TestSocketCallbackHandler(TestCase):
 
     def test_on_tool_end_unrecognized_tool(self):
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = json.dumps(content)
 
         output = MockToolMessage("unknown_tool", {})
         self.handler.on_tool_end(output)
