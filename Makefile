@@ -119,8 +119,16 @@ env.json:
 samconfig.%.yaml:
 	DEV_PREFIX=$* ./bin/make_deploy_config.sh
 deploy: build samconfig.$(DEV_PREFIX).yaml
+	if ! aws sts get-caller-identity --query 'Arn' --output text | grep AWSReservedSSO_AWSAdministratorAccess > /dev/null; then \
+		echo "You must be logged in as an admin to deploy"; \
+		exit 1; \
+	fi
 	sam deploy --config-file samconfig.$(DEV_PREFIX).yaml --stack-name dc-api-$(DEV_PREFIX)
 sync: samconfig.$(DEV_PREFIX).yaml
+	if ! aws sts get-caller-identity --query 'Arn' --output text | grep AWSReservedSSO_AWSAdministratorAccess > /dev/null; then \
+		echo "You must be logged in as an admin to sync"; \
+		exit 1; \
+	fi
 	sam sync --config-file samconfig.$(DEV_PREFIX).yaml --stack-name dc-api-$(DEV_PREFIX) --watch $(ARGS)
 sync-code: ARGS=--code
 sync-code: sync
