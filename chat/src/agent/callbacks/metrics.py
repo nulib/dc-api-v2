@@ -33,12 +33,16 @@ class MetricsCallbackHandler(BaseCallbackHandler):
           self.accumulator[k] = self.accumulator.get(k, 0) + v
 
   def on_tool_end(self, output: ToolMessage, **kwargs: Dict[str, Any]):
+        content = output.content
+        if isinstance(content, str):
+            content = json.loads(content)
+      
         match output.name:
             case "aggregate":
-                self.artifacts.append({"type": "aggregation", "artifact": output.artifact.get("aggregation_result", {})})
+                self.artifacts.append({"type": "aggregation", "artifact": content.get("aggregation_result", {})})
             case "search":
                 try:
-                    source_urls = [doc.metadata["api_link"] for doc in output.artifact]
+                    source_urls = [doc.metadata["api_link"] for doc in content]
                     self.artifacts.append({"type": "source_urls", "artifact": source_urls})
                 except json.decoder.JSONDecodeError as e:
                     print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")

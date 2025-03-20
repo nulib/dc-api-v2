@@ -50,18 +50,22 @@ class SocketCallbackHandler(BaseCallbackHandler):
         self.socket.send({"type": "tool_start", "ref": self.ref, "message": {"tool": serialized.get("name"), "input": input}})
         
     def on_tool_end(self, output: ToolMessage, **kwargs: Dict[str, Any]):
+        content = output.content
+        if isinstance(content, str):
+            content = json.loads(content)
+
         match output.name:
             case "aggregate":
-                self.socket.send({"type": "aggregation_result", "ref": self.ref, "message": output.artifact.get("aggregation_result", {})})
+                self.socket.send({"type": "aggregation_result", "ref": self.ref, "message": content.get('aggregation_result', {})})
             case "discover_fields":
                 pass
             case "search":
                 result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
-                docs: List[Dict[str, Any]] = [{k: doc.metadata.get(k) for k in result_fields} for doc in output.artifact]
+                docs: List[Dict[str, Any]] = [{k: doc.get(k) for k in result_fields} for doc in content]
                 self.socket.send({"type": "search_result", "ref": self.ref, "message": docs})
             case "retrieve_documents":
                 result_fields = ("id", "title", "visibility", "work_type", "thumbnail")
-                docs: List[Dict[str, Any]] = [{k: doc.get(k) for k in result_fields} for doc in output.artifact]
+                docs: List[Dict[str, Any]] = [{k: doc.get(k) for k in result_fields} for doc in content]
                 self.socket.send({"type": "retrieved_documents", "ref": self.ref, "message": docs})
             case _:
                 print(f"Unhandled tool_end message: {output}")
