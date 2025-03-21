@@ -1,7 +1,5 @@
 import json
 
-from langchain_core.language_models.chat_models import BaseModel
-from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from core.setup import opensearch_vector_store
 from typing import List
@@ -29,7 +27,8 @@ def filter_results(results):
     Filters out the embeddings from the results
     """
     filtered = []
-    for doc in results:
+    for result in results:
+        doc = result.metadata
         if 'embedding' in doc:
             doc.pop('embedding')
         filtered.append(doc)
@@ -101,33 +100,3 @@ def retrieve_documents(doc_ids: List[str]):
         return filter_results(response)
     except Exception as e:
         return {"error": str(e)}
-    
-@tool(response_format="content")
-def summarize(content, model: BaseModel):
-    """
-    Summarize content. If content is a list of documents, each document will
-    be replaced with a summary to reduce the amount of content passed to the agent's
-    model at each turn. Otherwise, the content will be summarized as a whole.
-    
-    Args:
-        content: The content to summarize.
-        model (BaseModel): The summarization model to use.
-    
-    Returns:
-        A new list of documents, pared down.
-    """
-
-    summary_prompt = f"""
-    Summarize the following content. If the content is a list of documents
-    with IDs, replace each document with a new dict with the shape
-    {'id': doc.id, 'title': doc.title 'content': summary}, where summary is a 
-    concise but semantically meaningful summary of the document content for the
-    agent to use on subsequent turns. Otherwise, produce a summary of the content
-    as a whole.
-    
-    {content}
-    """
-    print(f"Summarizing content: {content}")
-    summary = model.invoke([HumanMessage(content=summary_prompt)])
-    print(f"Summarized content: {summary.content}")
-    return summary.content

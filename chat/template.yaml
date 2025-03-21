@@ -53,7 +53,7 @@ Resources:
   ChatWebSocket:
     Type: AWS::ApiGatewayV2::Api
     Properties:
-      Name: ChatWebSocket
+      Name: !Sub "${AWS::StackName}-Api"
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.message"
   CheckpointBucket:
