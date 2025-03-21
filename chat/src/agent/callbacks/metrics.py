@@ -35,14 +35,17 @@ class MetricsCallbackHandler(BaseCallbackHandler):
   def on_tool_end(self, output: ToolMessage, **kwargs: Dict[str, Any]):
         content = output.content
         if isinstance(content, str):
-            content = json.loads(content)
-      
+            try:
+                content = json.loads(content)
+            except json.decoder.JSONDecodeError as e:
+                print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")
+                return
+                
         match output.name:
             case "aggregate":
                 self.artifacts.append({"type": "aggregation", "artifact": content.get("aggregation_result", {})})
             case "search":
-                try:
-                    source_urls = [doc.metadata["api_link"] for doc in content]
-                    self.artifacts.append({"type": "source_urls", "artifact": source_urls})
-                except json.decoder.JSONDecodeError as e:
-                    print(f"Invalid json ({e}) returned from {output.name} tool: {output.content}")
+                source_urls = [doc.get("api_link") for doc in content]
+                self.artifacts.append({"type": "source_urls", "artifact": source_urls})
+            case "summarize":
+                print(output)
