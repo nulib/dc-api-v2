@@ -12,6 +12,7 @@ from langgraph.errors import GraphRecursionError
 from core.setup import checkpoint_saver
 from agent.callbacks.socket import SocketCallbackHandler
 from typing import Optional
+import time
 
 DEFAULT_SYSTEM_MESSAGE = """
 Please provide a brief answer to the question using the tools provided. Include specific details from multiple documents that 
@@ -23,7 +24,8 @@ question is unclear, ask for clarification.
 MAX_RECURSION_LIMIT = 16
 
 class SearchWorkflow:
-    def __init__(self, model: BaseModel, system_message: str):
+    def __init__(self, model: BaseModel, system_message: str, metrics = None):
+        self.metrics = metrics
         self.model = model
         self.summarization_model = ChatBedrock(model="us.anthropic.claude-3-5-sonnet-20241022-v2:0", streaming=False)
         self.system_message = system_message
@@ -57,15 +59,25 @@ class SearchWorkflow:
         It is extremely important that you return only the valid, parsable summarized 
         JSON with no additional text or explanation, no markdown code fencing, and all 
         unnecessary whitespace removed.
+        
+        Prioritize speed over comprehensiveness.
 
         {last_message.content}
         """
+
         config = {
-            "callbacks": [], 
+            "callbacks": [self.metrics] if self.metrics else [], 
             "metadata": {"source": "summarize"}
         }
+        
+        start_time = time.time()
+        
         summary = self.summarization_model.invoke([HumanMessage(content=summary_prompt)], config=config)
-        print(f'Condensed {len(last_message.content)} bytes to {len(summary.content)} bytes via summarization')
+        
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f'Condensed {len(last_message.content)} bytes to {len(summary.content)} bytes in {elapsed_time:.2f} seconds')
+        
         last_message.content = summary.content
 
         return {"messages": messages}
@@ -81,6 +93,7 @@ class SearchAgent:
         self,
         model: BaseModel,
         *,
+        metrics = None,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         **kwargs
     ):
@@ -92,7 +105,7 @@ class SearchAgent:
         except NotImplementedError:
             pass
 
-        self.workflow_logic = SearchWorkflow(model=model, system_message=system_message)
+        self.workflow_logic = SearchWorkflow(model=model, system_message=system_message, metrics=metrics)
 
         # Define a new graph
         workflow = StateGraph(MessagesState)
