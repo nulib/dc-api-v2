@@ -33,11 +33,17 @@ class TestTools(TestCase):
 
     @patch('agent.tools.opensearch_vector_store')
     def test_search(self, mock_opensearch):
-        mock_results = [{"id": "doc1", "text": "example result"}]
+        class MockDoc:
+            def __init__(self, content, metadata):
+                self.content = content
+                self.metadata = metadata
+
+        expected_results = [{"id": "doc1", "text": "example result"}]
+        mock_results = [MockDoc(content=doc["id"], metadata=doc) for doc in expected_results]
         mock_opensearch.return_value.similarity_search.return_value = mock_results
         
         response = search.invoke("test query")
-        self.assertEqual(response, mock_results)
+        self.assertEqual(response, expected_results)
 
     @patch('agent.tools.opensearch_vector_store')
     def test_aggregate(self, mock_opensearch):
