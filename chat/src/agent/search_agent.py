@@ -1,5 +1,5 @@
+import json
 from typing import Literal, List
-from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage, ToolMessage
 from agent.tools import aggregate, discover_fields, search, retrieve_documents
 from langchain_core.messages.base import BaseMessage
@@ -9,6 +9,7 @@ from langchain_core.messages.system import SystemMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from langgraph.errors import GraphRecursionError
+from core.document import minimize_documents
 from core.setup import checkpoint_saver
 from agent.callbacks.socket import SocketCallbackHandler
 from typing import Optional
@@ -18,7 +19,9 @@ DEFAULT_SYSTEM_MESSAGE = """
 Please provide a brief answer to the question using the tools provided. Include specific details from multiple documents that 
 support your answer. Answer in raw markdown, but not within a code block. When citing source documents, construct Markdown 
 links using the document's canonical_link field. Do not include intermediate messages explaining your process. If the user's
-question is unclear, ask for clarification.
+question is unclear, ask for clarification. Use no more than 6 tool calls. If you still cannot answer the question after 6
+tool calls, summarize the information you have gathered so far and suggest ways in which the user might narrow the scope
+of their question to make it more answerable.
 """
 
 MAX_RECURSION_LIMIT = 16
@@ -27,7 +30,6 @@ class SearchWorkflow:
     def __init__(self, model: BaseModel, system_message: str, metrics = None):
         self.metrics = metrics
         self.model = model
-        self.summarization_model = ChatBedrock(model="us.anthropic.claude-3-5-sonnet-20241022-v2:0", streaming=False)
         self.system_message = system_message
 
     def should_continue(self, state: MessagesState) -> Literal["tools", END]:
@@ -41,44 +43,18 @@ class SearchWorkflow:
 
     def summarize(self, state: MessagesState):
         messages = state["messages"]
-        question = messages[0].content
         last_message = messages[-1]
         if last_message.name not in ["search", "retrieve_documents"]:
             return {"messages": messages}
         
-        summary_prompt = f"""
-        Summarize the following content. Return ONLY a valid JSON list where each 
-        document is replaced with a new dict with the `id`, `title`, `canonical_link`, 
-        and `api_link` fields, as well as any other information from the original that 
-        might be useful in answering questions. Flatten any nested structures to retain 
-        only semantically useful information (e.g., [{{'id': id1, 'label': label1}}, 
-        {{'id': id2, 'label': label2}}, {{'id': id3, 'label': label3}}] becomes 
-        [label1, label2, label3]). Be judicious about what information is retained, 
-        but keep enough to answer the question "{question}" and any likely followups.
-
-        It is extremely important that you return only the valid, parsable summarized 
-        JSON with no additional text or explanation, no markdown code fencing, and all 
-        unnecessary whitespace removed.
-        
-        Prioritize speed over comprehensiveness.
-
-        {last_message.content}
-        """
-
-        config = {
-            "callbacks": [self.metrics] if self.metrics else [], 
-            "metadata": {"source": "summarize"}
-        }
-        
         start_time = time.time()
-        
-        summary = self.summarization_model.invoke([HumanMessage(content=summary_prompt)], config=config)
-        
+        content = minimize_documents(json.loads(last_message.content))
+        content = json.dumps(content, separators=(',', ':'))
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f'Condensed {len(last_message.content)} bytes to {len(summary.content)} bytes in {elapsed_time:.2f} seconds')
+        print(f'Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%')
         
-        last_message.content = summary.content
+        last_message.content = content
 
         return {"messages": messages}
         
