@@ -85,21 +85,17 @@ class TestSocketCallbackHandler(TestCase):
 
     def test_on_tool_end_search(self):
         # Mock tool output
-        class MockDoc:
-            def __init__(self, metadata):
-                self.metadata = metadata
-
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = content
 
-        artifact = [
-            MockDoc({"id": 1, "title": "Result 1", "visibility": "public", "work_type": "article", "thumbnail": "img1"}),
-            MockDoc({"id": 2, "title": "Result 2", "visibility": "private", "work_type": "document", "thumbnail": "img2"})
+        content = [
+            {"id": 1, "title": "Result 1", "visibility": "public", "work_type": "article", "thumbnail": "img1"},
+            {"id": 2, "title": "Result 2", "visibility": "private", "work_type": "document", "thumbnail": "img2"}
         ]
 
-        output = MockToolMessage("search", artifact)
+        output = MockToolMessage("search", content)
         self.handler.on_tool_end(output)
 
         # Verify search_result message was sent
@@ -116,9 +112,9 @@ class TestSocketCallbackHandler(TestCase):
     
     def test_on_tool_end_aggregate(self):
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = content
 
         output = MockToolMessage("aggregate", {"aggregation_result": {"count": 10}})
         self.handler.on_tool_end(output)
@@ -132,9 +128,9 @@ class TestSocketCallbackHandler(TestCase):
         
     def test_on_tool_end_discover_fields(self):
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = content
 
         output = MockToolMessage("discover_fields", {})
         self.handler.on_tool_end(output)
@@ -143,9 +139,9 @@ class TestSocketCallbackHandler(TestCase):
 
     def test_on_tool_end_unknown(self):
         class MockToolMessage:
-            def __init__(self, name, artifact):
+            def __init__(self, name, content):
                 self.name = name
-                self.artifact = artifact
+                self.content = content
 
         output = MockToolMessage("unknown", {})
         self.handler.on_tool_end(output)

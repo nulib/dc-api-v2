@@ -29,29 +29,31 @@ class TestTools(TestCase):
         
         # Pass required parameters based on the tool's schema
         response = discover_fields.invoke({"query": ""})  # Assuming query is the required parameter
-        self.assertIsInstance(response, str)
-        parsed_response = json.loads(response)
-        self.assertEqual(parsed_response, ["field1", "field3.subfield1"])
+        self.assertEqual(response, ["field1", "field3.subfield1"])
 
     @patch('agent.tools.opensearch_vector_store')
     def test_search(self, mock_opensearch):
-        mock_results = [{"id": "doc1", "text": "example result"}]
+        class MockDoc:
+            def __init__(self, content, metadata):
+                self.content = content
+                self.metadata = metadata
+
+        expected_results = [{"id": "doc1", "text": "example result"}]
+        mock_results = [MockDoc(content=doc["id"], metadata=doc) for doc in expected_results]
         mock_opensearch.return_value.similarity_search.return_value = mock_results
         
         response = search.invoke("test query")
-        self.assertIsInstance(response, str)  # Remove .content check
-        parsed_response = json.loads(response)
-        self.assertEqual(parsed_response, mock_results)
+        self.assertEqual(response, expected_results)
 
     @patch('agent.tools.opensearch_vector_store')
     def test_aggregate(self, mock_opensearch):
-        mock_response = {
+        mock_response = json.dumps({
             "aggregations": {
                 "example_agg": {
                     "buckets": []
                 }
             }
-        }
+        })
         mock_opensearch.return_value.aggregations_search.return_value = mock_response
         
         # Pass parameters directly instead of as JSON string
@@ -61,18 +63,17 @@ class TestTools(TestCase):
             "term": "term"
         })
         self.assertIsInstance(response, str)
-        parsed_response = json.loads(response)
-        self.assertEqual(parsed_response, mock_response)
+        self.assertEqual(json.loads(response), json.loads(mock_response))
 
     @patch('agent.tools.opensearch_vector_store')
     def test_aggregate_no_term(self, mock_opensearch):
-        mock_response = {
+        mock_response = json.dumps({
             "aggregations": {
                 "all_docs": {
                     "buckets": []
                 }
             }
-        }
+        })
         mock_opensearch.return_value.aggregations_search.return_value = mock_response
 
         response = aggregate.invoke({
@@ -81,8 +82,7 @@ class TestTools(TestCase):
             "term": ""
         })
         self.assertIsInstance(response, str)
-        parsed_response = json.loads(response)
-        self.assertEqual(parsed_response, mock_response)
+        self.assertEqual(json.loads(response), json.loads(mock_response))
 
     def test_get_keyword_fields(self):
         properties = {

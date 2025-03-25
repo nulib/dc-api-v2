@@ -1,3 +1,4 @@
+import json
 from typing import Literal, List
 from langchain_core.messages import HumanMessage, ToolMessage
 from agent.tools import aggregate, discover_fields, search, retrieve_documents
@@ -8,21 +9,26 @@ from langchain_core.messages.system import SystemMessage
 from langgraph.graph import END, START, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 from langgraph.errors import GraphRecursionError
+from core.document import minimize_documents
 from core.setup import checkpoint_saver
 from agent.callbacks.socket import SocketCallbackHandler
 from typing import Optional
+import time
 
 DEFAULT_SYSTEM_MESSAGE = """
 Please provide a brief answer to the question using the tools provided. Include specific details from multiple documents that 
 support your answer. Answer in raw markdown, but not within a code block. When citing source documents, construct Markdown 
 links using the document's canonical_link field. Do not include intermediate messages explaining your process. If the user's
-question is unclear, ask for clarification.
+question is unclear, ask for clarification. Use no more than 6 tool calls. If you still cannot answer the question after 6
+tool calls, summarize the information you have gathered so far and suggest ways in which the user might narrow the scope
+of their question to make it more answerable.
 """
 
-MAX_RECURSION_LIMIT = 8
+MAX_RECURSION_LIMIT = 16
 
 class SearchWorkflow:
-    def __init__(self, model: BaseModel, system_message: str):
+    def __init__(self, model: BaseModel, system_message: str, metrics = None):
+        self.metrics = metrics
         self.model = model
         self.system_message = system_message
 
@@ -35,6 +41,23 @@ class SearchWorkflow:
         # Otherwise, we stop (reply to the user)
         return END
 
+    def summarize(self, state: MessagesState):
+        messages = state["messages"]
+        last_message = messages[-1]
+        if last_message.name not in ["search", "retrieve_documents"]:
+            return {"messages": messages}
+        
+        start_time = time.time()
+        content = minimize_documents(json.loads(last_message.content))
+        content = json.dumps(content, separators=(',', ':'))
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f'Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%')
+        
+        last_message.content = content
+
+        return {"messages": messages}
+        
     def call_model(self, state: MessagesState):
         messages = [SystemMessage(content=self.system_message)] + state["messages"]
         response: BaseMessage = self.model.invoke(messages)
@@ -46,6 +69,7 @@ class SearchAgent:
         self,
         model: BaseModel,
         *,
+        metrics = None,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         **kwargs
     ):
@@ -57,7 +81,7 @@ class SearchAgent:
         except NotImplementedError:
             pass
 
-        self.workflow_logic = SearchWorkflow(model=model, system_message=system_message)
+        self.workflow_logic = SearchWorkflow(model=model, system_message=system_message, metrics=metrics)
 
         # Define a new graph
         workflow = StateGraph(MessagesState)
@@ -65,7 +89,8 @@ class SearchAgent:
         # Define the two nodes we will cycle between
         workflow.add_node("agent", self.workflow_logic.call_model)
         workflow.add_node("tools", tool_node)
-
+        workflow.add_node("summarize", self.workflow_logic.summarize)
+        
         # Set the entrypoint as `agent`
         workflow.add_edge(START, "agent")
 
@@ -73,7 +98,9 @@ class SearchAgent:
         workflow.add_conditional_edges("agent", self.workflow_logic.should_continue)
 
         # Add a normal edge from `tools` to `agent`
-        workflow.add_edge("tools", "agent")
+        #workflow.add_edge("tools", "agent")
+        workflow.add_edge("tools", "summarize")
+        workflow.add_edge("summarize", "agent")
 
         self.checkpointer = checkpoint_saver()
         self.search_agent = workflow.compile(checkpointer=self.checkpointer)
