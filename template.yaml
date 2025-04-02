@@ -173,7 +173,6 @@ Resources:
     Properties:
       Location: ./av-download/template.yaml
       Parameters:
-        FfmpegLayer: !Ref FfmpegLayer
         MediaConvertDestinationBucket: !Ref MediaConvertDestinationBucket
         MediaConvertEndpoint: !Ref MediaConvertEndpoint
         MediaConvertJobQueueArn: !Ref MediaConvertJobQueueArn

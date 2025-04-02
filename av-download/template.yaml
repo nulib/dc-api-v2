@@ -11,10 +11,6 @@ Transform:
   - AWS::LanguageExtensions
 Description: dc-api-v2 AV Download Support
 Parameters:
-  FfmpegLayer:
-    Type: String
-    Description: "FFMPEG Lambda Layer ARN"
-    Default: "arn:aws:lambda:us-east-1:625046682746:layer:ffmpeg:11"
   MediaConvertDestinationBucket:
     Type: String
     Description: S3 bucket destination for transcoded AV resource
@@ -356,17 +352,24 @@ Resources:
               <!--[if gte mso 15]></td></tr></table><![endif]-->
             </body>
           </html>
+  ffmpegLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: "FFMPEG Lambda Layer"
+      ContentUri: ./layers/ffmpeg
+      CompatibleRuntimes:
+        - nodejs18.x
   startAudioTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs18.x
       CodeUri: ./lambdas
       Handler: start-audio-transcode.handler
       Description: Performs audio transcode job with ffmpeg
       Timeout: 900
       MemorySize: 10240
       Layers:
-        - !Ref FfmpegLayer
+        - !Ref ffmpegLayer
       Policies:
         - Version: 2012-10-17
           Statement:
