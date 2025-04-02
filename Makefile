@@ -51,7 +51,7 @@ help:
 layers/ffmpeg/bin/ffmpeg:
 	mkdir -p av-download/layers/ffmpeg/bin ;\
 	curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
-	tar -C layers/ffmpeg/bin -xJ --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
+	tar -C av-download/layers/ffmpeg/bin -xJ --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
 deps-api:
 	cd api/src ;\
 	npm list >/dev/null 2>&1 ;\
