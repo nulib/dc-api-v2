@@ -85,6 +85,8 @@ test-python: deps-python
 python-version:
 	cd chat && python --version
 build: layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
+validate:
+	cfn-lint template.yaml **/template.yaml --ignore-checks E3510 W1028 W8001
 serve-http: deps-node
 	@printf '\033[0;31mWARNING: Serving only the local HTTP API. The chat websocket API is not available in local mode.\033[0m\n'
 	rm -rf .aws-sam
