@@ -184,7 +184,6 @@ Resources:
             - CustomConfigSecret
             - !Ref ApiConfigPrefix
             - !Ref SecretsPath
-        SecretsPolicy: !Ref readSecretsPolicy
         StreamingBucket: !Ref StreamingBucket
   chatWebsocket:
     Type: AWS::Serverless::Application
