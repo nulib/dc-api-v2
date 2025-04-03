@@ -16,13 +16,15 @@ jobs:
         - uses: actions/setup-python@v4
           with:
             python-version: '3.12' 
+        - name: Install cfn-lint
+          run: pip install cfn-lint
         - uses: aws-actions/setup-sam@v1
-        - name: sam fix https://github.com/aws/aws-sam-cli/issues/4527
-          run: $(dirname $(readlink $(which sam)))/pip install --force-reinstall "cryptography==38.0.4"
+        # - name: sam fix https://github.com/aws/aws-sam-cli/issues/4527
+        #   run: $(dirname $(readlink $(which sam)))/pip install --force-reinstall "cryptography==38.0.4"
         - uses: aws-actions/configure-aws-credentials@master
           with:
             role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
             aws-region: us-east-1
         - uses: actions/checkout@v3
         - name: Validate template
-          run: sam build && sam validate
+          run: make build && make validate

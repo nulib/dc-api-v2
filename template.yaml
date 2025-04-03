@@ -9,33 +9,12 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform:
   - AWS::Serverless-2016-10-31
   - AWS::LanguageExtensions
-Description: >
-  dc-api-v2
-
-  SAM Template for dc-api-v2
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
-Globals:
-  Function:
-    CodeUri: ./node/src
-    Runtime: nodejs20.x
-    Architectures:
-      - x86_64
-    MemorySize: 128
-    Timeout: 10
-    Environment:
-      Variables:
-        API_TOKEN_NAME: !Ref ApiTokenName
-        DC_API_ENDPOINT: !Ref DcApiEndpoint
-        DC_URL: !Ref DcUrl
-        DEFAULT_SEARCH_SIZE: "100"
-        DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
-        ENV_PREFIX: !Ref EnvironmentPrefix
-        HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
-        HONEYBADGER_ENV: !Ref HoneybadgerEnv
-        HONEYBADGER_REVISION: !Ref HoneybadgerRevision
-        READING_ROOM_IPS: !Ref ReadingRoomIPs
-        SECRETS_PATH: !Ref SecretsPath
+Description: dc-api-v2
 Parameters:
+  ApiConfigPrefix:
+    Type: String
+    Description: Secret Name for API Configuration (if not provided, will use SecretsPath)
+    Default: ""
   ApiTokenName:
     Type: String
     Description: Name of the jwt that DC API issues
@@ -57,6 +36,22 @@ Parameters:
   DcUrl:
     Type: String
     Description: URL of Digital Collections website
+  DeployAPI:
+    Type: String
+    Description: Set to true to deploy API
+    Default: "true"
+  DeployAVDownload:
+    Type: String
+    Description: Set to true to deploy AVDownload
+    Default: "true"
+  DeployChat:
+    Type: String
+    Description: Set to true to deploy Chat
+    Default: "true"
+  DeployDocs:
+    Type: String
+    Description: Set to true to deploy Docs
+    Default: "false"
   DevTeamNetIds:
     Type: String
     Description: Northwestern NetIDs of the development team
@@ -112,32 +107,17 @@ Parameters:
     Description: Set to something other than "true" to _not_ write configuration secrets
     Default: "true"
 Conditions:
-  WriteSecret:
-    Fn::Equals:
-    - !Ref WriteConfigSecret
-    - true
+  CustomConfigSecret:
+    Fn::Not: [!Equals [!Ref ApiConfigPrefix, ""]]
+  DeployAPI:
+    Fn::Equals: [!Ref DeployAPI, "true"]
+  DeployAVDownload:
+    Fn::Equals: [!Ref DeployAVDownload, "true"]
+  DeployChat:
+    Fn::Equals: [!Ref DeployChat, "true"]
+  DeployDocs:
+    Fn::Equals: [!Ref DeployDocs, "true"]
 Resources:
-  #* apiDependencies:
-  #*   Type: AWS::Serverless::LayerVersion
-  #*   Properties:
-  #*     LayerName: !Sub "${AWS::StackName}-api-dependencies"
-  #*     Description: Dependencies for API handlers
-  #*     ContentUri: ./layers/api_dependencies
-  #*     CompatibleRuntimes:
-  #*       - nodejs20.x
-  #*     LicenseInfo: Apache-2.0
-  #*   Metadata:
-  #*     BuildMethod: nodejs20.x
-  # Configuration
-  apiConfiguration:
-    Type: AWS::SecretsManager::Secret
-    Condition: WriteSecret
-    Properties:
-      Name: !Sub "${SecretsPath}/config/dcapi"
-      SecretString:
-        Fn::ToJsonString:
-          api_token_secret: !Ref ApiTokenSecret
-          base_url: !Sub "https://${CustomDomainHost}.${CustomDomainZone}/api/v2"
   readSecretsPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -148,513 +128,70 @@ Resources:
             Effect: Allow
             Action:
               - secretsmanager:GetSecretValue
-            Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretsPath}/*"
+            Resource: 
+              - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretsPath}/*"
+              - Fn::If:
+                - CustomConfigSecret
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ApiConfigPrefix}/*"
+                - !Ref AWS::NoValue
           - Sid: BatchGetSecrets
             Effect: Allow
             Action:
               - secretsmanager:BatchGetSecretValue
             Resource: "*"
-  readIndexPolicy:
-    Type: AWS::IAM::ManagedPolicy
+  api:
+    Type: AWS::Serverless::Application
+    DependsOn: rootApi
     Properties:
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Sid: ESHTTPPolicy
-            Effect: Allow
-            Action:
-              - es:ESHttp*
-            Resource: "*"
-  # V2 API
-  getAuthCallbackFunction:
-    Type: AWS::Serverless::Function
+      Location: ./api/template.yaml
+      Parameters:
+        ApiConfigPrefix: !Ref ApiConfigPrefix
+        ApiTokenName: !Ref ApiTokenName
+        ApiTokenSecret: !Ref ApiTokenSecret
+        ChatWebSocketURI: !If [DeployChat, !GetAtt [chatWebsocket, Outputs.WebSocketURI], ""]
+        CustomDomainCertificateArn: !Ref CustomDomainCertificateArn
+        CustomDomainZone: !Ref CustomDomainZone
+        CustomDomainHost: !Ref CustomDomainHost
+        DcApiEndpoint: !Ref DcApiEndpoint
+        DcUrl: !Ref DcUrl
+        DeployAPI: !Ref DeployAPI
+        DeployAVDownload: !Ref DeployAVDownload
+        DeployChat: !Ref DeployChat
+        DevTeamNetIds: !Ref DevTeamNetIds
+        EnvironmentPrefix: !Ref EnvironmentPrefix
+        HoneybadgerApiKey: !Ref HoneybadgerApiKey
+        HoneybadgerEnv: !Ref HoneybadgerEnv
+        HoneybadgerRevision: !Ref HoneybadgerRevision
+        PyramidBucket: !Ref PyramidBucket
+        ReadingRoomIPs: !Ref ReadingRoomIPs
+        SecretsPath: !Ref SecretsPath
+        SecretsPolicy: !Ref readSecretsPolicy
+        WriteConfigSecret: !Ref WriteConfigSecret
+  avDownload:
+    Type: AWS::Serverless::Application
+    Condition: DeployAVDownload
     Properties:
-      Handler: handlers/get-auth-callback.handler
-      Description: NUSSO callback function.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/callback
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/callback
-            Method: HEAD
-  getAuthLoginFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-auth-login.handler
-      Description: Performs NUSSO login.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/login
-            Method: GET
-  getAuthLogoutFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-auth-logout.handler
-      Description: Performs NUSSO logout.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/logout
-            Method: GET
-  getAuthTokenFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-auth-token.handler
-      Description: Function to retrieve raw JWT.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/token
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/token
-            Method: HEAD
-  getAuthWhoAmIFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-auth-whoami.handler
-      Description: Exchanges valid JWT token for user information.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /auth/whoami
-            Method: GET
-  getCollectionsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-collections.handler
-      Description: Gets Collections.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections
-            Method: HEAD
-  getCollectionByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-collection-by-id.handler
-      Description: Gets a Collection by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}
-            Method: HEAD
-  getFileSetByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-file-set-by-id.handler
-      Description: Gets a FileSet by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}
-            Method: HEAD
-  getFileSetAuthFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-file-set-auth.handler
-      Description: Authorizes access to a file set.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          USE_PROXIED_IP: true
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}/authorization
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}/authorization
-            Method: HEAD
-  getFileSetDownloadFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-file-set-download.handler
-      Description: Downloads a file set.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          STEP_FUNCTION_ENDPOINT: !Ref AWS::NoValue
-          AV_DOWNLOAD_STATE_MACHINE_ARN: !Ref avDownloadStateMachine
-          AV_DOWNLOAD_EMAIL_TEMPLATE: !Ref avDownloadEmailTemplate
-          USE_PROXIED_IP: true
-          STREAMING_BUCKET: !Ref StreamingBucket
-          MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
-          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
-          MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
-          MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
-          PYRAMID_BUCKET: !Ref PyramidBucket
-          REPOSITORY_EMAIL: !Ref RepositoryEmail
-          START_AUDIO_TRANSCODE_FUNCTION: !GetAtt startAudioTranscodeFunction.Arn
-          START_TRANSCODE_FUNCTION: !GetAtt startTranscodeFunction.Arn
-          TRANSCODE_STATUS_FUNCTION: !GetAtt transcodeStatusFunction.Arn
-          GET_DOWNLOAD_LINK_FUNCTION: !GetAtt getDownloadLinkFunction.Arn
-          SEND_TEMPLATED_EMAIL_FUNCTION: !GetAtt sendTemplatedEmailFunction.Arn
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: ExecuteAVDownloadStepFunction
-              Effect: Allow
-              Action:
-                - states:StartExecution
-              Resource:
-                - !Ref avDownloadStateMachine
-            - Sid: BucketAccess
-              Effect: Allow
-              Action:
-                - s3:GetObject
-              Resource: !Sub "arn:aws:s3:::${PyramidBucket}/*"
-            - Sid: ESHTTPPolicy
-              Effect: Allow
-              Action:
-                - es:ESHttp*
-              Resource: "*"
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}/download
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /file-sets/{id}/download
-            Method: HEAD
-  getWorkAuthFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-work-auth.handler
-      Description: Authorizes access to a work.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          USE_PROXIED_IP: true
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/authorization
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/authorization
-            Method: HEAD
-  getWorkByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-work-by-id.handler
-      Description: Gets a Work by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          USE_PROXIED_IP: true
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}
-            Method: HEAD
-  getThumbnailFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-thumbnail.handler
-      Description: Gets a Work's representative thumbnail.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        CollectionApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}/thumbnail
-            Method: GET
-        CollectionApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /collections/{id}/thumbnail
-            Method: HEAD
-        WorkApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/thumbnail
-            Method: GET
-        WorkApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/thumbnail
-            Method: HEAD
-  getSimilarFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-similar.handler
-      Timeout: 100
-      Description: Gets works similar to a specific work.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        WorkApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/similar
-            Method: GET
-        WorkApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /works/{id}/similar
-            Method: HEAD
-  searchPostFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/search.postSearch
-      Description: Handles OpenSearch search requests, Works only by default.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        SearchApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search
-            Method: POST
-        SearchWithModelsApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search/{models}
-            Method: POST
-  searchGetFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/search.getSearch
-      Description: Handles paging requests
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        SearchApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search
-            Method: GET
-        SearchApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search
-            Method: HEAD
-        SearchWithModelsApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search/{models}
-            Method: GET
-        SearchWithModelsApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /search/{models}
-            Method: HEAD
-  optionsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/options-request.handler
-      Timeout: 3
-      Description: Handles all OPTIONS requests
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        Everything:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /{proxy+}
-            Method: OPTIONS
-  getSharedLinkByIdFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/get-shared-link-by-id.handler
-      Description: Gets a shared link document by id.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        ApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /shared-links/{id}
-            Method: GET
-        ApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /shared-links/{id}
-            Method: HEAD
-  oaiFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/oai.handler
-      Description: Transforms works into OAI Records.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Timeout: 60
-      Policies:
-        - !Ref readSecretsPolicy
-        - !Ref readIndexPolicy
-      Events:
-        GetApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /oai
-            Method: GET
-        GetApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /oai
-            Method: HEAD
-        PostApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /oai
-            Method: POST
+      Location: ./av-download/template.yaml
+      Parameters:
+        MediaConvertDestinationBucket: !Ref MediaConvertDestinationBucket
+        MediaConvertEndpoint: !Ref MediaConvertEndpoint
+        MediaConvertJobQueueArn: !Ref MediaConvertJobQueueArn
+        MediaConvertRoleArn: !Ref MediaConvertRoleArn
+        PyramidBucket: !Ref PyramidBucket
+        RepositoryEmail: !Ref RepositoryEmail
+        SecretsPath:
+          Fn::If:
+            - CustomConfigSecret
+            - !Ref ApiConfigPrefix
+            - !Ref SecretsPath
+        StreamingBucket: !Ref StreamingBucket
   chatWebsocket:
     Type: AWS::Serverless::Application
+    Condition: DeployChat
     Properties:
       Location: ./chat/template.yaml
       Parameters:
+        ApiConfigPrefix: !Ref ApiConfigPrefix
         ApiTokenName: !Ref ApiTokenName
         EnvironmentPrefix: !Ref EnvironmentPrefix
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
@@ -662,505 +199,29 @@ Resources:
         HoneybadgerRevision: !Ref HoneybadgerRevision
         SecretsPath: !Ref SecretsPath
         SecretsPolicy: !Ref readSecretsPolicy
-  chatWebsocketEndpoint:
-    Type: AWS::Serverless::Function
+  docs:
+    Type: AWS::Serverless::Application
+    Condition: DeployDocs
     Properties:
-      Handler: handlers/get-chat-endpoint.handler
-      Description: Returns the URI of the chat websocket API.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          WEBSOCKET_URI: !GetAtt chatWebsocket.Outputs.WebSocketURI
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        GetApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /chat/endpoint
-            Method: GET
-  chatFeedback:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/post-chat-feedback.handler
-      Description: Handles feedback from the chat.
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Environment:
-        Variables:
-          CHAT_FEEDBACK_BUCKET: !Ref chatFeedbackBucket
-          CHAT_FEEDBACK_TOPIC_ARN: !Ref chatFeedbackTopic
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: BucketAccess
-              Effect: Allow
-              Action:
-                - s3:PutObject
-              Resource: !Sub "arn:aws:s3:::${chatFeedbackBucket}/*"
-            - Sid: TopicAccess
-              Effect: Allow
-              Action:
-                - sns:Publish
-              Resource: !Ref chatFeedbackTopic
-      Events:
-        PostApi:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: /chat/feedback
-            Method: POST
-  chatFeedbackBucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      BucketName: 
-        Fn::Join:
-        - "-"
-        - - !Sub "${AWS::StackName}-chat-feedback"
-          - !Select [2, !Split ['/', !Ref AWS::StackId]]
-  chatFeedbackTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: DC Chat Feedback
-      TopicName: !Sub "${AWS::StackName}-chat-feedback"
-  defaultFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: handlers/default-request.handler
-      Timeout: 3
-      Description: Handles all other requests
-      #* Layers:
-      #*   - !Ref apiDependencies
-      Policies:
-        - !Ref readSecretsPolicy
-      Events:
-        Everything:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref dcApi
-            Path: $default
-            Method: ANY
-
-  # Resources for AV Download state machine
-  avDownloadStateMachine:
-    Type: AWS::Serverless::StateMachine
-    Properties:
-      DefinitionUri: ./state_machines/av_download.json
-      Name: !Sub "${AWS::StackName}-av-download-state-machine"
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: LambaInvokePermissions
-              Effect: Allow
-              Action:
-                - lambda:InvokeFunction
-              Resource:
-                - !GetAtt startAudioTranscodeFunction.Arn
-                - !GetAtt startTranscodeFunction.Arn
-                - !GetAtt transcodeStatusFunction.Arn
-                - !GetAtt getDownloadLinkFunction.Arn
-                - !GetAtt sendTemplatedEmailFunction.Arn
-  avDownloadEmailTemplate:
-    Type: AWS::SES::Template
-    Properties:
-      Template:
-        TemplateName: !Sub "${AWS::StackName}-av-download-template"
-        SubjectPart: Download of {{fileSetLabel}} is ready!
-        TextPart: |
-          Hello,
-          Your request for {{fileType}} download of {{fileSetLabel}} (file set id: {{fileSetId}}) has been fulfilled. Your download will be available for 3 days.
-          The {{fileType}} file can be downloaded from {{downloadLink}}
-        HtmlPart: |
-          <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
-          <html xmlns='http://www.w3.org/1999/xhtml'>
-            <head>
-              <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
-              <title>NUL Meadow Download</title>
-              <meta content='IE=edge' http-equiv='X-UA-Compatible' />
-              <style>
-                p {
-                  margin-top: 0;
-                  line-height: 1.4em;
-                }
-                a {
-                  color: #4e2a84;
-                }
-                @media only screen and (max-width: 599px) {
-                  table[class='body-table'] {
-                    width: 100%;
-                  }
-                  img {
-                    max-width: 100%;
-                    height: auto !important;
-                  }
-                }
-                @media only screen and (max-width: 510px) {
-                  table[class='inside-table'] {
-                    width: 100%;
-                    padding: 0 10px 0 10px !important;
-                  }
-                  table[class='quote-table'] {
-                    width: 100%;
-                  }
-                  table[class='quote-image-table'] {
-                    width: 100%;
-                  }
-                }
-              </style>
-            </head>
-
-            <body
-              style='
-                background-color: #f1f0f0;
-                padding: 0;
-                margin: 0;
-                font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
-                font-size: 17px;
-                color: #342f2e;
-              '
-            >
-              <!--[if gte mso 15]><table border='0' cellpadding='0' cellspacing='0' width='100%' align='left'><tr><td><![endif]-->
-              <table
-                align='center'
-                border='0'
-                cellpadding='0'
-                cellspacing='0'
-                class='body-table'
-                style='border: 1px solid #d8d6d6; background-color: #ffffff'
-                width='600'
-              >
-                <!-- header -->
-                <tbody>
-                  <tr>
-                    <td>
-                      <table
-                        border='0'
-                        cellpadding='0'
-                        cellspacing='0'
-                        style='margin-bottom: 40px'
-                        width='100%'
-                      >
-                        <tbody>
-                          <tr>
-                            <td
-                              align='center'
-                              height='110'
-                              style='background-color: #4e2a84; padding: 0 10px 0 10px'
-                              valign='middle'
-                            >
-                              <h1>
-                                <img src="https://nul-public.s3.amazonaws.com/work-archiver/northwestern_logo.png" alt="Northwestern University Logo" />
-                              </h1>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td
-                              align='center'
-                              height='40'
-                              style='
-                                background-color: #401f68;
-                                font-size: 13px;
-                                color: #ffffff;
-                                font-style: italic;
-                              '
-                              valign='middle'
-                            ></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <table
-                        align='center'
-                        border='0'
-                        cellpadding='0'
-                        cellspacing='0'
-                        class='inside-table'
-                        style='margin-bottom: 40px; padding: 0 66px 0 66px'
-                        width='100%'
-                      >
-                        <tbody>
-                          <tr>
-                            <td style='padding-bottom: 5px'>
-                              <h2
-                                style='
-                                  margin: 12px 0;
-                                  font-size: 32px;
-                                  line-height: 1.2em;
-                                '
-                              >
-                                Hello,
-                              </h2>
-                              <p>
-                                Your request for {{fileType}} download of <b>{{fileSetLabel}}</b> (file set id: {{fileSetId}}) has been
-                                fulfilled. Click below to download your file:
-                              </p>
-                              <p style='text-align: center'>
-                                <a href='{{downloadLink}}'>
-                                  <!-- icon licensed under Creative Commons (Attribution 3.0 Unported): https://www.iconfinder.com/icons/285629/zip_file_icon -->
-                                  <img src="https://iiif.dc.library.northwestern.edu/iiif/2/00000000-0000-0000-0000-000000000002/square/100,100/0/default.jpg" alt="{{downloadLink}}" />
-                                </a>
-                              </p>
-                              <p style='text-align: center; font-style: italic'>
-                                (Your <a href='{{downloadLink}}'>download</a> will be available for 3 days)
-                              </p>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                  <!-- footer -->
-                  <tr>
-                    <td>
-                      <table
-                        align='center'
-                        border='0'
-                        cellpadding='0'
-                        cellspacing='0'
-                        style='background-color: #4e2a84; padding: 20px 0 20px 0'
-                        width='100%'
-                      >
-                        <tbody>
-                          <tr>
-                            <td align='center' style='padding-bottom: 10px'>
-                              <p>
-                                <a href='https://www.library.northwestern.edu'
-                                  ><img
-                                    alt='Northwestern University Library'
-                                    src='https://nul-public.s3.amazonaws.com/work-archiver/northwestern-university.png'
-                                /></a>
-                              </p>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td align='center' style='padding-bottom: 20px'>
-                              <p style='font-size: 12px; font-weight: bold; margin: 0'>
-                                <a
-                                  href='https://meadow.library.northwestern.edu'
-                                  style='color: #ffffff'
-                                  >VISIT MEADOW NOW</a
-                                >
-                              </p>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-              <!--[if gte mso 15]></td></tr></table><![endif]-->
-            </body>
-          </html>
-  ffmpegLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      Description: "FFMPEG Lambda Layer"
-      ContentUri: ./layers/ffmpeg
-      CompatibleRuntimes:
-        - nodejs18.x
-  startAudioTranscodeFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: nodejs18.x
-      CodeUri: ./lambdas
-      Handler: start-audio-transcode.handler
-      Description: Performs audio transcode job with ffmpeg
-      Timeout: 900
-      MemorySize: 10240
-      Layers:
-        - !Ref ffmpegLayer
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: BucketAccess
-              Effect: Allow
-              Action:
-                - s3:PutObject
-              Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
-      Environment:
-        Variables:
-          MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
-  startTranscodeFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: nodejs20.x
-      CodeUri: ./lambdas
-      Handler: start-transcode.handler
-      Description: Creates MediaConvert Job to transcode HLS stream
-      Environment:
-        Variables:
-          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
-          MEDIA_CONVERT_JOB_QUEUE_ARN: !Ref MediaConvertJobQueueArn
-          MEDIA_CONVERT_ROLE_ARN: !Ref MediaConvertRoleArn
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: PassMediaConvertRole
-              Effect: Allow
-              Action:
-                - iam:PassRole
-              Resource:
-                - !Ref MediaConvertRoleArn
-            - Sid: StartTranscodeJob
-              Effect: Allow
-              Action:
-                - mediaconvert:CreateJob
-              Resource: "*"
-  transcodeStatusFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: nodejs20.x
-      CodeUri: ./lambdas
-      Handler: transcode-status.handler
-      Description: Determines when transcode job has completed or errored
-      Environment:
-        Variables:
-          MEDIA_CONVERT_ENDPOINT: !Ref MediaConvertEndpoint
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: TranscodeJobStatus
-              Effect: Allow
-              Action:
-                - mediaconvert:GetJob
-                - mediaconvert:ListJobs
-              Resource: "*"
-  getDownloadLinkFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: nodejs20.x
-      CodeUri: ./lambdas
-      Handler: get-download-link.handler
-      Description: Creates presigned url
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: BucketAccess
-              Effect: Allow
-              Action:
-                - s3:GetObject
-              Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
-  sendTemplatedEmailFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      Runtime: nodejs20.x
-      CodeUri: ./lambdas
-      Handler: send-templated-email.handler
-      Description: Sends email
-      Policies:
-        - !Ref readSecretsPolicy
-        - Version: 2012-10-17
-          Statement:
-            - Sid: SESSendEmail
-              Effect: Allow
-              Action:
-                - ses:SendTemplatedEmail
-              Resource: "*"
-
+      Location: ./docs/template.yaml
+      Parameters:
+        RootApiID: !Ref rootApi
   # API Gateway Resources
-  dcApi:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      StageName: v2
-      StageVariables:
-        basePath: api/v2
-      Domain:
-        DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-        BasePath: api/v2
-        CertificateArn: !Ref CustomDomainCertificateArn
-        Route53:
-          HostedZoneName: !Sub "${CustomDomainZone}."
-
   # root API
   rootApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: latest
-  rootRedirect:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./node/redirect
-      Handler: index.handler
-      Timeout: 1
-      Description: Redirects to latest version of docs
-      Environment:
-        Variables:
-          REDIRECT_TO: /docs/v2/index.html
-      Events:
-        RedirectApiGet:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref rootApi
-            Path: /
-            Method: GET
-        RedirectApiHead:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref rootApi
-            Path: /
-            Method: HEAD
-
-  # Documentation
-  docsMapping:
-    Type: AWS::ApiGatewayV2::ApiMapping
-    Properties:
-      DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
-      ApiId: !Ref rootApi
-      Stage: !Ref rootApilatestStage
-    DependsOn: dcApi
-  docsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: index.html
-  docsBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      PolicyDocument:
-        Id: MyPolicy
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Effect: Allow
-            Principal: "*"
-            Action: "s3:GetObject"
-            Resource: !Sub "arn:aws:s3:::${docsBucket}/*"
-      Bucket: !Ref docsBucket
-  docsIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties:
-      ApiId: !Ref rootApi
-      IntegrationMethod: GET
-      IntegrationType: HTTP_PROXY
-      IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
-      PayloadFormatVersion: "1.0"
-  docsRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties:
-      ApiId: !Ref rootApi
-      AuthorizationType: NONE
-      RouteKey: GET /docs/v2/{proxy+}
-      Target: !Sub "integrations/${docsIntegration}"
+      Domain:
+        DomainName: !Sub "${CustomDomainHost}.${CustomDomainZone}"
+        BasePath: ["/"]
+        CertificateArn: !Ref CustomDomainCertificateArn
+        Route53:
+          HostedZoneName: !Sub "${CustomDomainZone}."
 Outputs:
   Endpoint:
     Description: "The base API endpoint for the stack"
     Value: !Sub "https://${CustomDomainHost}.${CustomDomainZone}/api/v2"
+  WebSocketURI:
+    Description: "The WebSocket URI for the chat application"
+    Value: !If [DeployChat, !GetAtt [chatWebsocket, Outputs.WebSocketURI], ""]

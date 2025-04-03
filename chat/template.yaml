@@ -1,7 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Websocket Chat API for dc-api-v2
+Description: dc-api-v2 Websocket Chat API
 Parameters:
+  ApiConfigPrefix:
+    Type: String
+    Description: Secret Name for API Configuration (if not provided, will use SecretsPath)
+    Default: ""
   ApiTokenName:
     Type: String
     Description: Name of the jwt that DC API issues
@@ -49,9 +53,17 @@ Resources:
   ChatWebSocket:
     Type: AWS::ApiGatewayV2::Api
     Properties:
-      Name: ChatWebSocket
+      Name: !Sub "${AWS::StackName}-Api"
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.message"
+  CheckpointBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
   ConnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -199,17 +211,20 @@ Resources:
       #* Layers:
       #*   - !Ref ChatDependencies
       MemorySize: 1024
-      Handler: handlers/chat.handler
+      Handler: handlers.chat
       Timeout: 300
       Environment:
         Variables:
+          API_CONFIG_PREFIX: !Ref ApiConfigPrefix
           API_TOKEN_NAME: !Ref ApiTokenName
+          CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          NO_COLOR: 1
       Policies:
       - !Ref SecretsPolicy
       - Statement:
@@ -230,6 +245,23 @@ Resources:
           - logs:CreateLogStream
           - logs:PutLogEvents
           Resource: !Sub "${ChatMetricsLog.Arn}:*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:PutObject
+          - s3:DeleteObject
+          - s3:ListBucket
+          Resource:
+          - !Sub "arn:aws:s3:::${CheckpointBucket}"
+          - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          - bedrock:InvokeModelWithResponseStream
+          Resource: "*"
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   ChatSyncFunction:
@@ -242,17 +274,20 @@ Resources:
       #* Layers:
       #*   - !Ref ChatDependencies
       MemorySize: 1024
-      Handler: handlers/chat_sync.handler
+      Handler: handlers.chat_sync
       Timeout: 300
       Environment:
         Variables:
+          API_CONFIG_PREFIX: !Ref ApiConfigPrefix
           API_TOKEN_NAME: !Ref ApiTokenName
+          CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          NO_COLOR: 1
       FunctionUrlConfig:
         AuthType: AWS_IAM
       Policies:
@@ -268,7 +303,24 @@ Resources:
           Action:
           - logs:CreateLogStream
           - logs:PutLogEvents
-          Resource: !Sub "${ChatMetricsLog.Arn}:*"  
+          Resource: !Sub "${ChatMetricsLog.Arn}:*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - s3:GetObject
+          - s3:ListBucket
+          - s3:PutObject
+          - s3:DeleteObject
+          - s3:ListBucket
+          Resource:
+          - !Sub "arn:aws:s3:::${CheckpointBucket}"
+          - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          - bedrock:InvokeModelWithResponseStream
+          Resource: "*"
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   ChatMetricsLog:
