@@ -32,6 +32,9 @@ Parameters:
   SecretsPath:
     Type: String
     Description: Prefix to use when loading configs from Secrets Manager
+  SecretsPolicy:
+    Type: String
+    Description: IAM Policy for reading secrets
   StreamingBucket:
     Type: String
     Description: Meadow Streaming Bucket
