@@ -59,9 +59,9 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RootApiID}/*/*/
   docsBucket:
-    Name: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
