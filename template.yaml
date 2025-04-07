@@ -206,6 +206,8 @@ Resources:
     Properties:
       Location: ./docs/template.yaml
       Parameters:
+        CustomDomainHost: !Ref CustomDomainHost
+        CustomDomainZone: !Ref CustomDomainZone
         RootApiID: !Ref rootApi
   # API Gateway Resources
   # root API
