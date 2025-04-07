@@ -13,7 +13,7 @@ Description: dc-api-v2 Docs
 Parameters:
   CustomDomainHost:
     Type: String
-    Description: Hostname within ApiDomainName for Custom Domain
+    Description: Hostname within Custom Domain Zone
   CustomDomainZone:
     Type: String
     Description: Hosted Zone Name for Custom Domain
