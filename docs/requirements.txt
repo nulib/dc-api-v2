@@ -4,3 +4,4 @@ Pygments>=2.7.3,<3.0.0
 diagrams>=0.21.1,<1.0.0
 mkdocs-material>=9.0.0
 mkdocs-render-swagger-plugin>=0.1.2
+setuptools>=78.1.0

@@ -14,7 +14,6 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ci
       AWS_SECRET_ACCESS_KEY: ci
-      SKIP_LLM_REQUEST: 'True' 
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -27,5 +26,7 @@ jobs:
         run: ruff check .
       - name: Run tests
         run: |
-          coverage run --include='src/**/*' -m unittest
+          coverage run --include='src/**/*' -m pytest -m ""
           coverage report
+        env:
+          AWS_REGION: us-east-1

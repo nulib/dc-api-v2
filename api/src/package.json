@@ -1,0 +1,33 @@
+{
+  "name": "dc-api",
+  "version": "2.7.0",
+  "description": "NUL Digital Collections API",
+  "repository": "https://github.com/nulib/dc-api-v2",
+  "author": "nulib",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-crypto/sha256-browser": "^2.0.1",
+    "@aws-sdk/client-s3": "^3.565.0",
+    "@aws-sdk/client-secrets-manager": "^3.563.0",
+    "@aws-sdk/client-sfn": "^3.563.0",
+    "@aws-sdk/client-sns": "^3.606.0",
+    "@aws-sdk/credential-provider-node": "^3.563.0",
+    "@aws-sdk/s3-request-presigner": "^3.565.0",
+    "@honeybadger-io/js": "^4.9.3",
+    "@smithy/node-http-handler": "^2.5.0",
+    "@smithy/protocol-http": "^3.3.0",
+    "@smithy/signature-v4": "^2.3.0",
+    "axios": ">=0.21.1",
+    "cookie": "^0.5.0",
+    "debug": "^4.3.4",
+    "http-status-codes": "^2.2.0",
+    "iiif-builder": "^1.0.7",
+    "jsonschema": "^1.4.1",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.21",
+    "lz-string": "^1.4.4",
+    "parse-http-header": "^1.0.1",
+    "sort-json": "^2.0.1",
+    "xml-js": "^1.6.11"
+  }
+}

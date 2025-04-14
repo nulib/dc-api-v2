@@ -1,0 +1,100 @@
+# Build and Deploy Template for DC API
+#
+# Note: Any comment starting with `#*` will be removed
+# at build time. This allows us to run without the
+# dependency layer in development without removing the
+# layer from the build.
+
+AWSTemplateFormatVersion: "2010-09-09"
+Transform:
+  - AWS::Serverless-2016-10-31
+  - AWS::LanguageExtensions
+Description: dc-api-v2 Docs
+Parameters:
+  CustomDomainHost:
+    Type: String
+    Description: Hostname within Custom Domain Zone
+  CustomDomainZone:
+    Type: String
+    Description: Hosted Zone Name for Custom Domain
+  RootApiID:
+    Type: String
+    Description: ID of the root API
+Resources:
+  rootRedirect:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs20.x
+      CodeUri: ./redirect
+      Handler: index.handler
+      Timeout: 1
+      Description: Redirects to latest version of docs
+      Environment:
+        Variables:
+          REDIRECT_TO: /docs/v2/index.html
+  rootRedirectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref RootApiID
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !GetAtt rootRedirect.Arn
+      PayloadFormatVersion: "2.0"
+  rootRedirectRouteGet:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref RootApiID
+      RouteKey: GET /
+      Target: !Sub integrations/${rootRedirectIntegration}
+  rootRedirectRouteHead:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref RootApiID
+      RouteKey: HEAD /
+      Target: !Sub integrations/${rootRedirectIntegration}
+  rootRedirectPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref rootRedirect
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RootApiID}/*/*/
+  docsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${CustomDomainHost}-docs.${CustomDomainZone}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+  docsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "arn:aws:s3:::${docsBucket}/*"
+      Bucket: !Ref docsBucket
+  docsIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref RootApiID
+      IntegrationMethod: GET
+      IntegrationType: HTTP_PROXY
+      IntegrationUri: !Sub "http://${docsBucket}.s3-website-us-east-1.amazonaws.com/{proxy}"
+      PayloadFormatVersion: "1.0"
+  docsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref RootApiID
+      AuthorizationType: NONE
+      RouteKey: GET /docs/v2/{proxy+}
+      Target: !Sub "integrations/${docsIntegration}"
