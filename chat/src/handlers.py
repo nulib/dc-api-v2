@@ -61,8 +61,11 @@ def chat(event, context):
         return {"statusCode": 400, "body": "Question cannot be blank"}
 
     log_info = {
-        "is_dev_team": config.api_token.is_dev_team(),
-        "is_superuser": config.api_token.is_superuser(),
+        "user": {
+            "auth_provider": config.api_token.token.get("provider", "none"),
+            "is_dev_team": config.api_token.is_dev_team(),
+            "is_superuser": config.api_token.is_superuser(),
+        },
         "k": config.k,
         "model": config.model,
         "question": config.question,

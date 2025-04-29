@@ -90,8 +90,11 @@ class TestHandler(TestCase):
         expected = {
             "answer": ["fake response"],
             "artifacts": [],
-            "is_dev_team": False,
-            "is_superuser": False,
+            "user": {
+                "auth_provider": "none",
+                "is_dev_team": False,
+                "is_superuser": False,
+            },
             "k": 40,
             "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
             "question": "Question?",

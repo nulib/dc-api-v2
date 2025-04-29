@@ -33,7 +33,10 @@ help:
 	echo "make cover-node            | run node tests with coverage"
 	echo "make cover-python          | run python tests with coverage"
 
-.aws-sam/build.toml: ./template.yaml api/package-lock.json api/src/package-lock.json chat/dependencies/requirements.txt chat/src/requirements.txt
+api: ./api/template.yaml ./api/src/package-lock.json $(wildcard ./api/src/**/*.js)
+chat: ./chat/template.yaml ./chat/dependencies/requirements.txt $(wildcard ./chat/src/**/*.py)
+av-download: ./av-download/template.yaml ./av-download/lambdas/package-lock.json $(wildcard ./av-download/lambdas/**/*.js)
+.aws-sam/build.toml: ./template.yaml api chat av-download
 	sed -Ei.orig 's/"dependencies"/"devDependencies"/' api/src/package.json
 	cp api/src/package-lock.json api/src/package-lock.json.orig
 	cd api/src && npm i --package-lock-only && cd -
@@ -48,7 +51,7 @@ help:
 	done
 	mv api/src/package.json.orig api/src/package.json
 	mv api/src/package-lock.json.orig api/src/package-lock.json
-layers/ffmpeg/bin/ffmpeg:
+av-download/layers/ffmpeg/bin/ffmpeg:
 	mkdir -p av-download/layers/ffmpeg/bin ;\
 	curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
 	tar -C av-download/layers/ffmpeg/bin -xJ --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
@@ -84,7 +87,7 @@ test-python: deps-python
 	cd chat && pytest
 python-version:
 	cd chat && python --version
-build: layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
+build: av-download/layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
 validate:
 	cfn-lint template.yaml **/template.yaml --ignore-checks E3510 W1028 W8001
 serve-http: deps-node

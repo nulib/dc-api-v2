@@ -5,6 +5,8 @@ const {
 } = require("../environment");
 const jwt = require("jsonwebtoken");
 
+const InstitutionProviders = ["nusso"];
+
 function emptyToken() {
   return {
     iss: dcApiEndpoint(),
@@ -35,12 +37,17 @@ class ApiToken {
   user(user) {
     this.token = {
       ...this.token,
-      sub: user?.uid,
-      name: user?.displayName?.[0],
-      email: user?.mail,
+      ...user,
       isLoggedIn: !!user,
-      primaryAffiliation: user?.primaryAffiliation,
-      isDevTeam: !!user && user?.uid && devTeamNetIds().includes(user?.uid),
+      isDevTeam: !!user && user?.sub && devTeamNetIds().includes(user?.sub),
+    };
+    return this.update();
+  }
+
+  provider(provider) {
+    this.token = {
+      ...this.token,
+      provider: provider,
     };
     return this.update();
   }
@@ -112,19 +119,23 @@ class ApiToken {
   }
 
   isDevTeam() {
-    return this.token.isDevTeam;
+    return !!this.token.isDevTeam;
   }
 
   isLoggedIn() {
-    return this.token.isLoggedIn;
+    return !!this.token.isLoggedIn;
+  }
+
+  isInstitution() {
+    return InstitutionProviders.includes(this.token.provider);
   }
 
   isReadingRoom() {
-    return this.token.isReadingRoom;
+    return !!this.token.isReadingRoom;
   }
 
   isSuperUser() {
-    return this.token.isSuperUser;
+    return !!this.token.isSuperUser;
   }
 
   shouldExpire() {

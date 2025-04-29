@@ -14,28 +14,33 @@ class TestFunction(TestCase):
         subject = ApiToken()
         self.assertIsInstance(subject, ApiToken)
         self.assertFalse(subject.is_logged_in())
+        self.assertFalse(subject.is_institution())
 
     def test_valid_token(self):
         subject = ApiToken(TEST_TOKEN)
         self.assertIsInstance(subject, ApiToken)
         self.assertTrue(subject.is_logged_in())
         self.assertFalse(subject.is_superuser())
+        self.assertFalse(subject.is_institution())
 
     def test_superuser_token(self):
         subject = ApiToken(SUPER_TOKEN)
         self.assertIsInstance(subject, ApiToken)
         self.assertTrue(subject.is_logged_in())
         self.assertTrue(subject.is_superuser())
+        self.assertTrue(subject.is_institution())
 
     def test_devteam_token(self):
         subject = ApiToken(DEV_TEAM_TOKEN)
         self.assertIsInstance(subject, ApiToken)
         self.assertTrue(subject.is_dev_team())
+        self.assertTrue(subject.is_institution())
 
     def test_invalid_token(self):
         subject = ApiToken("INVALID_TOKEN")
         self.assertIsInstance(subject, ApiToken)
         self.assertFalse(subject.is_logged_in())
+        self.assertFalse(subject.is_institution())
 
     def test_empty_token_class_method(self):
         empty_token = ApiToken.empty_token()

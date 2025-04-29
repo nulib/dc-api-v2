@@ -11,7 +11,7 @@ function apiToken() {
     iat: Math.floor(Number(new Date()) / 1000),
   };
 
-  return jwt.sign(token, process.env.API_TOKEN_SECRET);
+  return jwt.sign(token, apiTokenSecret());
 }
 
 function apiTokenName() {

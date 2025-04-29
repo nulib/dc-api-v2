@@ -1,14 +1,13 @@
-const { dcApiEndpoint } = require("../environment");
+const { dcApiEndpoint } = require("../../environment");
 const axios = require("axios").default;
 const cookie = require("cookie");
-const { wrap } = require("./middleware");
-const Honeybadger = require("../honeybadger-setup");
+const Honeybadger = require("../../honeybadger-setup");
 
 /**
  * Performs NUSSO login
  */
-exports.handler = wrap(async (event) => {
-  const callbackUrl = `${dcApiEndpoint()}/auth/callback`;
+exports.handler = async (event) => {
+  const callbackUrl = `${dcApiEndpoint()}/auth/callback/nusso`;
   const url = `${process.env.NUSSO_BASE_URL}get-ldap-redirect-url`;
   const returnPath =
     event.queryStringParameters?.goto ||
@@ -48,4 +47,4 @@ exports.handler = wrap(async (event) => {
       statusCode: 401,
     };
   }
-});
+};
