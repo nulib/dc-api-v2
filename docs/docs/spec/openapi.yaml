@@ -41,13 +41,20 @@ security:
   - anonymous: []
   - bearerAuth: []
 paths:
-  /auth/login:
+  /auth/login/{provider}:
     get:
       operationId: getAuthLogin
       description: Initiate a user login
       tags:
         - Authentication
       parameters:
+        - name: email
+          in: query
+          required: false
+          description: Email address to use for magic link login
+          schema:
+            type: string
+            format: email
         - name: goto
           in: query
           required: false
@@ -56,6 +63,15 @@ paths:
             type: string
             format: uri
             default: /auth/whoami
+        - name: provider
+          in: path
+          required: true
+          description: The authentication provider to use
+          schema:
+            type: string
+            enum:
+              - nusso
+              - magic
       responses:
         302:
           description: A redirect to the login page

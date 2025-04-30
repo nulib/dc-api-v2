@@ -16,15 +16,12 @@ const authorizeDocument = (event, osResponse) => {
   const readingRoom = token.isReadingRoom();
   const workId = document.work_id || document.id;
 
-  if (token.isSuperUser()) {
-    return sendResponse(204);
-  } else if (token.hasEntitlement(workId)) {
-    return sendResponse(204);
-  } else if (isAllowedVisibility(token, visibility, readingRoom) && published) {
-    return sendResponse(204);
-  } else {
-    return sendResponse(403);
-  }
+  const allowed =
+    token.isSuperUser() ||
+    token.hasEntitlement(workId) ||
+    (isAllowedVisibility(token, visibility, readingRoom) && published);
+
+  return sendResponse(allowed ? 204 : 403);
 };
 
 function sendResponse(statusCode) {
@@ -38,7 +35,7 @@ function isAllowedVisibility(token, visibility, readingRoom) {
     case "Public":
       return true;
     case "Institution":
-      return token.isLoggedIn() || readingRoom;
+      return token.isInstitution() || readingRoom;
     case "Private":
       return readingRoom;
     default:

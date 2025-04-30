@@ -20,7 +20,6 @@ TEMPERATURE = 0.2
 TEXT_KEY = "id"
 VERSION = "2024-02-01"
 
-
 @dataclass
 class EventConfig:
     """
@@ -35,6 +34,7 @@ class EventConfig:
     forget: bool = field(init=False)
     is_dev_team: bool = field(init=False)
     is_logged_in: bool = field(init=False)
+    is_institution: bool = field(init=False)
     is_superuser: bool = field(init=False)
     k: int = field(init=False)
     max_tokens: int = field(init=False)
@@ -59,6 +59,7 @@ class EventConfig:
         self.forget = self.payload.get("forget", False)
         self.is_dev_team = self.api_token.is_dev_team()
         self.is_logged_in = self.api_token.is_logged_in()
+        self.is_institution = self.api_token.is_institution()
         self.is_superuser = self.api_token.is_superuser()
         self.k = self._get_k()
         self.max_tokens = min(self.payload.get("max_tokens", MAX_TOKENS), MAX_TOKENS)

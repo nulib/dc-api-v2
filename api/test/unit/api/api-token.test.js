@@ -16,7 +16,9 @@ describe("ApiToken", function () {
       expect(token.token.isReadingRoom).to.not.exist;
       expect(token.token.isSuperUser).to.not.exist;
       expect(token.token.isLoggedIn).to.be.false;
+      expect(token.token.provider).to.not.exist;
       expect(token.token.entitlements).to.be.empty;
+      expect(token.isInstitution()).to.be.false;
     });
 
     it("verifies an existing token", async () => {
@@ -28,6 +30,7 @@ describe("ApiToken", function () {
         iat: Math.floor(Number(new Date()) / 1000),
         email: "user@example.com",
         isLoggedIn: true,
+        provider: "test-provider",
         entitlements: ["1234", "5678"],
         isReadingRoom: true,
       };
@@ -37,6 +40,8 @@ describe("ApiToken", function () {
       expect(token.token.sub).to.eq("user123");
       expect(token.token.isReadingRoom).to.be.true;
       expect(token.token.isLoggedIn).to.be.true;
+      expect(token.token.provider).to.eq("test-provider");
+      expect(token.isInstitution()).to.be.false;
       expect(token.hasEntitlement("1234")).to.be.true;
     });
   });
@@ -44,9 +49,9 @@ describe("ApiToken", function () {
   describe("user()", function () {
     it("updates the user properties", async () => {
       const user = {
-        uid: "user123",
-        displayName: ["Some One"],
-        mail: "user@example.com",
+        sub: "user123",
+        name: "Some One",
+        email: "user@example.com",
       };
 
       const token = new ApiToken();
@@ -57,6 +62,30 @@ describe("ApiToken", function () {
       expect(token.token.name).to.eq("Some One");
       expect(token.token.email).to.eq("user@example.com");
       expect(token.isLoggedIn()).to.be.true;
+    });
+  });
+
+  describe("provider()", function () {
+    it("sets the provider property", async () => {
+      const token = new ApiToken();
+      expect(token.token.provider).to.not.exist;
+      expect(token.isInstitution()).to.be.false;
+      expect(token.isLoggedIn()).to.be.false;
+
+      token.provider("test-provider");
+      expect(token.token.provider).to.eq("test-provider");
+      expect(token.isInstitution()).to.be.false;
+    });
+
+    it("sets the provider property to an institution provider", async () => {
+      const token = new ApiToken();
+      expect(token.token.provider).to.not.exist;
+      expect(token.isInstitution()).to.be.false;
+      expect(token.isLoggedIn()).to.be.false;
+
+      token.provider("nusso");
+      expect(token.token.provider).to.eq("nusso");
+      expect(token.isInstitution()).to.be.true;
     });
   });
 
@@ -77,9 +106,9 @@ describe("ApiToken", function () {
   describe("isDevTeam", function () {
     it("sets the isDevTeam flag to true", async () => {
       const user = {
-        uid: "abc123",
-        displayName: ["A. Developer"],
-        mail: "user@example.com",
+        sub: "abc123",
+        name: "A. Developer",
+        email: "user@example.com",
       };
       const token = new ApiToken();
       token.user(user);

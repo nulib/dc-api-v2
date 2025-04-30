@@ -7,17 +7,22 @@ const Honeybadger = require("../honeybadger-setup");
  * Performs NUSSO logout
  */
 exports.handler = wrap(async (event) => {
-  const url = `${process.env.NUSSO_BASE_URL}logout`;
-
   try {
-    const response = await axios.get(url, {
-      headers: { apikey: process.env.NUSSO_API_KEY },
-    });
+    let responseLocation = "/";
+    if (event.userToken && event.userToken.token.provider === "nusso") {
+      responseLocation = event.queryStringParameters?.redirect || "/";
+      const url = `${process.env.NUSSO_BASE_URL}logout`;
+      const response = await axios.get(url, {
+        headers: { apikey: process.env.NUSSO_API_KEY },
+      });
+      responseLocation = response.data.url;
+    }
+
     event.userToken = new ApiToken().expire();
     return {
       statusCode: 302,
       headers: {
-        location: response.data.url,
+        location: responseLocation,
       },
     };
   } catch (error) {

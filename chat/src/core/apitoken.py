@@ -2,6 +2,7 @@ from datetime import datetime
 import jwt
 import os
 
+INSTITUTION_PROVIDERS = ["nusso"]
 
 class ApiToken:
     @classmethod
@@ -13,7 +14,7 @@ class ApiToken:
             "iat": time,
             "entitlements": [],
             "isLoggedIn": False,
-            "isDevTeam": False,
+            "isDevTeam": False
         }
 
     def __init__(self, signed_token=None):
@@ -37,3 +38,6 @@ class ApiToken:
     
     def is_dev_team(self):
         return self.token.get("isDevTeam", False)
+
+    def is_institution(self):
+        return self.token.get("provider", "none") in INSTITUTION_PROVIDERS

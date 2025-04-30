@@ -164,6 +164,7 @@ Resources:
         HoneybadgerRevision: !Ref HoneybadgerRevision
         PyramidBucket: !Ref PyramidBucket
         ReadingRoomIPs: !Ref ReadingRoomIPs
+        RepositoryEmail: !Ref RepositoryEmail
         SecretsPath: !Ref SecretsPath
         SecretsPolicy: !Ref readSecretsPolicy
         WriteConfigSecret: !Ref WriteConfigSecret
