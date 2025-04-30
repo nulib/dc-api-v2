@@ -14,7 +14,10 @@ exports.handler = async (event) => {
   }
   try {
     const { email, returnUrl } = verifyMagicToken(decodeURIComponent(token));
-    const user = { sub: email };
+    const user = {
+      sub: email,
+      name: email,
+    };
     console.info("User", user.sub, "logged in via magic link");
     event.userToken = new ApiToken().user(user).provider("magic");
     return {

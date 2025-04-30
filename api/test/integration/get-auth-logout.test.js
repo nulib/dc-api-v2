@@ -43,28 +43,47 @@ describe("auth logout", function () {
     expect(dcApiCookie.Expires).to.eq("Thu, 01 Jan 1970 00:00:00 GMT");
   });
 
-  it("expires the DC API Token", async () => {
-    const token = new ApiToken().provider("test-provider").sign();
-    const event = helpers
-      .mockEvent("GET", "/auth/logout")
-      .headers({
+  describe("non-NUSSO Logout", () => {
+    let event;
+
+    beforeEach(() => {
+      const token = new ApiToken().provider("test-provider").sign();
+      event = helpers.mockEvent("GET", "/auth/logout").headers({
         Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
-      })
-      .render();
+      });
+    });
 
-    const result = await getAuthLogoutHandler.handler(event);
+    it("expires the DC API Token", async () => {
+      const result = await getAuthLogoutHandler.handler(event.render());
+      const dcApiCookie = helpers.cookieValue(
+        result.cookies,
+        process.env.API_TOKEN_NAME
+      );
 
-    expect(result.statusCode).to.eq(302);
-    expect(result.headers.location).to.eq("/");
+      const apiToken = new ApiToken(dcApiCookie.value);
+      expect(apiToken.token.sub).to.not.exist;
+      expect(apiToken.token.isLoggedIn).to.be.false;
+      expect(dcApiCookie.Expires).to.eq("Thu, 01 Jan 1970 00:00:00 GMT");
+    });
 
-    const dcApiCookie = helpers.cookieValue(
-      result.cookies,
-      process.env.API_TOKEN_NAME
-    );
+    it("redirects to the goto URL", async () => {
+      event = event.queryParams({ goto: "http://example.edu/logged-out" });
+      const result = await getAuthLogoutHandler.handler(event.render());
+      expect(result.statusCode).to.eq(302);
+      expect(result.headers.location).to.eq("http://example.edu/logged-out");
+    });
 
-    const apiToken = new ApiToken(dcApiCookie.value);
-    expect(apiToken.token.sub).to.not.exist;
-    expect(apiToken.token.isLoggedIn).to.be.false;
-    expect(dcApiCookie.Expires).to.eq("Thu, 01 Jan 1970 00:00:00 GMT");
+    it("redirects to the referer", async () => {
+      event = event.headers({ Referer: "http://example.edu/logged-out" });
+      const result = await getAuthLogoutHandler.handler(event.render());
+      expect(result.statusCode).to.eq(302);
+      expect(result.headers.location).to.eq("http://example.edu/logged-out");
+    });
+
+    it("redirects to the default location", async () => {
+      const result = await getAuthLogoutHandler.handler(event.render());
+      expect(result.statusCode).to.eq(302);
+      expect(result.headers.location).to.eq("https://thisisafakedcurl");
+    });
   });
 });

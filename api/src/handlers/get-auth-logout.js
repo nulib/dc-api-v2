@@ -1,4 +1,5 @@
 const axios = require("axios").default;
+const { dcUrl } = require("../environment");
 const { wrap } = require("./middleware");
 const ApiToken = require("../api/api-token");
 const Honeybadger = require("../honeybadger-setup");
@@ -8,9 +9,10 @@ const Honeybadger = require("../honeybadger-setup");
  */
 exports.handler = wrap(async (event) => {
   try {
-    let responseLocation = "/";
+    let responseLocation =
+      event.queryStringParameters?.goto || event.headers?.referer || dcUrl();
+
     if (event.userToken && event.userToken.token.provider === "nusso") {
-      responseLocation = event.queryStringParameters?.redirect || "/";
       const url = `${process.env.NUSSO_BASE_URL}logout`;
       const response = await axios.get(url, {
         headers: { apikey: process.env.NUSSO_API_KEY },
