@@ -432,6 +432,10 @@ components:
           description: Associated batch update operations
           items:
             type: string
+        behavior:
+          type: string
+          description: The IIIF behavior of the resource
+          nullable: true
         box_name:
           type: array
           description: Physical box name. Sometimes used with Distinctive Collections materials.
@@ -762,6 +766,7 @@ components:
         - api_link
         - api_model
         - ark
+        - behavior
         - batch_ids
         - box_name
         - box_number
