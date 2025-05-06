@@ -32,7 +32,7 @@ jobs:
           path: "${{ env.TMP_SRCDIR }}"
       - uses: actions/setup-node@v3
         with:
-          cache-dependency-path: "${{ env.TMP_SRCDIR }}/node/package-lock.json"
+          cache-dependency-path: "${{ env.TMP_SRCDIR }}/api/package-lock.json"
           node-version: 16.x
           cache: "npm"
       - name: Set short git commit SHA
@@ -44,9 +44,9 @@ jobs:
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
         with:
-          path: "${{ env.TMP_SRCDIR }}/node"
+          path: "${{ env.TMP_SRCDIR }}/api"
       - name: Generate Typescript file
-        working-directory: "${{ env.TMP_SRCDIR }}/node"
+        working-directory: "${{ env.TMP_SRCDIR }}/api"
         run: |
           npm ci
           npx openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
@@ -57,7 +57,7 @@ jobs:
           ref: ${{ env.TARGET_BRANCH }}
           repository: "nulib/dcapi-types"
           token: ${{env.GH_TOKEN}}
-      - run: mv -f "${{ env.TMP_SRCDIR }}/node/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
+      - run: mv -f "${{ env.TMP_SRCDIR }}/api/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
         shell: bash
       - working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
