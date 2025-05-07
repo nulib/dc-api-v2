@@ -12,6 +12,7 @@ def prompt_template() -> str:
     {question}
     """
 
+
 def document_template(attributes: Optional[List[str]] = None) -> str:
     if attributes is None:
         attributes = []

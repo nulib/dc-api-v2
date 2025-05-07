@@ -4,6 +4,7 @@ from opensearchpy import OpenSearch
 from typing import Any, List, Tuple
 from search.hybrid_query import hybrid_query, filter
 
+
 class OpenSearchNeuralSearch(VectorStore):
     """Read-only OpenSearch vectorstore with neural search."""
 
@@ -31,17 +32,27 @@ class OpenSearchNeuralSearch(VectorStore):
         self, query: str, k: int = 10, **kwargs: Any
     ) -> List[Document]:
         """Return docs most similar to the embedding vector."""
-        docs_with_scores = self.similarity_search_with_score(
-            query, k, **kwargs
-        )
+        docs_with_scores = self.similarity_search_with_score(query, k, **kwargs)
         return [doc[0] for doc in docs_with_scores]
 
     def similarity_search_with_score(
         self, query: str, k: int = 10, **kwargs: Any
     ) -> List[Tuple[Document, float]]:
         """Return docs most similar to query."""
-        dsl = hybrid_query(query=query, model_id=self.model_id, vector_field=self.vector_field, k=k, **kwargs)
-        response = self.client.search(index=self.index, body=dsl, params={"search_pipeline": self.search_pipeline} if self.search_pipeline else None)
+        dsl = hybrid_query(
+            query=query,
+            model_id=self.model_id,
+            vector_field=self.vector_field,
+            k=k,
+            **kwargs,
+        )
+        response = self.client.search(
+            index=self.index,
+            body=dsl,
+            params={"search_pipeline": self.search_pipeline}
+            if self.search_pipeline
+            else None,
+        )
         documents_with_scores = [
             (
                 Document(
@@ -54,12 +65,18 @@ class OpenSearchNeuralSearch(VectorStore):
         ]
 
         return documents_with_scores
-    
-    def aggregations_search(self, agg_field: str, term_field: str = None, term: str = None, **kwargs: Any) -> dict:
+
+    def aggregations_search(
+        self, agg_field: str, term_field: str = None, term: str = None, **kwargs: Any
+    ) -> dict:
         """Perform a search with aggregations and return the aggregation results."""
-        base_query = {"match_all": {}} if (term is None or term == "") else {"match": {term_field: term}}
+        base_query = (
+            {"match_all": {}}
+            if (term is None or term == "")
+            else {"match": {term_field: term}}
+        )
         filtered_query = filter(base_query)
-        
+
         dsl = {
             "size": 0,
             "query": filtered_query,
@@ -80,22 +97,20 @@ class OpenSearchNeuralSearch(VectorStore):
 
     def retrieve_documents(self, doc_ids: List[str]) -> List[Document]:
         """Retrieve documents from the OpenSearch index based on a list of document IDs."""
-        query = {
-            "query": {
-                "ids": {
-                    "values": doc_ids
-                }
-            }
-        }
+        query = {"query": {"ids": {"values": doc_ids}}}
 
         response = self.client.search(index=self.index, body=query, size=len(doc_ids))
-        documents = [Document(page_content=hit["_source"][self.text_field], metadata=hit["_source"]) for hit in response["hits"]["hits"]]
+        documents = [
+            Document(
+                page_content=hit["_source"][self.text_field], metadata=hit["_source"]
+            )
+            for hit in response["hits"]["hits"]
+        ]
         return documents
 
-    
     def add_texts(self, texts: List[str], metadatas: List[dict], **kwargs: Any) -> None:
-       pass
-    
+        pass
+
     @classmethod
     def from_texts(cls, texts: List[str], metadatas: List[dict], **kwargs: Any) -> None:
-       pass
+        pass

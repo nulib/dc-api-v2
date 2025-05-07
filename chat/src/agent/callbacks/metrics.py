@@ -7,8 +7,9 @@ import boto3
 import json
 import os
 
+
 class MetricsCallbackHandler(BaseCallbackHandler):
-    def __init__(self, log_stream = None, *args, extra_data = {}, **kwargs):
+    def __init__(self, log_stream=None, *args, extra_data={}, **kwargs):
         self.accumulator = {}
         self.answers = []
         self.artifacts = []
@@ -65,7 +66,7 @@ class MetricsCallbackHandler(BaseCallbackHandler):
     def log_metrics(self):
         if self.log_stream is None:
             return
-        
+
         log_group = os.getenv("METRICS_LOG_GROUP")
         if log_group and ensure_log_stream_exists(log_group, self.log_stream):
             client = log_client()
@@ -83,7 +84,9 @@ class MetricsCallbackHandler(BaseCallbackHandler):
                 }
             ]
             client.put_log_events(
-                logGroupName=log_group, logStreamName=self.log_stream, logEvents=log_events
+                logGroupName=log_group,
+                logStreamName=self.log_stream,
+                logEvents=log_events,
             )
 
 

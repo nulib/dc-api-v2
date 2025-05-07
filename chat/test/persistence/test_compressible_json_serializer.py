@@ -1,5 +1,6 @@
 # ruff: noqa: E402
 import sys
+
 sys.path.append("./src")
 
 from unittest import TestCase
@@ -9,6 +10,8 @@ from persistence.compressible_json_serializer import CompressibleJsonSerializer
 import warnings
 
 warnings.simplefilter("ignore", DeprecationWarning)
+
+
 class TestCompressibleJsonSerializer(TestCase):
     def test_dumps_typed(self):
         serializer = CompressibleJsonSerializer()
@@ -58,31 +61,34 @@ W5WRuTVxWa3LRtm5dQlXVRrlZr+8rq/RGI0OkzuAnZ4ya0DhHGqHW69RgCHBL6YhavAyYk3qce6OMX8y
 KAd2GXI2/CIwh6fqDJuUcS9xq/oR8cwxZcwHnezfPf7+MYFuv/AShWPagOiHSXdDRM94zSpAHJdnRYJGRTWLv5B3RajDe+AQAA",
         )
         obj = serializer.loads_typed(data)
-        self.assertEqual(obj, {
-            "v": 1,
-            "ts": "2024-12-12T18:16:12.989400+00:00",
-            "id": "1efb8b52-b7bb-66eb-bfff-4a64824557d3",
-            "channel_values": {
-                "__start__": {
-                    "messages": [
-                        HumanMessage(
-                            content="Can you search for works about football?",
-                            additional_kwargs={},
-                            response_metadata={},
-                        )
-                    ]
-                }
+        self.assertEqual(
+            obj,
+            {
+                "v": 1,
+                "ts": "2024-12-12T18:16:12.989400+00:00",
+                "id": "1efb8b52-b7bb-66eb-bfff-4a64824557d3",
+                "channel_values": {
+                    "__start__": {
+                        "messages": [
+                            HumanMessage(
+                                content="Can you search for works about football?",
+                                additional_kwargs={},
+                                response_metadata={},
+                            )
+                        ]
+                    }
+                },
+                "channel_versions": {"__start__": 1},
+                "versions_seen": {"__input__": {}},
+                "pending_sends": [],
             },
-            "channel_versions": {"__start__": 1},
-            "versions_seen": {"__input__": {}},
-            "pending_sends": [],
-        })
+        )
 
     def test_dumps_typed_unsupported_compression(self):
         serializer = CompressibleJsonSerializer(compression="unsupported")
         with self.assertRaises(ValueError) as context:
             serializer.dumps_typed({"key": "value"})
-        
+
         self.assertIn("Unsupported compression type", str(context.exception))
 
     def test_loads_typed_unknown_type(self):
@@ -90,7 +96,7 @@ KAd2GXI2/CIwh6fqDJuUcS9xq/oR8cwxZcwHnezfPf7+MYFuv/AShWPagOiHSXdDRM94zSpAHJdnRYJG
         data = ("unknown_type", "payload")
         with self.assertRaises(ValueError) as context:
             serializer.loads_typed(data)
-        
+
         self.assertIn("Unknown data type", str(context.exception))
 
     def test_object_hook_unknown_type(self):
@@ -99,11 +105,12 @@ KAd2GXI2/CIwh6fqDJuUcS9xq/oR8cwxZcwHnezfPf7+MYFuv/AShWPagOiHSXdDRM94zSpAHJdnRYJG
         data = ("json", invalid_json)
         with self.assertRaises(ValueError) as context:
             serializer.loads_typed(data)
-        
+
         self.assertIn("Unknown type", str(context.exception))
 
     def test_loads_typed_empty_payload(self):
         from json.decoder import JSONDecodeError
+
         serializer = CompressibleJsonSerializer()
         data = ("json", "")
         with self.assertRaises(JSONDecodeError):
@@ -131,5 +138,5 @@ KAd2GXI2/CIwh6fqDJuUcS9xq/oR8cwxZcwHnezfPf7+MYFuv/AShWPagOiHSXdDRM94zSpAHJdnRYJG
 
         with self.assertRaises(TypeError) as context:
             serializer.dumps_typed(NotSerializable())
-        
+
         self.assertIn("is not JSON serializable", str(context.exception))

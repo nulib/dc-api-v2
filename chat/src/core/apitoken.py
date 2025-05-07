@@ -4,6 +4,7 @@ import os
 
 INSTITUTION_PROVIDERS = ["nusso"]
 
+
 class ApiToken:
     @classmethod
     def empty_token(cls):
@@ -14,7 +15,7 @@ class ApiToken:
             "iat": time,
             "entitlements": [],
             "isLoggedIn": False,
-            "isDevTeam": False
+            "isDevTeam": False,
         }
 
     def __init__(self, signed_token=None):
@@ -35,7 +36,7 @@ class ApiToken:
 
     def is_superuser(self):
         return self.token.get("isSuperUser", False)
-    
+
     def is_dev_team(self):
         return self.token.get("isDevTeam", False)
 

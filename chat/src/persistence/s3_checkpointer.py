@@ -20,27 +20,40 @@ from langgraph.checkpoint.base import (
 def _namespace(val):
     return "__default__" if val == "" else val
 
+
 def _namespace_val(namespace):
     return "" if namespace == "__default__" else namespace
 
+
 def _make_s3_thread_prefix(thread_id: str) -> str:
     return f"checkpoints/{thread_id}"
+
 
 def _make_s3_namespace_prefix(thread_id: str, checkpoint_ns: str) -> str:
     prefix = _make_s3_thread_prefix(thread_id)
     return f"{prefix}/{_namespace(checkpoint_ns)}"
 
-def _make_s3_checkpoint_prefix(thread_id: str, checkpoint_ns: str, checkpoint_id: str) -> str:
+
+def _make_s3_checkpoint_prefix(
+    thread_id: str, checkpoint_ns: str, checkpoint_id: str
+) -> str:
     prefix = _make_s3_namespace_prefix(thread_id, checkpoint_ns)
     return f"{prefix}/{checkpoint_id}"
 
-def _make_s3_checkpoint_key(thread_id: str, checkpoint_ns: str, checkpoint_id: str) -> str:
+
+def _make_s3_checkpoint_key(
+    thread_id: str, checkpoint_ns: str, checkpoint_id: str
+) -> str:
     prefix = _make_s3_checkpoint_prefix(thread_id, checkpoint_ns, checkpoint_id)
     return f"{prefix}/checkpoint.json"
 
-def _make_s3_write_key(thread_id: str, checkpoint_ns: str, checkpoint_id: str, task_id: str, idx: int) -> str:
-    prefix = _make_s3_checkpoint_prefix(thread_id, checkpoint_ns, checkpoint_id)    
+
+def _make_s3_write_key(
+    thread_id: str, checkpoint_ns: str, checkpoint_id: str, task_id: str, idx: int
+) -> str:
+    prefix = _make_s3_checkpoint_prefix(thread_id, checkpoint_ns, checkpoint_id)
     return f"{prefix}/writes/{task_id}/{idx}.json"
+
 
 def _parse_s3_checkpoint_key(key: str) -> Dict[str, str]:
     parts = key.split("/")
@@ -68,7 +81,7 @@ class S3Checkpointer(BaseCheckpointSaver):
     ) -> None:
         super().__init__()
         self.serde = CompressibleJsonSerializer(compression=compression)
-        self.s3 = boto3.client('s3', region_name=region_name, endpoint_url=endpoint_url)
+        self.s3 = boto3.client("s3", region_name=region_name, endpoint_url=endpoint_url)
         self.bucket_name = bucket_name
 
     def put(
@@ -91,7 +104,9 @@ class S3Checkpointer(BaseCheckpointSaver):
             "checkpoint_type": ck_type,
             "checkpoint_data": ck_data,
             "metadata_data": md_data,
-            "parent_checkpoint_id": parent_checkpoint_id if parent_checkpoint_id else None,
+            "parent_checkpoint_id": parent_checkpoint_id
+            if parent_checkpoint_id
+            else None,
             "timestamp": int(time.time() * 1000),
         }
 
@@ -124,7 +139,9 @@ class S3Checkpointer(BaseCheckpointSaver):
                 "value": v_data,
                 "timestamp": int(time.time() * 1000),
             }
-            write_key = _make_s3_write_key(thread_id, checkpoint_ns, checkpoint_id, task_id, idx)
+            write_key = _make_s3_write_key(
+                thread_id, checkpoint_ns, checkpoint_id, task_id, idx
+            )
             self.s3.put_object(
                 Bucket=self.bucket_name,
                 Key=write_key,
@@ -171,7 +188,9 @@ class S3Checkpointer(BaseCheckpointSaver):
         else:
             parent_config = None
 
-        pending_writes = self._load_pending_writes(thread_id, checkpoint_ns, checkpoint_id)
+        pending_writes = self._load_pending_writes(
+            thread_id, checkpoint_ns, checkpoint_id
+        )
 
         return CheckpointTuple(
             {
@@ -224,7 +243,9 @@ class S3Checkpointer(BaseCheckpointSaver):
             keys_info = keys_info[:limit]
 
         for ki in keys_info:
-            ck_key = _make_s3_checkpoint_key(ki["thread_id"], ki["checkpoint_ns"], ki["checkpoint_id"])
+            ck_key = _make_s3_checkpoint_key(
+                ki["thread_id"], ki["checkpoint_ns"], ki["checkpoint_id"]
+            )
             obj = self.s3.get_object(Bucket=self.bucket_name, Key=ck_key)
             data = json.loads(obj["Body"].read().decode("utf-8"))
 
@@ -233,12 +254,12 @@ class S3Checkpointer(BaseCheckpointSaver):
             checkpoint = self.serde.loads_typed((checkpoint_type, checkpoint_data))
 
             # Derive metadata_type from checkpoint_type as above
-            if checkpoint_type.startswith('bz2'):
-                metadata_type = 'bz2_json'
-            elif checkpoint_type.startswith('gzip'):
-                metadata_type = 'gzip_json'
+            if checkpoint_type.startswith("bz2"):
+                metadata_type = "bz2_json"
+            elif checkpoint_type.startswith("gzip"):
+                metadata_type = "gzip_json"
             else:
-                metadata_type = 'json'
+                metadata_type = "json"
             metadata_data = data["metadata_data"]
             metadata = self.serde.loads_typed((metadata_type, metadata_data))
 
@@ -272,7 +293,9 @@ class S3Checkpointer(BaseCheckpointSaver):
                 pending_writes,
             )
 
-    def _get_latest_checkpoint_id(self, thread_id: str, checkpoint_ns: str) -> Optional[str]:
+    def _get_latest_checkpoint_id(
+        self, thread_id: str, checkpoint_ns: str
+    ) -> Optional[str]:
         prefix = _make_s3_namespace_prefix(thread_id, checkpoint_ns)
         paginator = self.s3.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=self.bucket_name, Prefix=f"{prefix}/")
@@ -291,8 +314,13 @@ class S3Checkpointer(BaseCheckpointSaver):
         latest_id = keys_info[0]["checkpoint_id"] if keys_info else None
         return latest_id
 
-    def _load_pending_writes(self, thread_id: str, checkpoint_ns: str, checkpoint_id: str) -> List[PendingWrite]:
-        prefix = _make_s3_checkpoint_prefix(thread_id, checkpoint_ns, checkpoint_id) + "/writes/"
+    def _load_pending_writes(
+        self, thread_id: str, checkpoint_ns: str, checkpoint_id: str
+    ) -> List[PendingWrite]:
+        prefix = (
+            _make_s3_checkpoint_prefix(thread_id, checkpoint_ns, checkpoint_id)
+            + "/writes/"
+        )
         paginator = self.s3.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=self.bucket_name, Prefix=prefix)
 
@@ -317,27 +345,28 @@ class S3Checkpointer(BaseCheckpointSaver):
     def delete_checkpoints(self, thread_id: str) -> None:
         """
         Deletes all items with the specified thread_id from the checkpoint bucket.
-        
+
         Args:
             thread_id: The thread_id value to delete
         """
+
         def delete_objects(objects: dict) -> None:
-            if objects['Objects']:
+            if objects["Objects"]:
                 self.s3.delete_objects(Bucket=self.bucket_name, Delete=objects)
-            
+
         paginator = self.s3.get_paginator("list_objects_v2")
         prefix = f"checkpoints/{thread_id}/"
         pages = paginator.paginate(Bucket=self.bucket_name, Prefix=prefix)
 
-        to_delete = {'Objects': []}
-        for item in pages.search('Contents'):
+        to_delete = {"Objects": []}
+        for item in pages.search("Contents"):
             if item is not None:
-                to_delete['Objects'].append({'Key': item['Key']})
+                to_delete["Objects"].append({"Key": item["Key"]})
 
                 # Batch deletions in groups of 1000 (S3's limit)
-                if len(to_delete['Objects']) >= 1000:
+                if len(to_delete["Objects"]) >= 1000:
                     delete_objects(to_delete)
-                    to_delete['Objects'] = []
+                    to_delete["Objects"] = []
 
         # Delete any remaining objects
         delete_objects(to_delete)
