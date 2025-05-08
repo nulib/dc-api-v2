@@ -6,6 +6,7 @@ const expect = chai.expect;
 const optionsHandler = requireSource("handlers/options-request");
 
 describe("OPTIONS handler", async () => {
+  helpers.saveEnvironment();
   const event = helpers
     .mockEvent("OPTIONS", "/auth/whoami")
     .headers({
@@ -14,6 +15,7 @@ describe("OPTIONS handler", async () => {
     .render();
 
   it("sends the correct CORS headers", async () => {
+    console.log(process.env.API_TOKEN_SECRET);
     const response = await optionsHandler.handler(event);
     expect(response.headers).to.contain({
       "Access-Control-Allow-Origin":

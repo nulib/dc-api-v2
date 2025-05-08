@@ -63,10 +63,8 @@ class TestHandler(TestCase):
             "artifacts": [],
             "token_counts": {},
         }
-        response = chat_sync(
-            {"body": '{"question": "Question?", "ref": "test_ref"}'}, MockContext()
-        )
-
+        response = chat_sync({"body": '{"question": "Question?", "ref": "test_ref"}'}, MockContext())
+        
         self.assertEqual(json.loads(response.get("body")), expected_body)
         self.assertEqual(response.get("statusCode"), 200)
         self.assertEqual(

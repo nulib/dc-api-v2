@@ -1,7 +1,7 @@
 const { wrap } = require("./middleware");
 
 const handler = wrap(async (event) => {
-  if (!event.userToken.isLoggedIn()) {
+  if (!event.userToken.can("chat")) {
     return {
       statusCode: 401,
       headers: { "Content-Type": "text/plain" },

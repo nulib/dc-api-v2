@@ -127,3 +127,23 @@ class TestEventConfigWebsocket(unittest.TestCase):
         returned_socket = config.setup_websocket(socket=mock_socket)
         self.assertEqual(returned_socket, mock_socket)
         self.assertEqual(config.socket, mock_socket)
+        
+class TestEventConfigAbility(unittest.TestCase):
+    def setUp(self):
+        self.event = {
+            "body": json.dumps({
+                "auth": "some_token",
+                "question": "What is the capital of France?"
+            })
+        }
+        self.config = EventConfig(event=self.event)
+
+    @patch.object(ApiToken, 'can', return_value=True)
+    def test_can_method(self, mock_can):
+        self.assertTrue(self.config.user_can("chat"))
+        mock_can.assert_called_once_with("chat")
+
+    @patch.object(ApiToken, 'can', return_value=False)
+    def test_can_method_false(self, mock_can):
+        self.assertFalse(self.config.user_can("chat"))
+        mock_can.assert_called_once_with("chat")

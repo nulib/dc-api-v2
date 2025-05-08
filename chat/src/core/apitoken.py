@@ -13,6 +13,7 @@ class ApiToken:
             "iss": os.getenv("DC_API_ENDPOINT"),
             "exp": datetime.fromtimestamp(time + 12 * 60 * 60).timestamp(),  # 12 hours
             "iat": time,
+            "abilities": [],
             "entitlements": [],
             "isLoggedIn": False,
             "isDevTeam": False,
@@ -31,6 +32,9 @@ class ApiToken:
     def __str__(self):
         return f"ApiToken(token={self.token})"
 
+    def can(self, ability):
+        return ability in self.token.get("abilities", [])
+        
     def is_logged_in(self):
         return self.token.get("isLoggedIn", False)
 

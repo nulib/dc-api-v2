@@ -11,7 +11,6 @@ describe("GET /chat-endpoint", function () {
 
   it("returns the websocket URI and token to a logged in user", async () => {
     const token = new ApiToken().user({ uid: "abc123" }).sign();
-
     const event = helpers
       .mockEvent("GET", "/chat-endpoint")
       .headers({

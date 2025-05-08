@@ -1,3 +1,4 @@
+const { addAbilities } = require("./abilities");
 const {
   apiTokenSecret,
   dcApiEndpoint,
@@ -12,6 +13,7 @@ function emptyToken() {
     iss: dcApiEndpoint(),
     exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60, // 12 hours
     iat: Math.floor(Number(new Date()) / 1000),
+    abilities: new Set(),
     entitlements: new Set(),
     isLoggedIn: false,
   };
@@ -26,10 +28,12 @@ class ApiToken {
         this.token = emptyToken();
         this.expire();
       }
+      this.token.abilities = new Set(this.token.abilities || []);
       this.token.entitlements = new Set(this.token.entitlements || []);
     } else {
       this.token = emptyToken();
     }
+    addAbilities(this);
   }
 
   // manipulation – always return `this` for chaining
@@ -41,6 +45,7 @@ class ApiToken {
       isLoggedIn: !!user,
       isDevTeam: !!user && user?.sub && devTeamNetIds().includes(user?.sub),
     };
+    addAbilities(this);
     return this.update();
   }
 
@@ -49,22 +54,36 @@ class ApiToken {
       ...this.token,
       provider: provider,
     };
+    addAbilities(this);
     return this.update();
   }
 
   readingRoom() {
     this.token.isReadingRoom = true;
+    addAbilities(this);
     return this;
   }
 
   superUser() {
     this.token.isSuperUser = true;
+    addAbilities(this);
     return this;
   }
 
   // add, remove, and replace entitlements
 
+  addAbility(ability) {
+    if (this.token.abilities.has(ability)) {
+      return this;
+    }
+    this.token.abilities.add(ability);
+    return this.update();
+  }
+
   addEntitlement(entitlement) {
+    if (this.token.entitlements.has(entitlement)) {
+      return this;
+    }
     this.token.entitlements.add(entitlement);
     return this.update();
   }
@@ -77,9 +96,20 @@ class ApiToken {
     return this.update();
   }
 
+  removeAbility(ability) {
+    if (this.token.abilities.has(ability)) {
+      this.token.abilities.delete(ability);
+      return this.update();
+    }
+    return this;
+  }
+
   removeEntitlement(entitlement) {
-    this.token.entitlements.delete(entitlement);
-    return this.update();
+    if (this.token.entitlements.has(entitlement)) {
+      this.token.entitlements.delete(entitlement);
+      return this.update();
+    }
+    return this;
   }
 
   expire() {
@@ -100,6 +130,7 @@ class ApiToken {
 
   userInfo() {
     const result = { ...this.token };
+    delete result.abilities;
     delete result.entitlements;
     return result;
   }
@@ -107,6 +138,7 @@ class ApiToken {
   sign() {
     const result = {
       ...this.token,
+      abilities: [...this.token.abilities],
       entitlements: [...this.token.entitlements],
     };
     return jwt.sign(result, apiTokenSecret());
@@ -116,6 +148,11 @@ class ApiToken {
 
   hasEntitlement(entitlement) {
     return this.token.entitlements.has(entitlement);
+  }
+
+  // alias for hasEntitlement
+  can(action) {
+    return this.token.abilities.has(action);
   }
 
   isDevTeam() {

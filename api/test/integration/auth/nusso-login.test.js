@@ -27,7 +27,6 @@ describe("auth login", function () {
 
     const result = await getAuthLoginHandler.handler(event);
     expect(result.statusCode).to.eq(302);
-    console.log(result);
     expect(result.headers.location).to.eq("https://test-redirect.com");
   });
 

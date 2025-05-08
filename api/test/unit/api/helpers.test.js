@@ -377,7 +377,6 @@ describe("helpers", () => {
     });
     it("adds the reading room flag to the token", () => {
       const token = new ApiToken().user({ sub: "abc123" }).sign();
-
       const event = helpers
         .mockEvent("GET", "/works/{id}/")
         .pathParams({ id: 1234 })

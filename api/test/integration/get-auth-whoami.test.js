@@ -9,15 +9,20 @@ const getAuthWhoamiHandler = requireSource("handlers/get-auth-whoami");
 describe("auth whoami", function () {
   helpers.saveEnvironment();
 
-  it("redeems a valid NUSSO token for user info", async () => {
-    const payload = {
-      iss: "https://example.com",
+  let payload;
+
+  beforeEach(() => {
+    payload = {
+      iss: "https://thisisafakeapiurl",
       sub: "user123",
       name: "Some One",
       exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60,
       iat: Math.floor(Number(new Date()) / 1000),
       email: "user@example.com",
     };
+  });
+
+  it("returns user info", async () => {
     const token = jwt.sign(payload, process.env.API_TOKEN_SECRET);
 
     const event = helpers
@@ -30,8 +35,33 @@ describe("auth whoami", function () {
     const result = await getAuthWhoamiHandler.handler(event);
     expect(result.statusCode).to.eq(200);
     expect(JSON.parse(result.body)).to.contain({ name: "Some One" });
+  });
 
-    const dcApiCookie = helpers.cookieValue(
+  it("Doesn't set a new cookie if the token is not updated", async () => {
+    const token = jwt.sign(payload, process.env.API_TOKEN_SECRET);
+
+    let event = helpers
+      .mockEvent("GET", "/auth/whoami")
+      .headers({
+        Cookie: `${process.env.API_TOKEN_NAME}=${token};`,
+      })
+      .render();
+
+    let result = await getAuthWhoamiHandler.handler(event);
+    let dcApiCookie = helpers.cookieValue(
+      result.cookies,
+      process.env.API_TOKEN_NAME
+    );
+    expect(dcApiCookie).to.have.property("value");
+
+    event = helpers
+      .mockEvent("GET", "/auth/whoami")
+      .headers({
+        Cookie: `${process.env.API_TOKEN_NAME}=${dcApiCookie.value};`,
+      })
+      .render();
+    result = await getAuthWhoamiHandler.handler(event);
+    dcApiCookie = helpers.cookieValue(
       result.cookies,
       process.env.API_TOKEN_NAME
     );
@@ -39,14 +69,7 @@ describe("auth whoami", function () {
   });
 
   it("Expires the DC API Token and appears anonymous when an expired token is present", async () => {
-    const payload = {
-      iss: "https://example.com",
-      sub: "user123",
-      name: "Some One",
-      exp: Math.floor(Number(new Date()) / 1000),
-      iat: Math.floor(Number(new Date()) / 1000),
-      email: "user@example.com",
-    };
+    payload.exp = Math.floor(Number(new Date()) / 1000);
     const token = jwt.sign(payload, process.env.API_TOKEN_SECRET);
 
     const event = helpers
