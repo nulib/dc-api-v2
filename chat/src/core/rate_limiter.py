@@ -4,6 +4,8 @@ import os
 import boto3
 from decimal import Decimal
 from botocore.exceptions import ClientError
+from datetime import datetime, timezone, timedelta
+
 
 
 class RateLimiter:
@@ -37,8 +39,9 @@ class RateLimiter:
         try:
             # Get the current usage record for the user
             response = self.table.get_item(Key={"user_id": user_id})
-
+            ttl_value = Decimal(current_time + 30 * 24 * 60 * 60)
             item = response.get("Item", None)
+
 
             if not item:
                 # Create new record for first-time user
@@ -47,7 +50,7 @@ class RateLimiter:
                         "user_id": user_id,
                         "request_count": 1,
                         "first_request_time": Decimal(current_time),
-                        "last_request_time": Decimal(current_time),
+                        "ttl": ttl_value
                     }
                 )
                 return True, self.max_requests - 1
@@ -57,10 +60,14 @@ class RateLimiter:
             if first_request_time < Decimal(period_start):
                 response = self.table.update_item(
                     Key={"user_id": user_id},
-                    UpdateExpression="SET request_count = :count, first_request_time = :time, last_request_time = :time",
+                    UpdateExpression="SET request_count = :count, first_request_time = :time, #ttl_name = :ttl_value",
+                    ExpressionAttributeNames={
+                        "#ttl_name": "ttl"  
+                    },
                     ExpressionAttributeValues={
                         ":count": 1,
                         ":time": Decimal(current_time),
+                        ":ttl_value": ttl_value
                     },
                 )
                 print(f"DynamoDB update_item response (reset): {response}")
@@ -76,13 +83,41 @@ class RateLimiter:
             # Increment the counter
             self.table.update_item(
                 Key={"user_id": user_id},
-                UpdateExpression="SET request_count = request_count + :inc, last_request_time = :time",
-                ExpressionAttributeValues={":inc": 1, ":time": Decimal(current_time)},
+                UpdateExpression="SET request_count = request_count + :inc, #ttl_name = :ttl_value",
+                ExpressionAttributeNames={
+                    "#ttl_name": "ttl"  # Use expression attribute name for the reserved keyword
+                },
+                ExpressionAttributeValues={
+                    ":inc": 1,
+                    ":ttl_value": ttl_value
+                },
             )
-
             return True, remaining - 1
 
         except ClientError as e:
             # Log the error but don't block the request on rate limit failures
             print(f"Error checking rate limit: {str(e)}")
             return True, 0
+
+    def get_retry_after(self, sub):
+        """
+        Returns the ISO8601 timestamp when the user can retry after hitting the rate limit.
+        """
+        user_id = self._hash_sub(sub)
+
+        try:
+            response = self.table.get_item(Key={"user_id": user_id})
+            item = response.get("Item", {})
+            first_request_time = item.get("first_request_time")
+            if first_request_time is not None:
+                retry_after_ts = int(first_request_time) + self.period_seconds
+                retry_after_time = datetime.fromtimestamp(retry_after_ts, tz=timezone.utc)
+                retry_after_iso = retry_after_time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+                return retry_after_iso
+        except Exception as e:
+            print(f"Error getting retry after time: {str(e)}")
+            pass
+        # fallback: use now + period_seconds
+        retry_after_time = datetime.now(timezone.utc) + timedelta(seconds=self.period_seconds)
+        retry_after_iso = retry_after_time.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        return retry_after_iso

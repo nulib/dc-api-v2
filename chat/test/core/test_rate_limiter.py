@@ -97,7 +97,7 @@ class TestRateLimiter:
         assert item["user_id"] == user_id
         assert item["request_count"] == 1
         assert "first_request_time" in item
-        assert "last_request_time" in item
+        assert "ttl" in item
 
     @mock_aws
     def test_check_rate_limit_under_limit(self, dynamodb_table):
@@ -112,7 +112,7 @@ class TestRateLimiter:
                 "user_id": user_id,
                 "request_count": 5,
                 "first_request_time": Decimal(current_time - 1000),  # 1000 seconds ago
-                "last_request_time": Decimal(current_time - 100),  # 100 seconds ago
+                "ttl": Decimal(current_time + 30 * 24 * 60 * 60),  # 30 days TTL
             }
         )
 
@@ -127,8 +127,8 @@ class TestRateLimiter:
         item = response.get("Item")
 
         assert item["request_count"] == 6
-        # last_request_time should be updated
-        assert item["last_request_time"] > Decimal(current_time - 100)
+        # ttl should be updated
+        assert item["ttl"] > int(time.time())
 
     @mock_aws
     def test_check_rate_limit_at_limit(self, dynamodb_table):
@@ -143,7 +143,7 @@ class TestRateLimiter:
                 "user_id": user_id,
                 "request_count": 10,
                 "first_request_time": Decimal(current_time - 1000),
-                "last_request_time": Decimal(current_time - 100),
+                "ttl": Decimal(current_time + 30 * 24 * 60 * 60),
             }
         )
 
@@ -158,8 +158,8 @@ class TestRateLimiter:
         item = response.get("Item")
 
         assert item["request_count"] == 10
-        assert item["last_request_time"] == Decimal(
-            current_time - 100
+        assert item["ttl"] == Decimal(
+            current_time + 30 * 24 * 60 * 60
         )  # Should not be updated
 
     @mock_aws
@@ -178,7 +178,7 @@ class TestRateLimiter:
                 "user_id": user_id,
                 "request_count": 10,  # User was at the limit
                 "first_request_time": Decimal(old_time),
-                "last_request_time": Decimal(old_time + 500),
+                "ttl": Decimal(current_time + 30 * 24 * 60 * 60),  # 30 days TTL
             }
         )
 
@@ -194,7 +194,7 @@ class TestRateLimiter:
 
         assert item["request_count"] == 1
         assert item["first_request_time"] > Decimal(old_time)
-        assert item["last_request_time"] > Decimal(old_time + 500)
+        assert item["ttl"] > int(time.time())
 
     @patch("boto3.resource")
     def test_check_rate_limit_client_error(self, mock_boto_resource):
@@ -222,3 +222,36 @@ class TestRateLimiter:
             assert is_allowed is True
             assert remaining == 0
             mock_print.assert_called_once()  # Verify error was logged
+
+    @mock_aws
+    def test_get_retry_after_existing_user(self, dynamodb_table):
+        """Test get_retry_after returns correct ISO timestamp for existing user"""
+        limiter = RateLimiter(max_requests=10, period_seconds=3600)
+        user_id = limiter._hash_sub("user6@example.com")
+        first_request_time = int(time.time()) - 100  # 100 seconds ago
+
+        dynamodb_table.put_item(
+            Item={
+                "user_id": user_id,
+                "request_count": 5,
+                "first_request_time": Decimal(first_request_time),
+                "ttl": Decimal(first_request_time + 30 * 24 * 60 * 60),
+            }
+        )
+
+        retry_after_iso = limiter.get_retry_after("user6@example.com")
+        expected_ts = first_request_time + limiter.period_seconds
+        from datetime import datetime, timezone
+        expected_iso = datetime.fromtimestamp(expected_ts, tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        assert retry_after_iso == expected_iso
+
+    @mock_aws
+    def test_get_retry_after_nonexistent_user(self, dynamodb_table):
+        """Test get_retry_after falls back to now + period_seconds for nonexistent user"""
+        limiter = RateLimiter(max_requests=10, period_seconds=3600)
+        before = int(time.time())
+        retry_after_iso = limiter.get_retry_after("user7@example.com")
+        from datetime import datetime, timezone
+        retry_after_dt = datetime.strptime(retry_after_iso, "%Y-%m-%dT%H:%M:%S.000Z").replace(tzinfo=timezone.utc)
+        now_plus_period = before + limiter.period_seconds
+        assert abs(retry_after_dt.timestamp() - now_plus_period) < 10

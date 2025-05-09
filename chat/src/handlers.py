@@ -81,15 +81,16 @@ def chat(event, context):
             print(
                 f"Rate limit exceeded for user {sub}. Remaining requests: {remaining}"
             )
+            retry_after_iso = rate_limiter.get_retry_after(sub)
             error_message = {
                 "type": "error",
                 "message": "Rate limit exceeded. Please try again later.",
+                "retry_after": retry_after_iso,
             }
             config.socket.send(error_message)
             return {"statusCode": 429, "body": "Rate limit exceeded"}
 
-        # Notify user of remaining requests (do we want to do this?)
-        config.socket.send({"type": "rate_limit", "remaining": int(remaining)})
+        config.socket.send({"type": "rate_limit", "remaining": int(remaining), "until": rate_limiter.get_retry_after(sub)})
 
     log_info = {
         "user": {
