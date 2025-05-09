@@ -8,6 +8,7 @@ from core.apitoken import ApiToken
 from core.event_config import EventConfig
 from core.websocket import Websocket
 
+
 class TestEventConfig(TestCase):
     def test_defaults(self):
         actual = EventConfig(event={"body": json.dumps({"question": "Question?"})})
@@ -40,26 +41,29 @@ class TestEventConfig(TestCase):
         self.assertEqual(actual.size, expected_output["size"])
         self.assertEqual(actual.temperature, expected_output["temperature"])
 
+
 class TestEventConfigSuperuser(unittest.TestCase):
     def setUp(self):
         self.event = {
-            "body": json.dumps({
-                "auth": "some_superuser_token",
-                "model": "custom-superuser-model",
-                "prompt": "Custom superuser prompt",
-                "k": 80,
-                "size": 50,
-                "temperature": 0.7,
-                "text_key": "custom_text_key"
-            }),
+            "body": json.dumps(
+                {
+                    "auth": "some_superuser_token",
+                    "model": "custom-superuser-model",
+                    "prompt": "Custom superuser prompt",
+                    "k": 80,
+                    "size": 50,
+                    "temperature": 0.7,
+                    "text_key": "custom_text_key",
+                }
+            ),
             "requestContext": {
                 "connectionId": "test_connection_id",
                 "domainName": "example.com",
-                "stage": "dev"
-            }
+                "stage": "dev",
+            },
         }
 
-    @patch.object(ApiToken, 'is_superuser', return_value=True)
+    @patch.object(ApiToken, "is_superuser", return_value=True)
     def test_superuser_overrides(self, mock_superuser):
         """
         Test that when the user is a superuser, the payload values override the defaults.
@@ -78,32 +82,34 @@ class TestEventConfigSuperuser(unittest.TestCase):
 class TestEventConfigWebsocket(unittest.TestCase):
     def setUp(self):
         self.event = {
-            "body": json.dumps({
-                "auth": "some_superuser_token",
-                "model": "custom-superuser-model",
-                "prompt": "Custom superuser prompt",
-                "k": 80,
-                "size": 50,
-                "temperature": 0.7,
-                "text_key": "custom_text_key"
-            }),
+            "body": json.dumps(
+                {
+                    "auth": "some_superuser_token",
+                    "model": "custom-superuser-model",
+                    "prompt": "Custom superuser prompt",
+                    "k": 80,
+                    "size": 50,
+                    "temperature": 0.7,
+                    "text_key": "custom_text_key",
+                }
+            ),
             "requestContext": {
                 "connectionId": "test_connection_id",
                 "domainName": "example.com",
-                "stage": "dev"
-            }
+                "stage": "dev",
+            },
         }
 
-    @patch.object(ApiToken, 'is_superuser', return_value=True)
-    @patch('core.event_config.Websocket', autospec=True)
+    @patch.object(ApiToken, "is_superuser", return_value=True)
+    @patch("core.event_config.Websocket", autospec=True)
     def test_setup_websocket_without_socket(self, mock_websocket_class, mock_superuser):
         config = EventConfig(event=self.event)
         returned_socket = config.setup_websocket()
 
         mock_websocket_class.assert_called_once_with(
-            endpoint_url='https://example.com/dev',
-            connection_id='test_connection_id',
-            ref=config.ref
+            endpoint_url="https://example.com/dev",
+            connection_id="test_connection_id",
+            ref=config.ref,
         )
 
         # Instead of assertIsInstance(returned_socket, mock_websocket_class),
@@ -111,7 +117,7 @@ class TestEventConfigWebsocket(unittest.TestCase):
         self.assertIs(returned_socket, mock_websocket_class.return_value)
         self.assertEqual(config.socket, mock_websocket_class.return_value)
 
-    @patch.object(ApiToken, 'is_superuser', return_value=True)
+    @patch.object(ApiToken, "is_superuser", return_value=True)
     def test_setup_websocket_with_existing_socket(self, mock_superuser):
         """
         Test that setup_websocket uses the provided socket if one is passed in.

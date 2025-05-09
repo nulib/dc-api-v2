@@ -1,5 +1,6 @@
 from search.hybrid_query import hybrid_query, filter
 
+
 class TestFunction:
     def test_hybrid_query(self):
         dsl = hybrid_query("Question?", "MODEL_ID", k=10)

@@ -8,6 +8,7 @@ import langchain_core.messages as langchain_messages
 from langchain_core.messages import BaseMessage
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 
+
 class CompressibleJsonSerializer(JsonPlusSerializer):
     def __init__(self, compression: Optional[str] = None):
         self.compression = compression

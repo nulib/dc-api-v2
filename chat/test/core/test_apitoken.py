@@ -6,7 +6,6 @@ from test.fixtures.apitoken import DEV_TEAM_TOKEN, SUPER_TOKEN, TEST_SECRET, TES
 from unittest import mock, TestCase
 
 
-
 @mock.patch.dict(os.environ, {"DEV_TEAM_NET_IDS": "abc123"})
 @mock.patch.dict(os.environ, {"API_TOKEN_SECRET": TEST_SECRET})
 class TestFunction(TestCase):

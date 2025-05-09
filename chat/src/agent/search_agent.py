@@ -26,8 +26,9 @@ of their question to make it more answerable.
 
 MAX_RECURSION_LIMIT = 16
 
+
 class SearchWorkflow:
-    def __init__(self, model: BaseModel, system_message: str, metrics = None):
+    def __init__(self, model: BaseModel, system_message: str, metrics=None):
         self.metrics = metrics
         self.model = model
         self.system_message = system_message
@@ -46,32 +47,35 @@ class SearchWorkflow:
         last_message = messages[-1]
         if last_message.name not in ["search", "retrieve_documents"]:
             return {"messages": messages}
-        
+
         start_time = time.time()
         content = minimize_documents(json.loads(last_message.content))
-        content = json.dumps(content, separators=(',', ':'))
+        content = json.dumps(content, separators=(",", ":"))
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f'Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%')
-        
+        print(
+            f"Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%"
+        )
+
         last_message.content = content
 
         return {"messages": messages}
-        
+
     def call_model(self, state: MessagesState):
         messages = [SystemMessage(content=self.system_message)] + state["messages"]
         response: BaseMessage = self.model.invoke(messages)
         # We return a list, because this will get added to the existing list
         return {"messages": [response]}
 
+
 class SearchAgent:
     def __init__(
         self,
         model: BaseModel,
         *,
-        metrics = None,
+        metrics=None,
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
-        **kwargs
+        **kwargs,
     ):
         tools = [discover_fields, search, aggregate, retrieve_documents]
         tool_node = ToolNode(tools)
@@ -81,7 +85,9 @@ class SearchAgent:
         except NotImplementedError:
             pass
 
-        self.workflow_logic = SearchWorkflow(model=model, system_message=system_message, metrics=metrics)
+        self.workflow_logic = SearchWorkflow(
+            model=model, system_message=system_message, metrics=metrics
+        )
 
         # Define a new graph
         workflow = StateGraph(MessagesState)
@@ -90,7 +96,7 @@ class SearchAgent:
         workflow.add_node("agent", self.workflow_logic.call_model)
         workflow.add_node("tools", tool_node)
         workflow.add_node("summarize", self.workflow_logic.summarize)
-        
+
         # Set the entrypoint as `agent`
         workflow.add_edge(START, "agent")
 
@@ -98,15 +104,23 @@ class SearchAgent:
         workflow.add_conditional_edges("agent", self.workflow_logic.should_continue)
 
         # Add a normal edge from `tools` to `agent`
-        #workflow.add_edge("tools", "agent")
+        # workflow.add_edge("tools", "agent")
         workflow.add_edge("tools", "summarize")
         workflow.add_edge("summarize", "agent")
 
         self.checkpointer = checkpoint_saver()
         self.search_agent = workflow.compile(checkpointer=self.checkpointer)
-    
-    def invoke(self, question: str, ref: str, *, docs: Optional[List[str]] = None,
-callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
+
+    def invoke(
+        self,
+        question: str,
+        ref: str,
+        *,
+        docs: Optional[List[str]] = None,
+        callbacks: List[BaseCallbackHandler] = [],
+        forget: bool = False,
+        **kwargs,
+    ):
         if forget:
             self.checkpointer.delete_checkpoints(ref)
 
@@ -117,13 +131,15 @@ callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
             # Pass documents in as context for the model
             doc_lines = [str(doc) for doc in docs]
             return self.search_agent.invoke(
-                {"messages": [HumanMessage(content=question + "\n" + "\n".join(doc_lines))]},
-                config={
-                    "configurable": {"thread_id": ref}, 
-                    "callbacks": callbacks},
-                **kwargs
+                {
+                    "messages": [
+                        HumanMessage(content=question + "\n" + "\n".join(doc_lines))
+                    ]
+                },
+                config={"configurable": {"thread_id": ref}, "callbacks": callbacks},
+                **kwargs,
             )
-        else:  
+        else:
             try:
                 return self.search_agent.invoke(
                     {"messages": [HumanMessage(content=question)]},
@@ -132,15 +148,19 @@ callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
                         "callbacks": callbacks,
                         "recursion_limit": MAX_RECURSION_LIMIT,
                     },
-                    **kwargs
+                    **kwargs,
                 )
             except GraphRecursionError as e:
                 print(f"Recursion error: {e}")
 
                 # Retrieve the messages processed so far
-                checkpoint_tuple = self.checkpointer.get_tuple({"configurable": {"thread_id": ref}})
+                checkpoint_tuple = self.checkpointer.get_tuple(
+                    {"configurable": {"thread_id": ref}}
+                )
                 state = checkpoint_tuple.checkpoint if checkpoint_tuple else None
-                messages = state.get("channel_values", {}).get("messages", []) if state else []
+                messages = (
+                    state.get("channel_values", {}).get("messages", []) if state else []
+                )
 
                 # Extract relevant responses including tool outputs
                 responses = []
@@ -156,23 +176,33 @@ callbacks: List[BaseCallbackHandler] = [], forget: bool = False, **kwargs):
                     
                     {responses[-5:]}  # Take the last few responses
                     """
-                
+
                     # Generate a summary using the LLM
-                    summary = self.workflow_logic.model.invoke([HumanMessage(content=summary_prompt)])
+                    summary = self.workflow_logic.model.invoke(
+                        [HumanMessage(content=summary_prompt)]
+                    )
                     summary_text = summary.content
 
                     # Send summary as an "answer" message before finalizing
                     for cb in callbacks:
                         if isinstance(cb, SocketCallbackHandler):
-                            cb.socket.send({"type": "answer", "ref": ref, "message": summary_text})
+                            cb.socket.send(
+                                {"type": "answer", "ref": ref, "message": summary_text}
+                            )
 
                 else:
                     # Send a fallback message
                     fallback_message = "I reached my recursion limit but couldn't retrieve enough useful information."
                     for cb in callbacks:
                         if isinstance(cb, SocketCallbackHandler):
-                            cb.socket.send({"type": "answer", "ref": ref, "message": fallback_message})
-                
+                            cb.socket.send(
+                                {
+                                    "type": "answer",
+                                    "ref": ref,
+                                    "message": fallback_message,
+                                }
+                            )
+
                 for cb in callbacks:
                     if hasattr(cb, "on_agent_finish"):
                         cb.on_agent_finish(finish=None, run_id=ref, **kwargs)
