@@ -143,3 +143,24 @@ clean:
 	rm -rf .aws-sam api/.aws-sam chat/.aws-sam av-download/.aws-sam api/node_modules api/src/node_modules chat/**/__pycache__ chat/.coverage chat/.ruff_cache
 reset:
 	for f in $$(find . -maxdepth 2 -name '*.orig'); do mv $$f $${f%%.orig}; done
+empty_buckets:
+	root_stack=$$(sam list resources --stack-name dc-api-$(DEV_PREFIX) --output json); \
+	if [[ -z "$$root_stack" ]]; then \
+		exit 1; \
+	fi; \
+	chat_stack_name=$$(jq -r '.[] | select (.LogicalResourceId == "chatWebsocket") | .PhysicalResourceId' <<< $$root_stack); \
+	chat_stack=$$(sam list resources --stack-name $$chat_stack_name --output=json); \
+	checkpoint_bucket=$$(jq -r '.[] | select (.LogicalResourceId == "CheckpointBucket") | .PhysicalResourceId' <<< $$chat_stack); \
+	if [[ -n "$$checkpoint_bucket" ]]; then \
+		echo "Emptying checkpoint bucket $$checkpoint_bucket"; \
+		aws s3 rm --recursive s3://$$checkpoint_bucket; \
+	fi; \
+	api_stack_name=$$(jq -r '.[] | select (.LogicalResourceId == "api") | .PhysicalResourceId' <<< $$root_stack); \
+	api_stack=$$(sam list resources --stack-name $$api_stack_name --output=json); \
+	feedback_bucket=$$(jq -r '.[] | select (.LogicalResourceId == "chatFeedbackBucket") | .PhysicalResourceId' <<< $$api_stack); \
+	if [[ -n "$$feedback_bucket" ]]; then \
+		echo "Emptying feedback bucket $$feedback_bucket"; \
+		aws s3 rm --recursive s3://$$feedback_bucket; \
+	fi
+delete_stack: empty_buckets
+	sam delete --stack-name dc-api-$(DEV_PREFIX)
