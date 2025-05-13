@@ -1,8 +1,8 @@
-// Add all user abilities to the API Token's entitlements claim
-// The Abilities object maps abilities to functions that check
-// if the user has that ability.
+// Add all user scopes to the API Token's entitlements claim
+// The Scopes object maps scopes to functions that check
+// if the user has that scope.
 
-const Abilities = {
+const Scopes = {
   "read:Public": () => true,
   "read:Published": () => true,
   "read:Institution": (user) =>
@@ -12,13 +12,13 @@ const Abilities = {
   chat: (user) => user.isLoggedIn(),
 };
 
-const addAbilities = (apiToken) => {
-  for (const [ability, fn] of Object.entries(Abilities)) {
+const addScopes = (apiToken) => {
+  for (const [scope, fn] of Object.entries(Scopes)) {
     if (fn(apiToken)) {
-      apiToken.addAbility(ability);
+      apiToken.addScope(scope);
     }
   }
   return apiToken;
 };
 
-module.exports = { addAbilities };
+module.exports = { addScopes };

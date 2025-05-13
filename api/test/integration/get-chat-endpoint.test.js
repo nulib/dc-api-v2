@@ -10,7 +10,9 @@ describe("GET /chat-endpoint", function () {
   helpers.saveEnvironment();
 
   it("returns the websocket URI and token to a logged in user", async () => {
-    const token = new ApiToken().user({ uid: "abc123" }).sign();
+    let token = new ApiToken().user({ sub: "abc123" });
+    console.log(token.token);
+    token = token.sign();
     const event = helpers
       .mockEvent("GET", "/chat-endpoint")
       .headers({

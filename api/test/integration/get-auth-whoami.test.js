@@ -34,7 +34,9 @@ describe("auth whoami", function () {
 
     const result = await getAuthWhoamiHandler.handler(event);
     expect(result.statusCode).to.eq(200);
-    expect(JSON.parse(result.body)).to.contain({ name: "Some One" });
+    const response = JSON.parse(result.body);
+    expect(response).to.contain({ name: "Some One" });
+    expect(response).to.have.property("scopes");
   });
 
   it("Doesn't set a new cookie if the token is not updated", async () => {

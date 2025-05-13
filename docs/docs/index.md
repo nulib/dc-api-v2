@@ -8,7 +8,7 @@ Check out the [OpenAPI specification page](./spec.md) for detailed descriptions 
 
 ### Application Programming Interfaces (APIs)
 
-An API allows end users to interact with the data stored in the Digital Collections in a structured and programmatic way, which makes it possible to integrate the data into own applications and workflows. Most programming languages and frameworks provide the ability to send and receive information using HTTP requests. The Northwestern University Libraries Digital Collections API is designed with flexibility in mind and works with a wide range of programming languages and frameworks.
+An API allows end users to interact with the data stored in the Digital Collections in a structured and programmatic way, which makes it possible to integrate the data into own applications and workflows. Most programming languages and frameworks provide the scope to send and receive information using HTTP requests. The Northwestern University Libraries Digital Collections API is designed with flexibility in mind and works with a wide range of programming languages and frameworks.
 
 Our API allows developers to access the data in the Digital Collections API by sending HTTP requests and receiving responses in a format that can be parsed and processed by the application. This makes it simple to fetch and process data, reshaping the data if necessary for integration into your application or project. The API also allows developers to authenticate and authorize their requests using standard protocols such as OAuth, but for now this feature is internal (check back for future updates on authentication/authorization!).
 
@@ -78,7 +78,7 @@ Working with a REST (Representational State Transfer) API is a common method for
 
 ## OpenSearch
 
-We use [OpenSearch](https://opensearch.org) to provide the search functionality behind our API. One of the key advantages of using a tool like OpenSearch is the ability to perform advanced searches using tokenization, custom queries, and aggregations. Tokenization allows for the search engine to break down text into smaller units, or tokens, for more precise searching. This allows users to search for specific words or phrases within the digital collections. Custom queries allow users to create more complex searches using Boolean operators and other advanced search features. Aggregations provide the ability to group results by specific fields, such as by creator or subject, allowing users to quickly filter and analyze large sets of data. With range queries, users can perform searches based on specific numerical or date ranges, such as finding all resources that were created between two specific dates. This is particularly useful when searching large datasets. See the [OpenSearch documentation](https://opensearch.org/docs/latest/) for more information about using OpenSearch's many features.
+We use [OpenSearch](https://opensearch.org) to provide the search functionality behind our API. One of the key advantages of using a tool like OpenSearch is the scope to perform advanced searches using tokenization, custom queries, and aggregations. Tokenization allows for the search engine to break down text into smaller units, or tokens, for more precise searching. This allows users to search for specific words or phrases within the digital collections. Custom queries allow users to create more complex searches using Boolean operators and other advanced search features. Aggregations provide the scope to group results by specific fields, such as by creator or subject, allowing users to quickly filter and analyze large sets of data. With range queries, users can perform searches based on specific numerical or date ranges, such as finding all resources that were created between two specific dates. This is particularly useful when searching large datasets. See the [OpenSearch documentation](https://opensearch.org/docs/latest/) for more information about using OpenSearch's many features.
 
 ### Example
 
@@ -342,7 +342,7 @@ The `?as=iiif` parameter in the API allows users to retrieve resources as IIIF m
 
 Additionally, IIIF manifests provide a rich set of metadata that can be used to improve the user experience, such as captions, translations, and descriptions. This metadata can be displayed in the front-end interface to provide users with more context and information about the images they are viewing.
 
-One of the primary benefits of using IIIF is the ability to easily access and manipulate images and other multimedia resources solely making HTTP requests. The IIIF specification makes allowances for cropping, rotation, and zooming in a standardized way. This allows users to easily access, manipulate, and display images in a consistent way across different applications that implement the specification.
+One of the primary benefits of using IIIF is the scope to easily access and manipulate images and other multimedia resources solely making HTTP requests. The IIIF specification makes allowances for cropping, rotation, and zooming in a standardized way. This allows users to easily access, manipulate, and display images in a consistent way across different applications that implement the specification.
 
 ### Example
 

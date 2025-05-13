@@ -190,43 +190,43 @@ describe("ApiToken", function () {
     });
   });
 
-  describe("abilities", function () {
-    it("has default abilities", async () => {
+  describe("scopes", function () {
+    it("has default scopes", async () => {
       const token = new ApiToken();
-      expect(token.token.abilities.has("read:Public")).to.be.true;
-      expect(token.token.abilities.has("read:Published")).to.be.true;
-      expect(token.token.abilities.has("read:Private")).to.be.false;
-      expect(token.token.abilities.has("read:Unpublished")).to.be.false;
+      expect(token.token.scopes.has("read:Public")).to.be.true;
+      expect(token.token.scopes.has("read:Published")).to.be.true;
+      expect(token.token.scopes.has("read:Private")).to.be.false;
+      expect(token.token.scopes.has("read:Unpublished")).to.be.false;
     });
 
-    it("addAbility() adds an ability", async () => {
+    it("addScope() adds an scope", async () => {
       const token = new ApiToken();
       expect(token.can("read:Public")).to.be.true;
       expect(token.can("read:Published")).to.be.true;
       expect(token.can("read:Private")).to.be.false;
 
-      token.addAbility("read:Private");
+      token.addScope("read:Private");
 
       expect(token.can("read:Public")).to.be.true;
       expect(token.can("read:Published")).to.be.true;
       expect(token.can("read:Private")).to.be.true;
     });
 
-    it("removeAbility() removes an ability", async () => {
+    it("removeScope() removes an scope", async () => {
       const token = new ApiToken();
       expect(token.can("read:Public")).to.be.true;
       expect(token.can("read:Published")).to.be.true;
 
-      token.addAbility("read:Private");
+      token.addScope("read:Private");
       expect(token.can("read:Private")).to.be.true;
 
-      token.removeAbility("read:Private");
+      token.removeScope("read:Private");
       expect(token.can("read:Public")).to.be.true;
       expect(token.can("read:Published")).to.be.true;
       expect(token.can("read:Private")).to.be.false;
     });
 
-    it("imputes abilities from user", async () => {
+    it("imputes scopes from user", async () => {
       const token = new ApiToken();
       token.user({
         sub: "user123",

@@ -1,4 +1,4 @@
-const { addAbilities } = require("./abilities");
+const { addScopes } = require("./scopes");
 const {
   apiTokenSecret,
   dcApiEndpoint,
@@ -13,7 +13,7 @@ function emptyToken() {
     iss: dcApiEndpoint(),
     exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60, // 12 hours
     iat: Math.floor(Number(new Date()) / 1000),
-    abilities: new Set(),
+    scopes: new Set(),
     entitlements: new Set(),
     isLoggedIn: false,
   };
@@ -28,12 +28,12 @@ class ApiToken {
         this.token = emptyToken();
         this.expire();
       }
-      this.token.abilities = new Set(this.token.abilities || []);
+      this.token.scopes = new Set(this.token.scopes || []);
       this.token.entitlements = new Set(this.token.entitlements || []);
     } else {
       this.token = emptyToken();
     }
-    addAbilities(this);
+    addScopes(this);
   }
 
   // manipulation – always return `this` for chaining
@@ -42,10 +42,10 @@ class ApiToken {
     this.token = {
       ...this.token,
       ...user,
-      isLoggedIn: !!user,
-      isDevTeam: !!user && user?.sub && devTeamNetIds().includes(user?.sub),
+      isLoggedIn: !!user?.sub,
+      isDevTeam: !!user?.sub && devTeamNetIds().includes(user?.sub),
     };
-    addAbilities(this);
+    addScopes(this);
     return this.update();
   }
 
@@ -53,30 +53,31 @@ class ApiToken {
     this.token = {
       ...this.token,
       provider: provider,
+      isInstitution: InstitutionProviders.includes(provider),
     };
-    addAbilities(this);
+    addScopes(this);
     return this.update();
   }
 
   readingRoom() {
     this.token.isReadingRoom = true;
-    addAbilities(this);
+    addScopes(this);
     return this;
   }
 
   superUser() {
     this.token.isSuperUser = true;
-    addAbilities(this);
+    addScopes(this);
     return this;
   }
 
   // add, remove, and replace entitlements
 
-  addAbility(ability) {
-    if (this.token.abilities.has(ability)) {
+  addScope(scope) {
+    if (this.token.scopes.has(scope)) {
       return this;
     }
-    this.token.abilities.add(ability);
+    this.token.scopes.add(scope);
     return this.update();
   }
 
@@ -96,9 +97,9 @@ class ApiToken {
     return this.update();
   }
 
-  removeAbility(ability) {
-    if (this.token.abilities.has(ability)) {
-      this.token.abilities.delete(ability);
+  removeScope(scope) {
+    if (this.token.scopes.has(scope)) {
+      this.token.scopes.delete(scope);
       return this.update();
     }
     return this;
@@ -130,7 +131,7 @@ class ApiToken {
 
   userInfo() {
     const result = { ...this.token };
-    delete result.abilities;
+    result.scopes = [...this.token.scopes];
     delete result.entitlements;
     return result;
   }
@@ -138,7 +139,7 @@ class ApiToken {
   sign() {
     const result = {
       ...this.token,
-      abilities: [...this.token.abilities],
+      scopes: [...this.token.scopes],
       entitlements: [...this.token.entitlements],
     };
     return jwt.sign(result, apiTokenSecret());
@@ -152,7 +153,7 @@ class ApiToken {
 
   // alias for hasEntitlement
   can(action) {
-    return this.token.abilities.has(action);
+    return this.token.scopes.has(action);
   }
 
   isDevTeam() {
@@ -164,7 +165,7 @@ class ApiToken {
   }
 
   isInstitution() {
-    return InstitutionProviders.includes(this.token.provider);
+    return !!this.token.isInstitution;
   }
 
   isReadingRoom() {

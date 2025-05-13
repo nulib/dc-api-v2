@@ -16,8 +16,8 @@ const authorizeDocument = (event, osResponse) => {
 
   if (!allowed) {
     const publishedState = published ? "Published" : "Unpublished";
-    allowed = [`read:${visibility}`, `read:${publishedState}`].every(
-      (ability) => token.can(ability)
+    allowed = [`read:${visibility}`, `read:${publishedState}`].every((scope) =>
+      token.can(scope)
     );
   }
 

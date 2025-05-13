@@ -77,8 +77,8 @@ class EventConfig:
         self.text_key = self._get_text_key()
         self.prompt = ChatPromptTemplate.from_template(self.prompt_text)
 
-    def user_can(self, ability):
-        return self.api_token.can(ability)
+    def user_can(self, scope):
+        return self.api_token.can(scope)
 
     def _get_payload_value_with_superuser_check(self, key, default):
         if self.api_token.is_superuser():

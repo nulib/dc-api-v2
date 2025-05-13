@@ -128,7 +128,7 @@ class TestEventConfigWebsocket(unittest.TestCase):
         self.assertEqual(returned_socket, mock_socket)
         self.assertEqual(config.socket, mock_socket)
         
-class TestEventConfigAbility(unittest.TestCase):
+class TestEventConfigScope(unittest.TestCase):
     def setUp(self):
         self.event = {
             "body": json.dumps({
