@@ -142,51 +142,109 @@ describe("ApiToken", function () {
       expect(token.hasEntitlement("1234")).to.be.true;
       expect(token.hasEntitlement("5678")).to.be.true;
     });
+
+    it("entitlements() replaces entitlements", async () => {
+      const payload = {
+        iss: "https://example.com",
+        sub: "user123",
+        name: "Some One",
+        exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60,
+        iat: Math.floor(Number(new Date()) / 1000),
+        email: "user@example.com",
+        isLoggedIn: true,
+        entitlements: ["1234"],
+      };
+      const existingToken = jwt.sign(payload, process.env.API_TOKEN_SECRET);
+
+      const token = new ApiToken(existingToken);
+      expect(token.hasEntitlement("1234")).to.be.true;
+      expect(token.hasEntitlement("5678")).to.be.false;
+
+      token.entitlements(["5678", "9101112"]);
+
+      expect(token.hasEntitlement("1234")).to.be.false;
+      expect(token.hasEntitlement("5678")).to.be.true;
+    });
+
+    it("removeEntitlement() removes an entitlement", async () => {
+      const payload = {
+        iss: "https://example.com",
+        sub: "user123",
+        name: "Some One",
+        exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60,
+        iat: Math.floor(Number(new Date()) / 1000),
+        email: "user@example.com",
+        isLoggedIn: true,
+        entitlements: ["1234", "5678"],
+      };
+      const existingToken = jwt.sign(payload, process.env.API_TOKEN_SECRET);
+
+      const token = new ApiToken(existingToken);
+      expect(token.hasEntitlement("1234")).to.be.true;
+      expect(token.hasEntitlement("5678")).to.be.true;
+
+      token.removeEntitlement("5678");
+
+      expect(token.hasEntitlement("1234")).to.be.true;
+      expect(token.hasEntitlement("5678")).to.be.false;
+    });
   });
 
-  it("entitlements() replaces entitlements", async () => {
-    const payload = {
-      iss: "https://example.com",
-      sub: "user123",
-      name: "Some One",
-      exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60,
-      iat: Math.floor(Number(new Date()) / 1000),
-      email: "user@example.com",
-      isLoggedIn: true,
-      entitlements: ["1234"],
-    };
-    const existingToken = jwt.sign(payload, process.env.API_TOKEN_SECRET);
+  describe("scopes", function () {
+    it("has default scopes", async () => {
+      const token = new ApiToken();
+      expect(token.token.scopes.has("read:Public")).to.be.true;
+      expect(token.token.scopes.has("read:Published")).to.be.true;
+      expect(token.token.scopes.has("read:Private")).to.be.false;
+      expect(token.token.scopes.has("read:Unpublished")).to.be.false;
+    });
 
-    const token = new ApiToken(existingToken);
-    expect(token.hasEntitlement("1234")).to.be.true;
-    expect(token.hasEntitlement("5678")).to.be.false;
+    it("addScope() adds an scope", async () => {
+      const token = new ApiToken();
+      expect(token.can("read:Public")).to.be.true;
+      expect(token.can("read:Published")).to.be.true;
+      expect(token.can("read:Private")).to.be.false;
 
-    token.entitlements(["5678", "9101112"]);
+      token.addScope("read:Private");
 
-    expect(token.hasEntitlement("1234")).to.be.false;
-    expect(token.hasEntitlement("5678")).to.be.true;
-  });
+      expect(token.can("read:Public")).to.be.true;
+      expect(token.can("read:Published")).to.be.true;
+      expect(token.can("read:Private")).to.be.true;
+    });
 
-  it("removeEntitlement() removes an entitlement", async () => {
-    const payload = {
-      iss: "https://example.com",
-      sub: "user123",
-      name: "Some One",
-      exp: Math.floor(Number(new Date()) / 1000) + 12 * 60 * 60,
-      iat: Math.floor(Number(new Date()) / 1000),
-      email: "user@example.com",
-      isLoggedIn: true,
-      entitlements: ["1234", "5678"],
-    };
-    const existingToken = jwt.sign(payload, process.env.API_TOKEN_SECRET);
+    it("removeScope() removes an scope", async () => {
+      const token = new ApiToken();
+      expect(token.can("read:Public")).to.be.true;
+      expect(token.can("read:Published")).to.be.true;
 
-    const token = new ApiToken(existingToken);
-    expect(token.hasEntitlement("1234")).to.be.true;
-    expect(token.hasEntitlement("5678")).to.be.true;
+      token.addScope("read:Private");
+      expect(token.can("read:Private")).to.be.true;
 
-    token.removeEntitlement("5678");
+      token.removeScope("read:Private");
+      expect(token.can("read:Public")).to.be.true;
+      expect(token.can("read:Published")).to.be.true;
+      expect(token.can("read:Private")).to.be.false;
+    });
 
-    expect(token.hasEntitlement("1234")).to.be.true;
-    expect(token.hasEntitlement("5678")).to.be.false;
+    it("imputes scopes from user", async () => {
+      const token = new ApiToken();
+      token.user({
+        sub: "user123",
+        name: "Some One",
+        email: "user123@example.com",
+      });
+      expect(token.can("read:Public")).to.be.true;
+      expect(token.can("read:Published")).to.be.true;
+      expect(token.can("read:Private")).to.be.false;
+      expect(token.can("read:Unpublished")).to.be.false;
+      expect(token.can("chat")).to.be.true;
+
+      token.superUser();
+      expect(token.can("read:Public")).to.be.true;
+      expect(token.can("read:Published")).to.be.true;
+      expect(token.can("read:Private")).to.be.true;
+      expect(token.can("read:Unpublished")).to.be.true;
+      expect(token.can("chat")).to.be.true;
+    });
   });
 });

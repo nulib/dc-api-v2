@@ -21,6 +21,8 @@ class TestFunction(TestCase):
         self.assertTrue(subject.is_logged_in())
         self.assertFalse(subject.is_superuser())
         self.assertFalse(subject.is_institution())
+        self.assertTrue(subject.can("read:Public"))
+        self.assertFalse(subject.can("read:Private"))
 
     def test_superuser_token(self):
         subject = ApiToken(SUPER_TOKEN)
@@ -28,6 +30,8 @@ class TestFunction(TestCase):
         self.assertTrue(subject.is_logged_in())
         self.assertTrue(subject.is_superuser())
         self.assertTrue(subject.is_institution())
+        self.assertTrue(subject.can("read:Public"))
+        self.assertTrue(subject.can("read:Private"))
 
     def test_devteam_token(self):
         subject = ApiToken(DEV_TEAM_TOKEN)

@@ -64,7 +64,7 @@ describe("Chat feedback route", () => {
     });
 
     it("should fail if sentiment is invalid", async () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
 
       let requestBody = JSON.stringify({
         sentiment: "neutral",
@@ -105,7 +105,7 @@ describe("Chat feedback route", () => {
     });
 
     it("should fail if ref is missing", async () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
       let requestBody = JSON.stringify({
         sentiment: "positive",
         timestamp: new Date().toISOString(),
@@ -142,7 +142,7 @@ describe("Chat feedback route", () => {
     });
 
     it("should fail if refIndex is missing", async () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
       let requestBody = JSON.stringify({
         sentiment: "positive",
         timestamp: new Date().toISOString(),
@@ -179,7 +179,7 @@ describe("Chat feedback route", () => {
     });
 
     it("should fail if timestamp is missing", async () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
       let requestBody = JSON.stringify({
         sentiment: "positive",
         // ... we omit timestamp ...
@@ -217,7 +217,7 @@ describe("Chat feedback route", () => {
 
     describe("Saving feedback", () => {
       it("should upload the response to S3 and return 200", async () => {
-        const token = new ApiToken().user({ uid: "abc123" }).sign();
+        const token = new ApiToken().user({ sub: "abc123" }).sign();
 
         const requestBody = {
           sentiment: "negative",

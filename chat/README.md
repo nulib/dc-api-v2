@@ -220,4 +220,4 @@ The chat service implements the following authorization levels:
   - Debug mode
   - Temperature control
   - Unrestricted context window
-  - Ability to override system defaults
+  - Scope to override system defaults

@@ -58,7 +58,7 @@ def chat(event, context):
     socket = event.get("socket", None)
     config.setup_websocket(socket)
 
-    if not (config.is_logged_in or config.is_superuser):
+    if not config.user_can("chat"):
         config.socket.send({"type": "error", "message": "Unauthorized"})
         return {"statusCode": 401, "body": "Unauthorized"}
 

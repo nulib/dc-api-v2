@@ -105,7 +105,7 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool).not.to.have.any.keys("must_not");
+      expect(result.searchContext.query.bool.must_not).to.be.empty;
     });
   });
 

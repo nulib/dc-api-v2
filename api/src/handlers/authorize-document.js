@@ -8,18 +8,18 @@ const authorizeDocument = (event, osResponse) => {
 
   const body = JSON.parse(osResponse.body);
   const document = body._source;
-
   const token = event.userToken;
 
-  const visibility = document.visibility;
-  const published = document.published;
-  const readingRoom = token.isReadingRoom();
+  const { published, visibility } = document;
   const workId = document.work_id || document.id;
+  let allowed = token.hasEntitlement(workId);
 
-  const allowed =
-    token.isSuperUser() ||
-    token.hasEntitlement(workId) ||
-    (isAllowedVisibility(token, visibility, readingRoom) && published);
+  if (!allowed) {
+    const publishedState = published ? "Published" : "Unpublished";
+    allowed = [`read:${visibility}`, `read:${publishedState}`].every((scope) =>
+      token.can(scope)
+    );
+  }
 
   return sendResponse(allowed ? 204 : 403);
 };
@@ -28,19 +28,6 @@ function sendResponse(statusCode) {
   return {
     statusCode: statusCode,
   };
-}
-
-function isAllowedVisibility(token, visibility, readingRoom) {
-  switch (visibility) {
-    case "Public":
-      return true;
-    case "Institution":
-      return token.isInstitution() || readingRoom;
-    case "Private":
-      return readingRoom;
-    default:
-      return false;
-  }
 }
 
 module.exports = { authorizeDocument };

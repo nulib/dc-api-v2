@@ -44,7 +44,7 @@ function defaultSearchSize() {
 }
 
 function devTeamNetIds() {
-  return process.env.DEV_TEAM_NET_IDS.split(",");
+  return process.env.DEV_TEAM_NET_IDS?.split(",") || [];
 }
 
 function openSearchEndpoint() {
