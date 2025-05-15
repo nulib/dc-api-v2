@@ -1,3 +1,4 @@
+const { providersFeatures } = require("../environment");
 // Add all user scopes to the API Token's entitlements claim
 // The Scopes object maps scopes to functions that check
 // if the user has that scope.
@@ -9,7 +10,9 @@ const Scopes = {
     user.isSuperUser() || user.isInstitution() || user.isReadingRoom(),
   "read:Private": (user) => user.isSuperUser() || user.isReadingRoom(),
   "read:Unpublished": (user) => user.isSuperUser(),
-  chat: (user) => user.isLoggedIn(),
+  chat: (user) =>
+    user.isLoggedIn() &&
+    providersFeatures()[user.token.provider]?.includes("chat"),
 };
 
 const addScopes = (apiToken) => {

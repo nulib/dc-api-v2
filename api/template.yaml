@@ -30,6 +30,7 @@ Globals:
         HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
         HONEYBADGER_ENV: !Ref HoneybadgerEnv
         HONEYBADGER_REVISION: !Ref HoneybadgerRevision
+        PROVIDERS_FEATURES: !Ref ProvidersFeatures
         READING_ROOM_IPS: !Ref ReadingRoomIPs
         SECRETS_PATH: !Ref SecretsPath
 Parameters:
@@ -90,6 +91,11 @@ Parameters:
     Type: String
     Description: Honeybadger Revision
     Default: ""
+  ProvidersFeatures:
+    Type: String
+    Description: Currently enabled features per auth provider
+    Default: |
+      {"magic":["chat"],"nusso":["chat"]}
   PyramidBucket:
     Type: String
     Description: Meadow Pyramid Bucket
@@ -412,6 +418,32 @@ Resources:
           Properties:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}/download
+            Method: HEAD
+  getProviderFeatureStatus:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handlers/get-provider-feature-status.handler
+      Description: boolean to indicate whether auth provider currently supports feature  
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Environment: 
+        Variables:
+          PROVIDERS_FEATURES: !Ref ProvidersFeatures
+      Policies:
+        - !Ref SecretsPolicy
+        - !Ref readIndexPolicy
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /status/{provider}/{feature}
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /status/{provider}/{feature}
             Method: HEAD
   getWorkAuthFunction:
     Type: AWS::Serverless::Function

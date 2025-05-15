@@ -15,7 +15,6 @@ describe("OPTIONS handler", async () => {
     .render();
 
   it("sends the correct CORS headers", async () => {
-    console.log(process.env.API_TOKEN_SECRET);
     const response = await optionsHandler.handler(event);
     expect(response.headers).to.contain({
       "Access-Control-Allow-Origin":
