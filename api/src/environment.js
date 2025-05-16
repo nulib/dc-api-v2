@@ -57,6 +57,10 @@ function prefix(value) {
   return [envPrefix, value].filter((val) => !!val).join("-");
 }
 
+function ProviderCapabilities() {
+  return JSON.parse(process.env.PROVIDER_CAPABILITIES);
+}
+
 function region() {
   return process.env.AWS_REGION || "us-east-1";
 }
@@ -72,5 +76,6 @@ module.exports = {
   devTeamNetIds,
   openSearchEndpoint,
   prefix,
+  ProviderCapabilities,
   region,
 };

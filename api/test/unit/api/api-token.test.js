@@ -228,11 +228,13 @@ describe("ApiToken", function () {
 
     it("imputes scopes from user", async () => {
       const token = new ApiToken();
-      token.user({
-        sub: "user123",
-        name: "Some One",
-        email: "user123@example.com",
-      });
+      token
+        .user({
+          sub: "user123",
+          name: "Some One",
+          email: "user123@example.com",
+        })
+        .provider("nusso");
       expect(token.can("read:Public")).to.be.true;
       expect(token.can("read:Published")).to.be.true;
       expect(token.can("read:Private")).to.be.false;
