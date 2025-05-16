@@ -87,7 +87,7 @@ Parameters:
     Type: String
     Description: MediaConvert role ARN
     Default: ""
-  ProvidersFeatures:
+  ProviderCapabilities:
     Type: String
     Description: Currently enabled features per auth provider
     Default: |
@@ -167,7 +167,7 @@ Resources:
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
         HoneybadgerEnv: !Ref HoneybadgerEnv
         HoneybadgerRevision: !Ref HoneybadgerRevision
-        ProvidersFeatures: !Ref ProvidersFeatures
+        ProviderCapabilities: !Ref ProviderCapabilities
         PyramidBucket: !Ref PyramidBucket
         ReadingRoomIPs: !Ref ReadingRoomIPs
         RepositoryEmail: !Ref RepositoryEmail

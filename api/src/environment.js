@@ -57,8 +57,8 @@ function prefix(value) {
   return [envPrefix, value].filter((val) => !!val).join("-");
 }
 
-function providersFeatures() {
-  return JSON.parse(process.env.PROVIDERS_FEATURES);
+function ProviderCapabilities() {
+  return JSON.parse(process.env.PROVIDER_CAPABILITIES);
 }
 
 function region() {
@@ -76,6 +76,6 @@ module.exports = {
   devTeamNetIds,
   openSearchEndpoint,
   prefix,
-  providersFeatures,
+  ProviderCapabilities,
   region,
 };

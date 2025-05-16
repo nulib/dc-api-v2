@@ -3,13 +3,13 @@
 const chai = require("chai");
 const expect = chai.expect;
 
-const { handler } = requireSource("handlers/get-provider-feature-status");
+const { handler } = requireSource("handlers/get-provider-capabilities");
 
 describe("Provider status check", () => {
   helpers.saveEnvironment();
 
   beforeEach(() => {
-    process.env.PROVIDERS_FEATURES = '{"magic":[],"nusso":["chat"]}';
+    process.env.PROVIDER_CAPABILITIES = '{"magic":[],"nusso":["chat"]}';
   });
 
   it("should return enabled=true for enabled provider", async () => {

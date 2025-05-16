@@ -1,5 +1,5 @@
 const { wrap } = require("./middleware");
-const { providersFeatures } = require("../environment");
+const { ProviderCapabilities } = require("../environment");
 
 const handler = wrap(async (event) => {
   try {
@@ -15,7 +15,9 @@ const handler = wrap(async (event) => {
       };
     }
 
-    if (!Object.prototype.hasOwnProperty.call(providersFeatures(), provider)) {
+    if (
+      !Object.prototype.hasOwnProperty.call(ProviderCapabilities(), provider)
+    ) {
       return {
         statusCode: 404,
         body: JSON.stringify({
@@ -26,8 +28,8 @@ const handler = wrap(async (event) => {
     }
 
     const isFeatureEnabled =
-      Array.isArray(providersFeatures()[provider]) &&
-      providersFeatures()[provider].includes(feature);
+      Array.isArray(ProviderCapabilities()[provider]) &&
+      ProviderCapabilities()[provider].includes(feature);
 
     return {
       statusCode: 200,

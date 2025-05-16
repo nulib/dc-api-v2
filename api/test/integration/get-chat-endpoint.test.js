@@ -9,7 +9,7 @@ const ApiToken = requireSource("api/api-token");
 describe("GET /chat-endpoint", function () {
   helpers.saveEnvironment();
   beforeEach(() => {
-    process.env.PROVIDERS_FEATURES = '{"magic":[],"nusso":["chat"]}';
+    process.env.PROVIDER_CAPABILITIES = '{"magic":[],"nusso":["chat"]}';
   });
 
   it("returns the websocket URI and token to a logged in user", async () => {
