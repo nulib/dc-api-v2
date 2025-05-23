@@ -285,6 +285,10 @@ function transform(response) {
           .forEach((fileSet, index) => {
             buildCanvasFromFileSet(fileSet, index, true);
           });
+
+        if (source.behavior) {
+          manifest.addBehavior(source.behavior.toLowerCase());
+        }
       }
     );
 

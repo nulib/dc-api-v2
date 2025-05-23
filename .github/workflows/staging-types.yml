@@ -1,6 +1,6 @@
 name: Generate typescript and push to nulib/dcapi-types@staging
 on:
-  pull_request_target:
+  pull_request:
     types:
       - closed
     branches:
@@ -29,18 +29,40 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: "${{ env.TMP_SRCDIR }}"
-      - uses: actions/setup-node@v3
+          fetch-depth: 0
+      - name: Find all package.json files and check if they were updated
+        run: |
+          # Find all package.json files in the repo
+          PACKAGE_FILES=$(find . -name "package.json" -not -path "*/node_modules/*")
+
+          UNCHANGED_FILES=()
+          
+          # Check each package.json
+          for PKG_FILE in $PACKAGE_FILES; do
+            if ! echo "$CHANGED_FILES" | grep -q "$PKG_FILE"; then
+              UNCHANGED_FILES+=("$PKG_FILE")
+            fi
+          done
+
+          if [ ${#UNCHANGED_FILES[@]} -gt 0 ]; then
+            echo "Warning: The following package.json files were not updated:"
+            for FILE in "${UNCHANGED_FILES[@]}"; do
+              echo "$FILE"
+            done
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
         with:
-          cache-dependency-path: "${{ env.TMP_SRCDIR }}/node/package-lock.json"
-          node-version: 16.x
+          cache-dependency-path: "${{ env.TMP_SRCDIR }}/api/package-lock.json"
+          node-version: 20.x
           cache: "npm"
       - name: get-npm-version
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
         with:
-          path: "${{ env.TMP_SRCDIR }}/node"
+          path: "${{ env.TMP_SRCDIR }}/api"
       - name: Generate Typescript file
-        working-directory: "${{ env.TMP_SRCDIR }}/node"
+        working-directory: "${{ env.TMP_SRCDIR }}/api"
         run: |
           npm ci
           npx openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
@@ -50,7 +72,7 @@ jobs:
           path: ${{ env.TMP_DSTDIR }}
           ref: ${{ env.TARGET_BRANCH }}
           repository: ${{env.TYPES_REPO}}
-      - run: mv -f "${{ env.TMP_SRCDIR }}/node/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
+      - run: mv -f "${{ env.TMP_SRCDIR }}/api/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
         shell: bash
       - name: Set GitHub Deploy Key
         uses: webfactory/ssh-agent@v0.5.3

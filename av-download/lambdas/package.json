@@ -1,6 +1,6 @@
 {
   "name": "lambdas",
-  "version": "2.7.0",  
+  "version": "2.8.0",
   "description": "Non-API handler lambdas",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

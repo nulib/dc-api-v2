@@ -6,6 +6,7 @@ const expect = chai.expect;
 const optionsHandler = requireSource("handlers/options-request");
 
 describe("OPTIONS handler", async () => {
+  helpers.saveEnvironment();
   const event = helpers
     .mockEvent("OPTIONS", "/auth/whoami")
     .headers({

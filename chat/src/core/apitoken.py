@@ -2,7 +2,6 @@ from datetime import datetime
 import jwt
 import os
 
-
 class ApiToken:
     @classmethod
     def empty_token(cls):
@@ -11,6 +10,7 @@ class ApiToken:
             "iss": os.getenv("DC_API_ENDPOINT"),
             "exp": datetime.fromtimestamp(time + 12 * 60 * 60).timestamp(),  # 12 hours
             "iat": time,
+            "scopes": [],
             "entitlements": [],
             "isLoggedIn": False,
             "isDevTeam": False,
@@ -29,11 +29,17 @@ class ApiToken:
     def __str__(self):
         return f"ApiToken(token={self.token})"
 
+    def can(self, scope):
+        return scope in self.token.get("scopes", [])
+        
     def is_logged_in(self):
         return self.token.get("isLoggedIn", False)
 
     def is_superuser(self):
         return self.token.get("isSuperUser", False)
-    
+
     def is_dev_team(self):
         return self.token.get("isDevTeam", False)
+
+    def is_institution(self):
+        return self.token.get("isInstitution", False)

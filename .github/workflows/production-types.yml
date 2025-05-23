@@ -1,6 +1,6 @@
 name: Generate typescript and create PR into nulib/dcapi-types@main
 on:
-  pull_request_target:
+  pull_request:
     types:
       - closed
     branches:
@@ -30,10 +30,32 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: "${{ env.TMP_SRCDIR }}"
-      - uses: actions/setup-node@v3
+          fetch-depth: 0
+      - name: Find all package.json files and check if they were updated
+        run: |
+          # Find all package.json files in the repo
+          PACKAGE_FILES=$(find . -name "package.json" -not -path "*/node_modules/*")
+
+          UNCHANGED_FILES=()
+          
+          # Check each package.json
+          for PKG_FILE in $PACKAGE_FILES; do
+            if ! echo "$CHANGED_FILES" | grep -q "$PKG_FILE"; then
+              UNCHANGED_FILES+=("$PKG_FILE")
+            fi
+          done
+
+          if [ ${#UNCHANGED_FILES[@]} -gt 0 ]; then
+            echo "Warning: The following package.json files were not updated:"
+            for FILE in "${UNCHANGED_FILES[@]}"; do
+              echo "$FILE"
+            done
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
         with:
-          cache-dependency-path: "${{ env.TMP_SRCDIR }}/node/package-lock.json"
-          node-version: 16.x
+          cache-dependency-path: "${{ env.TMP_SRCDIR }}/api/package-lock.json"
+          node-version: 20.x
           cache: "npm"
       - name: Set short git commit SHA
         working-directory: "${{ env.TMP_SRCDIR }}"
@@ -44,9 +66,9 @@ jobs:
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
         with:
-          path: "${{ env.TMP_SRCDIR }}/node"
+          path: "${{ env.TMP_SRCDIR }}/api"
       - name: Generate Typescript file
-        working-directory: "${{ env.TMP_SRCDIR }}/node"
+        working-directory: "${{ env.TMP_SRCDIR }}/api"
         run: |
           npm ci
           npx openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
@@ -57,7 +79,7 @@ jobs:
           ref: ${{ env.TARGET_BRANCH }}
           repository: "nulib/dcapi-types"
           token: ${{env.GH_TOKEN}}
-      - run: mv -f "${{ env.TMP_SRCDIR }}/node/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
+      - run: mv -f "${{ env.TMP_SRCDIR }}/api/schemas.ts" "${{ env.TMP_DSTDIR }}/schemas.ts"
         shell: bash
       - working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
@@ -68,25 +90,43 @@ jobs:
           git commit -m "nulib/dc-api-v2 v${{ steps.package-version.outputs.current-version}} release"
           git push origin HEAD
         shell: bash
-      - name: Open nulib/dcapi-client PR
+      - name: Open nulib/dcapi-types PR
         id: open-types-pr
         working-directory: "${{ env.TMP_DSTDIR }}"
         run: |
-          pr=$(gh pr create --base main --title "Update types for DC API release v${{ steps.package-version.outputs.current-version}}" --body "A new version of `nulib/dc-api-v2` has been released. Please review changes and release a new version of the types package if needed." --reviewer mathewjordan)
+          pr=$(gh pr create --base main --title "Update types for DC API release v${{ steps.package-version.outputs.current-version}}" --body "A new version of `nulib/dc-api-v2` has been released. Please review changes and release a new version of the types package if needed.")
           echo "pr=$pr" >> $GITHUB_OUTPUT
       - name: Report PR Creation
         run: |
           echo ":rocket: *PR Created:* $PR" >> $GITHUB_STEP_SUMMARY
         env:
-          PR: ${{ steps.open-types-pr.outputs.pr }}
+          PR: ${{ steps.open-types-pr.outputs.pr }} # the url of the PR
       - name: Checkout nulib/repodev_planning_and_docs
         uses: actions/checkout@v3
         with:
           path: "${{env.TMP_REPODEVDIR}}"
           repository: "nulib/repodev_planning_and_docs"
           token: ${{env.GH_TOKEN}}
+      # intentionally run this step after checking out nulib/repodev_planning_and_docs
+      # to ensure that the PR is created and assigned correctly
+      - name: Get PR reviewer handle
+        id: pr-reviewer
+        run: |
+          REVIEWER_LOGIN=$(gh pr view ${{ steps.open-types-pr.outputs.pr }} --json=reviewRequests --jq='.reviewRequests | map(select(.__typename == "User")) | .[0].login // empty')
+          DEFAULT_REVIEWER="mathewjordan"
+          if [[ -z "$REVIEWER_LOGIN" ]]; then
+            echo "handle=$DEFAULT_REVIEWER" >> $GITHUB_OUTPUT
+          else
+            echo "handle=$REVIEWER_LOGIN" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
       - name: Open issue in nulib/repodev_planning_and_docs
         working-directory: "${{env.TMP_REPODEVDIR}}"
         run: |
-          gh issue create -t "Update nulib/dcapi-types for API release v${{ steps.package-version.outputs.current-version}}" -b "Review PR: ${{ steps.open-types-pr.outputs.pr}} and release nulib/dcapi-types if needed." -a mathewjordan -l "digital collections" -l "front end"
+          gh issue create \
+            -t "Update nulib/dcapi-types for API release v${{ steps.package-version.outputs.current-version}}" \
+            -b "Review PR: ${{ steps.open-types-pr.outputs.pr}} and release nulib/dcapi-types if needed." \
+            -a ${{ steps.pr-reviewer.outputs.handle }} \
+            -l "digital collections" \
+            -l "front end"
         shell: bash

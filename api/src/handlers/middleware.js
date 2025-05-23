@@ -28,7 +28,6 @@ const SecretPaths = [
 
 const wrap = function (handler) {
   return async (event, context) => {
-    console.log("getSearch event", JSON.stringify(event));
     await _initializeEnvironment();
 
     let response;

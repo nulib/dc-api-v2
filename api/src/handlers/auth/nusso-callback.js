@@ -1,8 +1,7 @@
 const axios = require("axios").default;
 const cookie = require("cookie");
-const { wrap } = require("./middleware");
-const ApiToken = require("../api/api-token");
-const Honeybadger = require("../honeybadger-setup");
+const ApiToken = require("../../api/api-token");
+const Honeybadger = require("../../honeybadger-setup");
 
 const BAD_DIRECTORY_SEARCH_FAULT =
   /Reason: ResponseCode 404 is treated as error/;
@@ -10,7 +9,7 @@ const BAD_DIRECTORY_SEARCH_FAULT =
 /**
  * NUSSO auth callback
  */
-exports.handler = wrap(async (event) => {
+exports.handler = async (event) => {
   const returnPath = Buffer.from(
     decodeURIComponent(event.cookieObject.redirectUrl),
     "base64"
@@ -18,7 +17,8 @@ exports.handler = wrap(async (event) => {
 
   const user = await redeemSsoToken(event);
   if (user) {
-    event.userToken = new ApiToken().user(user);
+    console.info("User", user.sub, "logged in via nusso");
+    event.userToken = new ApiToken().user(user).provider("nusso");
     return {
       statusCode: 302,
       cookies: [
@@ -32,7 +32,7 @@ exports.handler = wrap(async (event) => {
     };
   }
   return { statusCode: 400 };
-});
+};
 
 async function invokeNuApi(path, headers) {
   const url = new URL(process.env.NUSSO_BASE_URL);
@@ -49,6 +49,15 @@ async function getNetIdFromToken(nusso) {
   return response?.data?.netid;
 }
 
+function transform(user) {
+  return {
+    sub: user?.uid,
+    name: user?.displayName?.[0],
+    email: user?.mail,
+    primaryAffiliation: user?.primaryAffiliation,
+  };
+}
+
 async function redeemSsoToken(event) {
   const nusso = event.cookieObject.nusso;
   const netid = await getNetIdFromToken(nusso);
@@ -57,12 +66,13 @@ async function redeemSsoToken(event) {
       const response = await invokeNuApi(
         `/directory-search/res/netid/bas/${netid}`
       );
-      return fillInBlanks({ ...response.data.results[0], uid: netid });
+      const user = fillInBlanks({ ...response.data.results[0], uid: netid });
+      return transform(user);
     } catch (err) {
       if (
         BAD_DIRECTORY_SEARCH_FAULT.test(err?.response?.data?.fault?.faultstring)
       ) {
-        return fillInBlanks({ uid: netid });
+        return transform(fillInBlanks({ uid: netid }));
       }
       await Honeybadger.notifyAsync(err, { tags: ["auth", "upstream"] });
       console.error(err.response.data);

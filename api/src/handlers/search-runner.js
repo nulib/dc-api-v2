@@ -94,8 +94,11 @@ const constructSearchContext = async (event) => {
 
   const { queryStringParameters = {} } = event;
 
-  searchContext.size =
-    queryStringParameters.size || searchContext.size || defaultSearchSize();
+  if (queryStringParameters.size !== undefined) {
+    searchContext.size = Number(queryStringParameters.size);
+  } else if (searchContext.size === undefined) {
+    searchContext.size = defaultSearchSize();
+  }
   searchContext.from = queryStringParameters.from || searchContext.from || 0;
 
   if (

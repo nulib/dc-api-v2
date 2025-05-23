@@ -6,25 +6,31 @@ const expect = chai.expect;
 const { dcApiEndpoint, dcUrl } = requireSource("environment");
 const transformer = requireSource("api/response/iiif/manifest");
 
+/**
+ * Set up the trasnformer with a fixture.
+ *
+ * @param {string} [fixture="mocks/work-1234-no-collection.json"] - Path to the fixture file
+ * @returns {Promise<{source: Object, manifest: Object}>}
+ */
+async function setup(fixture = "mocks/work-1234.json") {
+  const response = {
+    statusCode: 200,
+    body: helpers.testFixture(fixture),
+  };
+  const source = JSON.parse(response.body)._source;
+
+  const result = await transformer.transform(response);
+  expect(result.statusCode).to.eq(200);
+
+  return { source, manifest: JSON.parse(result.body) };
+}
+
 describe("Image Work as IIIF Manifest response transformer", () => {
   function getMetadataValueByLabel(metadataArray, targetLabel) {
     const foundObj = metadataArray.find(
       (item) => item.label.none[0] === targetLabel
     );
     return foundObj ? foundObj.value.none : undefined;
-  }
-
-  async function setup() {
-    const response = {
-      statusCode: 200,
-      body: helpers.testFixture("mocks/work-1234.json"),
-    };
-    const source = JSON.parse(response.body)._source;
-
-    const result = await transformer.transform(response);
-    expect(result.statusCode).to.eq(200);
-
-    return { source, manifest: JSON.parse(result.body) };
   }
 
   it("transforms an Image work response to minimal Manifest", async () => {
@@ -183,107 +189,76 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     const { manifest } = await setup();
     expect(manifest).to.have.property("partOf");
 
-    async function setup2() {
-      const response = {
-        statusCode: 200,
-        body: helpers.testFixture("mocks/work-1234-no-collection.json"),
-      };
-      const source = JSON.parse(response.body)._source;
-
-      const result = await transformer.transform(response);
-      expect(result.statusCode).to.eq(200);
-
-      return { source, manifest: JSON.parse(result.body) };
-    }
-    const { manifest: manifest2 } = await setup2();
+    const { manifest: manifest2 } = await setup(
+      "mocks/work-1234-no-collection.json"
+    );
     expect(manifest2).to.not.have.property("partOf");
+  });
+
+  it("handles behavior property on Manifest", async () => {
+    const { manifest } = await setup();
+    expect(manifest).to.have.property("behavior");
+    expect(manifest.behavior).to.be.an("array").that.is.not.empty;
+    expect(manifest.behavior[0]).to.eq("individuals");
+
+    const { manifest: manifest2 } = await setup(
+      "mocks/work-1234-no-behavior.json"
+    );
+    expect(manifest2).to.not.have.property("behavior");
   });
 });
 
 describe("Image Work with fileset missing width and height as IIIF Manifest response transformer", () => {
-  async function setup() {
-    const response = {
-      statusCode: 200,
-      body: helpers.testFixture("mocks/work-1234-no-fileset-width-height.json"),
-    };
-    const source = JSON.parse(response.body)._source;
-
-    const result = await transformer.transform(response);
-    expect(result.statusCode).to.eq(200);
-
-    return { source, manifest: JSON.parse(result.body) };
-  }
-
   it("sets canvas width and height to a default value", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup(
+      "mocks/work-1234-no-fileset-width-height.json"
+    );
     const { width, height } = manifest.items[0];
     expect(width).to.eq(100);
     expect(height).to.eq(100);
   });
 
   it("sets canvas annotation body width and height to a default value", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup(
+      "mocks/work-1234-no-fileset-width-height.json"
+    );
     const { width, height } = manifest.items[0].items[0].items[0].body;
     expect(width).to.eq(100);
     expect(height).to.eq(100);
   });
 
   it("excludes placeholderCanvas property on Image canvases if filset does not have width OR height", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup(
+      "mocks/work-1234-no-fileset-width-height.json"
+    );
     const { placeholderCanvas } = manifest.items[0];
     expect(placeholderCanvas).to.eq(undefined);
   });
 });
 
 describe("Image Work with fileset missing representative_image_url", () => {
-  async function setup() {
-    const response = {
-      statusCode: 200,
-      body: helpers.testFixture(
-        "mocks/work-1234-no-fileset-representative-image.json"
-      ),
-    };
-    const source = JSON.parse(response.body)._source;
-
-    const result = await transformer.transform(response);
-    expect(result.statusCode).to.eq(200);
-
-    return { source, manifest: JSON.parse(result.body) };
-  }
-
   it("excludes placeholderCanvas property on Image canvases if filset does not have width OR height", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup(
+      "mocks/work-1234-no-fileset-representative-image.json"
+    );
     const { placeholderCanvas } = manifest.items[0];
     expect(placeholderCanvas).to.eq(undefined);
   });
 });
 
 describe("A/V Work as IIIF Manifest response transformer", () => {
-  async function setup() {
-    const response = {
-      statusCode: 200,
-      body: helpers.testFixture("mocks/work-video-5678.json"),
-    };
-    const source = JSON.parse(response.body)._source;
-
-    const result = await transformer.transform(response);
-    expect(result.statusCode).to.eq(200);
-
-    return { source, manifest: JSON.parse(result.body) };
-  }
-
   it("transforms a Video work response to minimal Manifest", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup("mocks/work-video-5678.json");
     expect(manifest.type).to.eq("Manifest");
   });
 
   it("renders duration on AV canvases", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup("mocks/work-video-5678.json");
     expect(manifest.items[0].duration).to.eq(5.599);
   });
 
   it("renders annotation for type: Sound and Video ", async () => {
-    const { source, manifest } = await setup();
+    const { source, manifest } = await setup("mocks/work-video-5678.json");
     const annotation = manifest.items[0].items[0].items[0];
 
     expect(annotation.body.duration).to.eq(5.599);
@@ -293,7 +268,7 @@ describe("A/V Work as IIIF Manifest response transformer", () => {
   });
 
   it("renders a label for AnnotationPage with default value", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup("mocks/work-video-5678.json");
     const annotationPageLabel = manifest.items[1].annotations[0].label["en"][0];
     expect(annotationPageLabel).to.eq("Chapters");
   });
@@ -311,21 +286,8 @@ describe("404 network response", () => {
 });
 
 describe("IIIF Multiple Choice of Images in a Single View", () => {
-  async function setup() {
-    const response = {
-      statusCode: 200,
-      body: helpers.testFixture("mocks/work-1234-choice.json"),
-    };
-    const source = JSON.parse(response.body)._source;
-
-    const result = await transformer.transform(response);
-    expect(result.statusCode).to.eq(200);
-
-    return { source, manifest: JSON.parse(result.body) };
-  }
-
   it("creates a Choice annotation when there are alternate file sets", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup("mocks/work-1234-choice.json");
     expect(manifest.type).to.eq("Manifest");
     expect(manifest.items).to.be.an("array").that.is.not.empty;
 
@@ -341,7 +303,7 @@ describe("IIIF Multiple Choice of Images in a Single View", () => {
   });
 
   it("ensures the primary file set appears first in the Choice annotation", async () => {
-    const { manifest, source } = await setup();
+    const { manifest, source } = await setup("mocks/work-1234-choice.json");
 
     // Group file sets by `group_with` field
     const fileSetGroups = {};
@@ -383,8 +345,9 @@ describe("IIIF Multiple Choice of Images in a Single View", () => {
       }
     });
   });
+
   it("does not create a Choice annotation when there is only one file set", async () => {
-    const { manifest } = await setup();
+    const { manifest } = await setup("mocks/work-1234-choice.json");
 
     manifest.items.forEach((canvas) => {
       const annotation = canvas.items[0]?.items[0];

@@ -6,11 +6,14 @@ function filterFor(query, event) {
   const beUnpublished = { term: { published: false } };
   const beRestricted = { term: { visibility: "Private" } };
 
-  let filter = { must: [matchTheQuery] };
-  if (!event.userToken.isSuperUser()) {
-    filter.must_not = event.userToken.isReadingRoom()
-      ? [beUnpublished]
-      : [beUnpublished, beRestricted];
+  let filter = { must: [matchTheQuery], must_not: [] };
+
+  if (!event.userToken.can("read:Unpublished")) {
+    filter.must_not.push(beUnpublished);
+  }
+
+  if (!event.userToken.can("read:Private")) {
+    filter.must_not.push(beRestricted);
   }
 
   return { bool: filter };
@@ -19,7 +22,8 @@ function filterFor(query, event) {
 module.exports = class RequestPipeline {
   constructor(searchContext) {
     this.searchContext = { ...searchContext };
-    if (!this.searchContext.size) this.searchContext.size = defaultSearchSize();
+    if (this.searchContext.size === undefined)
+      this.searchContext.size = defaultSearchSize();
     if (!this.searchContext.from) this.searchContext.from = 0;
   }
 

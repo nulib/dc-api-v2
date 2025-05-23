@@ -54,7 +54,10 @@ describe("Authorize a work by id", () => {
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/work-netid-1234.json"));
 
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken()
+        .user({ uid: "abc123" })
+        .provider("nusso")
+        .sign();
 
       const event = helpers
         .mockEvent("GET", "/works/{id}/authorization")
@@ -65,6 +68,27 @@ describe("Authorize a work by id", () => {
         .render();
       const result = await handler(event);
       expect(result.statusCode).to.eq(204);
+    });
+
+    it("does not authorize a netid, published work with a non-NUSSO token", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/work-netid-1234.json"));
+
+      const token = new ApiToken()
+        .user({ uid: "abc123" })
+        .provider("test-provider")
+        .sign();
+
+      const event = helpers
+        .mockEvent("GET", "/works/{id}/authorization")
+        .pathParams({ id: 1234 })
+        .headers({
+          Cookie: `${process.env.API_TOKEN_NAME}=${token}`,
+        })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(403);
     });
 
     it("does not authorize a netid, published work with no token", async () => {

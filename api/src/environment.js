@@ -11,7 +11,7 @@ function apiToken() {
     iat: Math.floor(Number(new Date()) / 1000),
   };
 
-  return jwt.sign(token, process.env.API_TOKEN_SECRET);
+  return jwt.sign(token, apiTokenSecret());
 }
 
 function apiTokenName() {
@@ -44,7 +44,7 @@ function defaultSearchSize() {
 }
 
 function devTeamNetIds() {
-  return process.env.DEV_TEAM_NET_IDS.split(",");
+  return process.env.DEV_TEAM_NET_IDS?.split(",") || [];
 }
 
 function openSearchEndpoint() {
@@ -55,6 +55,10 @@ function prefix(value) {
   const envPrefix =
     process.env.ENV_PREFIX === "" ? undefined : process.env.ENV_PREFIX;
   return [envPrefix, value].filter((val) => !!val).join("-");
+}
+
+function ProviderCapabilities() {
+  return JSON.parse(process.env.PROVIDER_CAPABILITIES);
 }
 
 function region() {
@@ -72,5 +76,6 @@ module.exports = {
   devTeamNetIds,
   openSearchEndpoint,
   prefix,
+  ProviderCapabilities,
   region,
 };

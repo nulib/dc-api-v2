@@ -13,6 +13,7 @@
     "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/works/1234",
     "api_model": "Work",
     "ark": "ark:/99999/fk47h32p0m",
+    "behavior": "Individuals",
     "batch_ids": [
       "a846a5f2-da57-49e6-a138-f5462d113a55",
       "97aac3e3-389a-47ac-a7b3-5dd6ffffd558",

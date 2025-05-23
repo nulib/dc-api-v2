@@ -87,6 +87,11 @@ Parameters:
     Type: String
     Description: MediaConvert role ARN
     Default: ""
+  ProviderCapabilities:
+    Type: String
+    Description: Currently enabled features per auth provider
+    Default: |
+      {"magic":["chat"],"nusso":["chat"]}
   PyramidBucket:
     Type: String
     Description: Meadow Pyramid Bucket
@@ -162,8 +167,10 @@ Resources:
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
         HoneybadgerEnv: !Ref HoneybadgerEnv
         HoneybadgerRevision: !Ref HoneybadgerRevision
+        ProviderCapabilities: !Ref ProviderCapabilities
         PyramidBucket: !Ref PyramidBucket
         ReadingRoomIPs: !Ref ReadingRoomIPs
+        RepositoryEmail: !Ref RepositoryEmail
         SecretsPath: !Ref SecretsPath
         SecretsPolicy: !Ref readSecretsPolicy
         WriteConfigSecret: !Ref WriteConfigSecret

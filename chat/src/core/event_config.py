@@ -35,6 +35,7 @@ class EventConfig:
     forget: bool = field(init=False)
     is_dev_team: bool = field(init=False)
     is_logged_in: bool = field(init=False)
+    is_institution: bool = field(init=False)
     is_superuser: bool = field(init=False)
     k: int = field(init=False)
     max_tokens: int = field(init=False)
@@ -59,10 +60,13 @@ class EventConfig:
         self.forget = self.payload.get("forget", False)
         self.is_dev_team = self.api_token.is_dev_team()
         self.is_logged_in = self.api_token.is_logged_in()
+        self.is_institution = self.api_token.is_institution()
         self.is_superuser = self.api_token.is_superuser()
         self.k = self._get_k()
         self.max_tokens = min(self.payload.get("max_tokens", MAX_TOKENS), MAX_TOKENS)
-        self.model = self._get_payload_value_with_superuser_check("model", "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+        self.model = self._get_payload_value_with_superuser_check(
+            "model", "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        )
         self.prompt_text = self._get_prompt_text()
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")
@@ -72,6 +76,9 @@ class EventConfig:
         self.temperature = self._get_temperature()
         self.text_key = self._get_text_key()
         self.prompt = ChatPromptTemplate.from_template(self.prompt_text)
+
+    def user_can(self, scope):
+        return self.api_token.can(scope)
 
     def _get_payload_value_with_superuser_check(self, key, default):
         if self.api_token.is_superuser():
@@ -98,7 +105,7 @@ class EventConfig:
     def setup_websocket(self, socket=None):
         if socket is None:
             connection_id = self.request_context.get("connectionId")
-            endpoint_url = f'https://{self.request_context.get("domainName")}/{self.request_context.get("stage")}'
+            endpoint_url = f"https://{self.request_context.get('domainName')}/{self.request_context.get('stage')}"
             self.socket = Websocket(
                 endpoint_url=endpoint_url, connection_id=connection_id, ref=self.ref
             )

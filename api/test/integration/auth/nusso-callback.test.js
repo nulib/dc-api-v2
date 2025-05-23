@@ -4,16 +4,17 @@ const chai = require("chai");
 const expect = chai.expect;
 const nock = require("nock");
 
-const getAuthCallbackHandler = requireSource("handlers/get-auth-callback");
+const getAuthCallbackHandler = requireSource("handlers/get-auth-stage");
 const ApiToken = requireSource("api/api-token");
 
-describe("auth callback", function () {
+describe("nusso auth callback", function () {
   helpers.saveEnvironment();
 
   let event;
   beforeEach(() => {
     event = helpers
-      .mockEvent("GET", "/auth/callback")
+      .mockEvent("GET", "/auth/callback/nusso")
+      .pathParams({ provider: "nusso", stage: "callback" })
       .headers({
         Cookie: "nusso=bnVzc28=;redirectUrl=aHR0cHM6Ly9leGFtcGxlLmNvbQ==;",
       })

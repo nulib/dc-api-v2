@@ -224,6 +224,7 @@ Resources:
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          RATE_LIMIT_TABLE_NAME: !Ref RateLimitTable
           NO_COLOR: 1
       Policies:
       - !Ref SecretsPolicy
@@ -262,6 +263,14 @@ Resources:
           - bedrock:InvokeModel
           - bedrock:InvokeModelWithResponseStream
           Resource: "*"
+      - Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          Resource: !GetAtt RateLimitTable.Arn
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   ChatSyncFunction:
@@ -287,6 +296,7 @@ Resources:
           HONEYBADGER_REVISION: !Ref HoneybadgerRevision
           METRICS_LOG_GROUP: !Ref ChatMetricsLog
           SECRETS_PATH: !Ref SecretsPath
+          RATE_LIMIT_TABLE_NAME: !Ref RateLimitTable
           NO_COLOR: 1
       FunctionUrlConfig:
         AuthType: AWS_IAM
@@ -321,8 +331,31 @@ Resources:
           - bedrock:InvokeModel
           - bedrock:InvokeModelWithResponseStream
           Resource: "*"
+      # Add DynamoDB permissions
+      - Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          - dynamodb:DeleteItem
+          Resource: !GetAtt RateLimitTable.Arn
     #* Metadata:
     #*   BuildMethod: nodejs20.x
+  RateLimitTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-RateLimits"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
   ChatMetricsLog:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -351,3 +384,6 @@ Outputs:
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
     Value: !Sub 'wss://${ChatWebSocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'
+  RateLimitTableName:
+    Description: "Name of the DynamoDB table used for rate limiting"
+    Value: !Ref RateLimitTable

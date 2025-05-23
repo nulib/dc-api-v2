@@ -8,10 +8,13 @@ const ApiToken = requireSource("api/api-token");
 
 describe("GET /chat-endpoint", function () {
   helpers.saveEnvironment();
+  beforeEach(() => {
+    process.env.PROVIDER_CAPABILITIES = '{"magic":[],"nusso":["chat"]}';
+  });
 
   it("returns the websocket URI and token to a logged in user", async () => {
-    const token = new ApiToken().user({ uid: "abc123" }).sign();
-
+    let token = new ApiToken().user({ sub: "abc123" }).provider("nusso");
+    token = token.sign();
     const event = helpers
       .mockEvent("GET", "/chat-endpoint")
       .headers({
@@ -20,7 +23,6 @@ describe("GET /chat-endpoint", function () {
       .render();
 
     const result = await getChatEndpointHandler.handler(event);
-
     expect(result.statusCode).to.eq(200);
     const response = JSON.parse(result.body);
     expect(response).to.contain({

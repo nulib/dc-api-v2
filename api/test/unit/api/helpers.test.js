@@ -302,7 +302,7 @@ describe("helpers", () => {
 
   describe("decodeToken", async () => {
     it("identifies a cookie token", () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
       let result = helpers
         .mockEvent("GET", "/works/{id}/")
         .pathParams({ id: 1234 })
@@ -318,7 +318,7 @@ describe("helpers", () => {
       expect(result.userToken.token).to.not.have.property("isReadingRoom");
     });
     it("identifies a bearer token", () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
       let result = helpers
         .mockEvent("GET", "/works/{id}/")
         .pathParams({ id: 1234 })
@@ -334,8 +334,8 @@ describe("helpers", () => {
       expect(result.userToken.token).to.not.have.property("isReadingRoom");
     });
     it("prioritizes a bearer token over a cookie token", () => {
-      const cookieToken = new ApiToken().user({ uid: "abc123" }).sign();
-      const bearerToken = new ApiToken().user({ uid: "def456" }).sign();
+      const cookieToken = new ApiToken().user({ sub: "abc123" }).sign();
+      const bearerToken = new ApiToken().user({ sub: "def456" }).sign();
 
       let result = helpers
         .mockEvent("GET", "/works/{id}/")
@@ -376,8 +376,7 @@ describe("helpers", () => {
       });
     });
     it("adds the reading room flag to the token", () => {
-      const token = new ApiToken().user({ uid: "abc123" }).sign();
-
+      const token = new ApiToken().user({ sub: "abc123" }).sign();
       const event = helpers
         .mockEvent("GET", "/works/{id}/")
         .pathParams({ id: 1234 })

@@ -1,5 +1,6 @@
 # ruff: noqa: E402
 import sys
+
 sys.path.append("./src")
 
 import pytest
@@ -104,7 +105,9 @@ class TestS3Checkpointer(TestCase):
 
         returned_config = self.checkpointer.put(config, new_checkpoint, metadata, {})
 
-        self.assertEqual(returned_config["configurable"]["checkpoint_id"], "checkpoint3")
+        self.assertEqual(
+            returned_config["configurable"]["checkpoint_id"], "checkpoint3"
+        )
         expected_key = (
             f"checkpoints/{THREAD_ID}/__default__/checkpoint3/checkpoint.json"
         )
@@ -131,7 +134,9 @@ class TestS3Checkpointer(TestCase):
 
         checkpoint_tuple = self.checkpointer.get_tuple(config)
         assert checkpoint_tuple is not None
-        self.assertEqual(checkpoint_tuple.config["configurable"]["checkpoint_id"], "checkpoint6")
+        self.assertEqual(
+            checkpoint_tuple.config["configurable"]["checkpoint_id"], "checkpoint6"
+        )
 
     def test_put_invalid_checkpoint(self):
         """Test putting an invalid checkpoint raises appropriate errors."""
@@ -190,6 +195,7 @@ class TestS3Checkpointer(TestCase):
             self.checkpointer.get_tuple(config)
 
         self.assertIn("Metadata is missing", str(context.exception))
+
     #
     # Writes (Pending Writes) Tests
     #
@@ -279,7 +285,9 @@ class TestS3Checkpointer(TestCase):
 
         checkpoint_tuple = self.checkpointer.get_tuple(returned_config)
         assert checkpoint_tuple is not None
-        self.assertEqual(checkpoint_tuple.config["configurable"]["checkpoint_id"], "checkpoint5")
+        self.assertEqual(
+            checkpoint_tuple.config["configurable"]["checkpoint_id"], "checkpoint5"
+        )
         self.assertEqual(checkpoint_tuple.checkpoint["id"], "checkpoint5")
         self.assertEqual(checkpoint_tuple.metadata, {})
         assert checkpoint_tuple.parent_config is None
@@ -334,7 +342,7 @@ class TestS3Checkpointer(TestCase):
         """Test listing when no config is provided."""
         with self.assertRaises(ValueError) as context:
             list(self.checkpointer.list(None))
-        
+
         self.assertIn("config must be provided", str(context.exception))
 
     def test_list_before_removes_all(self):
@@ -381,7 +389,9 @@ class TestS3Checkpointer(TestCase):
             )
         )
         assert child_tuple is not None
-        self.assertEqual(child_tuple.config["configurable"]["checkpoint_id"], "child_checkpoint")
+        self.assertEqual(
+            child_tuple.config["configurable"]["checkpoint_id"], "child_checkpoint"
+        )
         assert child_tuple.parent_config is not None
         assert (
             child_tuple.parent_config["configurable"]["checkpoint_id"]
@@ -409,7 +419,9 @@ class TestS3Checkpointer(TestCase):
 
         retrieved_tuple = self.checkpointer.get_tuple(returned_config)
         assert retrieved_tuple is not None
-        self.assertEqual(retrieved_tuple.config["configurable"]["checkpoint_ns"], namespace)
+        self.assertEqual(
+            retrieved_tuple.config["configurable"]["checkpoint_ns"], namespace
+        )
         assert (
             retrieved_tuple.config["configurable"]["checkpoint_id"] == "checkpoint_ns1"
         )
@@ -451,11 +463,15 @@ class TestS3Checkpointer(TestCase):
 
         retrieved_ns1 = list(self.checkpointer.list(config))
         self.assertEqual(len(retrieved_ns1), 1)
-        self.assertEqual(retrieved_ns1[0].config["configurable"]["checkpoint_id"], "ns1_ckpt1")
+        self.assertEqual(
+            retrieved_ns1[0].config["configurable"]["checkpoint_id"], "ns1_ckpt1"
+        )
 
         retrieved_ns2 = list(self.checkpointer.list(config_ns2))
         self.assertEqual(len(retrieved_ns2), 1)
-        self.assertEqual(retrieved_ns2[0].config["configurable"]["checkpoint_id"], "ns2_ckpt1")
+        self.assertEqual(
+            retrieved_ns2[0].config["configurable"]["checkpoint_id"], "ns2_ckpt1"
+        )
 
     #
     # Compression
@@ -630,7 +646,7 @@ class TestS3Checkpointer(TestCase):
         config = self.create_config()
         with self.assertRaises(ValueError) as context:
             list(self.checkpointer.list(config))
-            
+
         self.assertIn("Invalid checkpoint key format", str(context.exception))
 
     @pytest.mark.slow
