@@ -35,6 +35,7 @@ jobs:
         run: |
           # Find all package.json files in the repo
           PACKAGE_FILES=$(find . -name "package.json" -not -path "*/node_modules/*")
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}..HEAD)
 
           UNCHANGED_FILES=()
           
