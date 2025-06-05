@@ -1,5 +1,6 @@
 const axios = require("axios").default;
 const cookie = require("cookie");
+const { dcApiEndpoint } = require("../../environment");
 const ApiToken = require("../../api/api-token");
 const Honeybadger = require("../../honeybadger-setup");
 
@@ -10,10 +11,14 @@ const BAD_DIRECTORY_SEARCH_FAULT =
  * NUSSO auth callback
  */
 exports.handler = async (event) => {
-  const returnPath = Buffer.from(
-    decodeURIComponent(event.cookieObject.redirectUrl),
-    "base64"
-  ).toString("utf8");
+  let returnPath = `${dcApiEndpoint()}/auth/whoami`;
+  const redirectUrl = event.cookieObject.redirectUrl;
+  if (redirectUrl) {
+    returnPath = Buffer.from(
+      decodeURIComponent(event.cookieObject.redirectUrl),
+      "base64"
+    ).toString("utf8");
+  }
 
   const user = await redeemSsoToken(event);
   if (user) {

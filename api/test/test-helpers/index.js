@@ -18,7 +18,8 @@ const TestEnvironment = {
   WEBSOCKET_URI: "wss://thisisafakewebsocketapiurl",
   CHAT_FEEDBACK_BUCKET: "test-chat-feedback-bucket",
   DEFAULT_SEARCH_SIZE: "10",
-  PROVIDER_CAPABILITIES: '{"magic":["chat"],"nusso":["chat"]}',
+  PROVIDER_CAPABILITIES:
+    '{"magic":["chat", "login"],"nusso":["chat", "login"]}',
 };
 
 for (const v in TestEnvironment) delete process.env[v];
