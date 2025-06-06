@@ -11,15 +11,23 @@ describe("nusso auth callback", function () {
   helpers.saveEnvironment();
 
   let event;
-  beforeEach(() => {
-    event = helpers
+  const makeEvent = (redirectUrl) => {
+    let redirectUrlCookie = "";
+    if (redirectUrl) {
+      const encodedRedirectUrl = Buffer.from(redirectUrl).toString("base64");
+      redirectUrlCookie = `redirectUrl=${encodedRedirectUrl};`;
+    }
+    return helpers
       .mockEvent("GET", "/auth/callback/nusso")
       .pathParams({ provider: "nusso", stage: "callback" })
       .headers({
-        Cookie: "nusso=bnVzc28=;redirectUrl=aHR0cHM6Ly9leGFtcGxlLmNvbQ==;",
+        Cookie: `nusso=bnVzc28=;${redirectUrlCookie}`,
       })
       .render();
+  };
 
+  beforeEach(() => {
+    event = makeEvent("https://example.com");
     nock(process.env.NUSSO_BASE_URL)
       .get("/agentless-websso/validateWebSSOToken")
       .reply(200, { netid: "uid123" });
@@ -39,9 +47,6 @@ describe("nusso auth callback", function () {
       });
 
     const result = await getAuthCallbackHandler.handler(event);
-
-    expect(result.statusCode).to.eq(302);
-    expect(result.headers.location).to.eq("https://example.com");
 
     const dcApiCookie = helpers.cookieValue(
       result.cookies,
@@ -65,9 +70,6 @@ describe("nusso auth callback", function () {
       });
 
     const result = await getAuthCallbackHandler.handler(event);
-
-    expect(result.statusCode).to.eq(302);
-    expect(result.headers.location).to.eq("https://example.com");
 
     expect(result.cookies).to.include(
       "redirectUrl=null; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
@@ -100,9 +102,6 @@ describe("nusso auth callback", function () {
 
     const result = await getAuthCallbackHandler.handler(event);
 
-    expect(result.statusCode).to.eq(302);
-    expect(result.headers.location).to.eq("https://example.com");
-
     expect(result.cookies).to.include(
       "redirectUrl=null; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
     );
@@ -118,5 +117,38 @@ describe("nusso auth callback", function () {
     expect(apiToken.token.name).to.eq("uid123");
     expect(apiToken.token.email).to.eq("uid123@e.northwestern.edu");
     expect(apiToken.isLoggedIn()).to.be.true;
+  });
+
+  describe("redirect", () => {
+    beforeEach(() => {
+      nock(process.env.NUSSO_BASE_URL)
+        .get("/directory-search/res/netid/bas/uid123")
+        .reply(200, {
+          results: [
+            {
+              displayName: ["Some User"],
+              mail: "some.user@example.com",
+              eduPersonPrimaryAffiliation: "staff",
+            },
+          ],
+        });
+    });
+
+    it("redirects to the redirectUrl if provided", async () => {
+      const redirectUrl = "https://example.com/redirect";
+      event = makeEvent(redirectUrl);
+      const result = await getAuthCallbackHandler.handler(event);
+      expect(result.statusCode).to.eq(302);
+      expect(result.headers.location).to.eq(redirectUrl);
+    });
+
+    it("redirects to the default path if no redirectUrl is provided", async () => {
+      event = makeEvent();
+      const result = await getAuthCallbackHandler.handler(event);
+      expect(result.statusCode).to.eq(302);
+      expect(result.headers.location).to.eq(
+        "https://thisisafakeapiurl/auth/whoami"
+      );
+    });
   });
 });
