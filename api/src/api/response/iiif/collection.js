@@ -178,7 +178,7 @@ function loadItem(item, itemType, size) {
         },
       ],
       label: {
-        none: [`${item.title}`],
+        none: [`${item.title || "No title"}`],
       },
       summary: {
         none: [`${item.work_type}`],
