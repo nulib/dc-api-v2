@@ -30,7 +30,10 @@ class ApiToken:
         return f"ApiToken(token={self.token})"
 
     def can(self, scope):
-        return scope in self.token.get("scopes", [])
+        if self.is_superuser():
+            return True
+        else:
+            return scope in self.token.get("scopes", [])
         
     def is_logged_in(self):
         return self.token.get("isLoggedIn", False)

@@ -3,7 +3,10 @@ from unittest.mock import patch
 
 from agent.search_agent import SearchAgent
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
+from langchain_core.language_models.fake_chat_models import FakeMessagesListChatModel
 from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import AIMessage
+
 
 
 class TestSearchAgent(TestCase):
@@ -25,6 +28,37 @@ class TestSearchAgent(TestCase):
         self.assertIn("messages", result)
         self.assertGreater(len(result["messages"]), 0)
         self.assertEqual(result["messages"][-1].content, expected_response)
+
+    @patch("agent.search_agent.checkpoint_saver", return_value=MemorySaver())
+    @patch("agent.tools.opensearch_vector_store") 
+    def test_search_agent_invoke_with_facets(self, mock_opensearch_store, mock_create_saver):
+        mock_store_instance = mock_opensearch_store.return_value
+        mock_store_instance.similarity_search.return_value = []
+        
+        tool_call_response = AIMessage(
+            content="I'll search for information.",
+            tool_calls=[{
+                "name": "search", 
+                "args": {"query": "capital of France"}, 
+                "id": "test_call_id"
+            }]
+        )
+        final_response = AIMessage(content="This is the final response.")
+        
+        chat_model = FakeMessagesListChatModel(responses=[tool_call_response, final_response])
+        search_agent = SearchAgent(model=chat_model)
+        
+        facets = [{"country": "France"}]
+        search_agent.invoke(
+            question="What is the capital of France?",
+            ref="test_ref",
+            facets=facets,
+        )
+        
+        mock_store_instance.similarity_search.assert_called()
+        call_kwargs = mock_store_instance.similarity_search.call_args[1]
+        self.assertIn("facets", call_kwargs)
+        self.assertEqual(call_kwargs["facets"], facets)
 
     @patch("agent.search_agent.checkpoint_saver")
     def test_search_agent_invocation(self, mock_create_saver):
