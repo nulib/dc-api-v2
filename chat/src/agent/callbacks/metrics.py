@@ -17,7 +17,7 @@ class MetricsCallbackHandler(BaseCallbackHandler):
         self.extra_data = extra_data
         super().__init__(*args, **kwargs)
 
-    def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
+    def on_llm_end(self, response: LLMResult, **kwargs):
         if response is None:
             return
 
@@ -35,8 +35,13 @@ class MetricsCallbackHandler(BaseCallbackHandler):
             if metadata is None:
                 continue
 
+            print(metadata)
+
             for k, v in metadata.items():
-                self.accumulator[k] = self.accumulator.get(k, 0) + v
+                if isinstance(v, (int, float)):
+                    self.accumulator[k] = self.accumulator.get(k, 0) + v
+                else:
+                    self.accumulator[k] = v
 
     def on_tool_end(self, output: ToolMessage, **kwargs: Dict[str, Any]):
         content = output.content

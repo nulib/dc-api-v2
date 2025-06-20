@@ -29,16 +29,24 @@ class OpenSearchNeuralSearch(VectorStore):
         self.text_field = text_field
 
     def similarity_search(
-        self, query: str, k: int = 10, **kwargs: Any
+        self, query: str, k: int = 10, facets: list = None, **kwargs: Any
     ) -> List[Document]:
         """Return docs most similar to the embedding vector."""
-        docs_with_scores = self.similarity_search_with_score(query, k, **kwargs)
+        docs_with_scores = self.similarity_search_with_score(query, k, facets=facets, **kwargs)
         return [doc[0] for doc in docs_with_scores]
 
     def similarity_search_with_score(
-        self, query: str, k: int = 10, **kwargs: Any
+        self, query: str, k: int = 10, facets: list = None, **kwargs: Any
     ) -> List[Tuple[Document, float]]:
         """Return docs most similar to query."""
+        # Pass facets through kwargs so they can be used in the filter function
+        print("Performing similarity search...")
+        print(f"Received facets parameter: {facets}")
+        print(f"Received kwargs: {kwargs}")
+        if facets is not None:
+            print(f"Facets: {facets}")
+            kwargs['facets'] = facets
+            
         dsl = hybrid_query(
             query=query,
             model_id=self.model_id,
@@ -46,6 +54,7 @@ class OpenSearchNeuralSearch(VectorStore):
             k=k,
             **kwargs,
         )
+        print(f"DSL Query: {dsl}")
         response = self.client.search(
             index=self.index,
             body=dsl,
@@ -67,7 +76,7 @@ class OpenSearchNeuralSearch(VectorStore):
         return documents_with_scores
 
     def aggregations_search(
-        self, agg_field: str, term_field: str = None, term: str = None, **kwargs: Any
+        self, agg_field: str, term_field: str = None, term: str = None, facets: list = None, **kwargs: Any
     ) -> dict:
         """Perform a search with aggregations and return the aggregation results."""
         base_query = (
@@ -75,7 +84,7 @@ class OpenSearchNeuralSearch(VectorStore):
             if (term is None or term == "")
             else {"match": {term_field: term}}
         )
-        filtered_query = filter(base_query)
+        filtered_query = filter(base_query, facets)
 
         dsl = {
             "size": 0,

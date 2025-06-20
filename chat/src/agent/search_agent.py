@@ -26,6 +26,40 @@ of their question to make it more answerable.
 
 MAX_RECURSION_LIMIT = 16
 
+class FacetsToolNode:
+    """Custom tool node that injects facets into tool calls."""
+    
+    def __init__(self, tools, facets=None):
+        self.tools = tools
+        self.facets = facets
+        self.tool_node = ToolNode(tools)
+    
+    def set_facets(self, facets):
+        """Update the facets for this tool node."""
+        self.facets = facets
+    
+    def __call__(self, state: MessagesState):
+        """Execute tools with facets injected."""
+        messages = state["messages"]
+        last_message = messages[-1]
+
+        print(f"FacetsToolNode: Processing {len(last_message.tool_calls)} tool calls")
+
+        # If there are tool calls and we have facets, inject them
+        if hasattr(last_message, 'tool_calls') and self.facets:
+            for tool_call in last_message.tool_calls:
+                # Only inject facets for search and aggregate tools
+                if tool_call['name'] in ['search', 'aggregate']:
+                    # Only add facets if not already provided
+                    if 'facets' not in tool_call['args'] or tool_call['args']['facets'] is None:
+                        tool_call['args']['facets'] = self.facets
+                        print(f"Injecting facets into {tool_call['name']} tool: {self.facets}")
+        
+        # Execute the tools by calling the tool node's invoke method with the state
+        result = self.tool_node.invoke(state)
+        print(f"FacetsToolNode: Tool execution result: {type(result)}")
+        return result
+
 
 class SearchWorkflow:
     def __init__(self, model: BaseModel, system_message: str, metrics=None):
@@ -36,6 +70,8 @@ class SearchWorkflow:
     def should_continue(self, state: MessagesState) -> Literal["tools", END]:
         messages = state["messages"]
         last_message = messages[-1]
+        print(f"should_continue: last_message type: {type(last_message)}")
+        print(f"should_continue: last_message.tool_calls: {getattr(last_message, 'tool_calls', None)}")
         # If the LLM makes a tool call, then we route to the "tools" node
         if last_message.tool_calls:
             return "tools"
@@ -45,16 +81,40 @@ class SearchWorkflow:
     def summarize(self, state: MessagesState):
         messages = state["messages"]
         last_message = messages[-1]
-        if last_message.name not in ["search", "retrieve_documents"]:
+        print(f"summarize: last_message name: {getattr(last_message, 'name', None)}")
+        print(f"summarize: last_message type: {type(last_message)}")
+        
+        if not hasattr(last_message, 'name') or last_message.name not in ["search", "retrieve_documents"]:
+            print("summarize: Skipping summarization")
             return {"messages": messages}
+        
+        print("summarize: Processing summarization")
+
 
         start_time = time.time()
+
+        # Handle both JSON string and already parsed content
+        if isinstance(last_message.content, str):
+            try:
+                content = minimize_documents(json.loads(last_message.content))
+                print(f"summarize: Parsed JSON content, {len(content)} items")
+            except json.JSONDecodeError:
+                print("summarize: Failed to parse JSON, leaving as is")
+                return {"messages": messages}
+        elif isinstance(last_message.content, list):
+            content = minimize_documents(last_message.content)
+            print(f"summarize: Used list content directly, {len(content)} items")
+        else:
+            print(f"summarize: Unknown content type: {type(last_message.content)}")
+            return {"messages": messages}
+    
+
         content = minimize_documents(json.loads(last_message.content))
         content = json.dumps(content, separators=(",", ":"))
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(
-            f"Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%"
+            f"summarize: Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%"
         )
 
         last_message.content = content
@@ -77,8 +137,10 @@ class SearchAgent:
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         **kwargs,
     ):
+        self.current_facets = None
+
         tools = [discover_fields, search, aggregate, retrieve_documents]
-        tool_node = ToolNode(tools)
+        self.facets_tool_node = FacetsToolNode(tools)
 
         try:
             model = model.bind_tools(tools)
@@ -94,7 +156,7 @@ class SearchAgent:
 
         # Define the two nodes we will cycle between
         workflow.add_node("agent", self.workflow_logic.call_model)
-        workflow.add_node("tools", tool_node)
+        workflow.add_node("tools", self.facets_tool_node)
         workflow.add_node("summarize", self.workflow_logic.summarize)
 
         # Set the entrypoint as `agent`
@@ -117,10 +179,14 @@ class SearchAgent:
         ref: str,
         *,
         docs: Optional[List[str]] = None,
+        facets: Optional[List[dict]] = None,
         callbacks: List[BaseCallbackHandler] = [],
         forget: bool = False,
         **kwargs,
     ):
+        self.current_facets = facets
+        self.facets_tool_node.set_facets(facets)
+
         if forget:
             self.checkpointer.delete_checkpoints(ref)
 
@@ -146,7 +212,7 @@ class SearchAgent:
                     config={
                         "configurable": {"thread_id": ref},
                         "callbacks": callbacks,
-                        "recursion_limit": MAX_RECURSION_LIMIT,
+                        "recursion_limit": MAX_RECURSION_LIMIT
                     },
                     **kwargs,
                 )

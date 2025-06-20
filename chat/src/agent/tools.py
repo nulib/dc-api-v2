@@ -4,7 +4,6 @@ from langchain_core.tools import tool
 from core.setup import opensearch_vector_store
 from typing import List
 
-
 def get_keyword_fields(properties, prefix=""):
     """
     Filters a nested list of opensearch mappings and returns a flat list of keyword fields
@@ -36,7 +35,7 @@ def filter_results(results):
         if "embedding" in doc:
             doc.pop("embedding")
         filtered.append(doc)
-    return filtered
+    return json.dumps(filtered)
 
 
 @tool(response_format="content")
@@ -53,14 +52,23 @@ def discover_fields():
 
 
 @tool(response_format="content")
-def search(query: str):
-    """Perform a semantic search of Northwestern University Library digital collections. When answering a search query, ground your answer in the context of the results with references to the document's metadata."""
-    query_results = opensearch_vector_store().similarity_search(query, size=20)
+def search(query: str, facets: list = None):
+    """Perform a semantic search of Northwestern University Library digital collections. When answering a search query, ground your answer in the context of the results with references to the document's metadata.
+
+    If the user has provided facets, use them to filter the search results.
+
+    Args:
+        query (str): The search query
+        facets (list): Optional facet filters to apply, e.g. [{"collection": ["Posters from Herskovitz"]}, {"subject": ["Nigeria"]}]
+    """
+
+    print(f"Search tool - using facets: {facets}")
+    query_results = opensearch_vector_store().similarity_search(query, size=20, facets=facets)
     return filter_results(query_results)
 
 
 @tool(response_format="content")
-def aggregate(agg_field: str, term_field: str, term: str):
+def aggregate(agg_field: str, term_field: str, term: str, facets: list = None):
     """
     Perform a quantitative aggregation on the OpenSearch index. Use this tool for quantitative questions like "How many...?" or "What are the most common...?"
 
@@ -68,6 +76,7 @@ def aggregate(agg_field: str, term_field: str, term: str):
         agg_field (str): The field to aggregate on.
         term_field (str): The field to filter on.
         term (str): The term to filter on.
+        facets (list): Optional facet filters to apply, e.g. [{"subject": ["Nigeria"]}]
 
     Leave term_field and term empty to aggregate across the entire index.
 
@@ -80,7 +89,7 @@ def aggregate(agg_field: str, term_field: str, term: str):
     """
     try:
         response = opensearch_vector_store().aggregations_search(
-            agg_field, term_field, term
+            agg_field, term_field, term, facets=facets
         )
         return response
     except Exception as e:
