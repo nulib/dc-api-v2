@@ -68,7 +68,7 @@ function transform(response) {
         }
 
         /** Build out manifest descriptive properties */
-        manifest.addLabel(source.title, "none");
+        manifest.addLabel(source.title || "No title", "none");
         source.description.length > 0 &&
           manifest.addSummary(source.description, "none");
 

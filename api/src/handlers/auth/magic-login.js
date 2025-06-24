@@ -1,4 +1,4 @@
-const { dcApiEndpoint, dcUrl } = require("../../environment");
+const { dcApiEndpoint } = require("../../environment");
 const { createMagicToken } = require("./magic-link");
 const { SESClient, SendTemplatedEmailCommand } = require("@aws-sdk/client-ses");
 

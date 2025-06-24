@@ -120,3 +120,22 @@ describe("Magic link callback", () => {
     expect(body).to.have.property("error", "Token expired");
   });
 });
+
+describe("auth login with Magic Link disabled", function () {
+  helpers.saveEnvironment();
+
+  beforeEach(() => {
+    process.env.PROVIDER_CAPABILITIES =
+      '{"magic":[],"nusso":["chat", "login"]}';
+  });
+
+  it("returns a 404 when Magic Link is disabled", async () => {
+    const event = helpers
+      .mockEvent("GET", "/auth/login/magic")
+      .pathParams({ provider: "magic", stage: "login" })
+      .render();
+
+    const result = await handler(event);
+    expect(result.statusCode).to.eq(404);
+  });
+});

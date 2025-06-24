@@ -1,10 +1,31 @@
 const { wrap } = require("./middleware");
+const { ProviderCapabilities } = require("../environment");
 
 const DEFAULT_PROVIDER = "nusso";
 
 exports.handler = wrap(async (event, context) => {
   const provider = event.pathParameters.provider || DEFAULT_PROVIDER;
   const stage = event.pathParameters.stage || "login";
+
+  const capabilities = ProviderCapabilities();
+  if (!capabilities[provider]) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({
+        error: `Unknown provider: '${provider}'`,
+      }),
+    };
+  }
+
+  if (!capabilities[provider].includes("login")) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({
+        error: `Login not enabled for provider '${provider}'`,
+      }),
+    };
+  }
+
   try {
     const providerModule = `./auth/${provider}-${stage}`;
     console.info("Delegating to provider module:", providerModule);

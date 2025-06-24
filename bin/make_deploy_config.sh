@@ -79,6 +79,7 @@ for section in deploy sync; do
         MediaConvertRoleArn="arn:aws:iam::${aws_account_id}:role/service-role/MediaConvert_Default_Role"
         NussoApiKey="$(jq -r '.api_key' <<< $nusso_config)"
         NussoBaseUrl="$(jq -r '.base_url' <<< $nusso_config)"
+        ProviderCapabilities='{"magic":["chat", "login"],"nusso":["chat", "login"]}'
         PyramidBucket="${DEV_PREFIX}-${DEV_ENV}-pyramids"
         ReadingRoomIPs=""
         RepositoryEmail="repository@northwestern.edu"

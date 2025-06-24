@@ -4,6 +4,7 @@ langchain~=0.2
 langchain-aws~=0.2
 langchain-openai~=0.1
 langgraph~=0.2
+numpy==2.2.6
 openai~=1.35
 opensearch-py
 pyjwt~=2.6.0

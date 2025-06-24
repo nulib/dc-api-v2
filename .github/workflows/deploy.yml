@@ -51,6 +51,9 @@ jobs:
           aws-region: us-east-1
       - run: ln -s .tfvars/dc-api/samconfig.${DEPLOY_ENV}.yaml .
       - run: make build
+        env:
+          SAM_CLI_BETA_BUILD_PERFORMANCE: 1
+          SAM_CLI_BETA_PACKAGE_PERFORMANCE: 1
       - run: | 
           sam deploy \
             --no-confirm-changeset \
@@ -60,3 +63,5 @@ jobs:
           exit ${PIPESTATUS[0]}
         env:
           HONEYBADGER_REVISION: ${{ github.sha }}
+          SAM_CLI_BETA_BUILD_PERFORMANCE: 1
+          SAM_CLI_BETA_PACKAGE_PERFORMANCE: 1
