@@ -12,13 +12,10 @@ def filter(query: dict, facets: list = None):
         for facet in facets:
             for field, values in facet.items():
                 if isinstance(values, list) and len(values) > 1:
-                    # Multiple values for a field - use "terms" query
                     must_clauses.append({"terms": {field: values}})
                 elif isinstance(values, list) and len(values) == 1:
-                    # Single value in array - use "term" query
                     must_clauses.append({"term": {field: values[0]}})
                 else:
-                    # Direct value - use "term" query
                     must_clauses.append({"term": {field: values}})
     
     return {

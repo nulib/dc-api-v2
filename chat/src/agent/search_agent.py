@@ -48,14 +48,11 @@ class FacetsToolNode:
         # If there are tool calls and we have facets, inject them
         if hasattr(last_message, 'tool_calls') and self.facets:
             for tool_call in last_message.tool_calls:
-                # Only inject facets for search and aggregate tools
                 if tool_call['name'] in ['search', 'aggregate']:
-                    # Only add facets if not already provided
                     if 'facets' not in tool_call['args'] or tool_call['args']['facets'] is None:
                         tool_call['args']['facets'] = self.facets
                         print(f"Injecting facets into {tool_call['name']} tool: {self.facets}")
         
-        # Execute the tools by calling the tool node's invoke method with the state
         result = self.tool_node.invoke(state)
         print(f"FacetsToolNode: Tool execution result: {type(result)}")
         return result

@@ -55,11 +55,11 @@ def discover_fields():
 def search(query: str, facets: list = None):
     """Perform a semantic search of Northwestern University Library digital collections. When answering a search query, ground your answer in the context of the results with references to the document's metadata.
 
-    If the user has provided facets, use them to filter the search results.
+    If facets are provided use them in the search (do not broaden).
 
     Args:
         query (str): The search query
-        facets (list): Optional facet filters to apply, e.g. [{"collection": ["Posters from Herskovitz"]}, {"subject": ["Nigeria"]}]
+        facets (list): Optional facet filters to apply, e.g. [{"collection.title.keyword": ["Posters from Herskovitz"]}, {"subject.label": ["Nigeria"]}]
     """
 
     print(f"Search tool - using facets: {facets}")
