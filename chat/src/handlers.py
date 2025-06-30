@@ -47,6 +47,7 @@ def chat_sync(event, context):
                 "ref": config.ref,
                 "artifacts": result.artifacts,
                 "token_counts": result.accumulator,
+                "facets": config.facets,
             }
         ),
     }
@@ -101,6 +102,7 @@ def chat(event, context):
         "k": config.k,
         "model": config.model,
         "question": config.question,
+        "facets": config.facets,
         "ref": config.ref,
     }
     metrics = MetricsCallbackHandler(context.log_stream_name, extra_data=log_info)
@@ -108,12 +110,15 @@ def chat(event, context):
     model = chat_model(model=config.model, streaming=config.stream_response)
     search_agent = SearchAgent(model=model, metrics=metrics)
 
+    print(f"FACETS: {config.facets}")
+
     try:
         search_agent.invoke(
             config.question,
             config.ref,
             forget=config.forget,
             docs=config.docs,
+            facets=config.facets,
             callbacks=callbacks,
         )
         metrics.log_metrics()

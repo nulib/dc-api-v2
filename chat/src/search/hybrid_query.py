@@ -1,14 +1,26 @@
 from typing import Any
 
 
-def filter(query: dict):
+def filter(query: dict, facets: list = None):
+    must_clauses = [
+        query,
+        {"terms": {"visibility": ["Public", "Institution"]}},
+        {"term": {"published": True}},
+    ]
+    
+    if facets:
+        for facet in facets:
+            for field, values in facet.items():
+                if isinstance(values, list) and len(values) > 1:
+                    must_clauses.append({"terms": {field: values}})
+                elif isinstance(values, list) and len(values) == 1:
+                    must_clauses.append({"term": {field: values[0]}})
+                else:
+                    must_clauses.append({"term": {field: values}})
+    
     return {
         "bool": {
-            "must": [
-                query,
-                {"terms": {"visibility": ["Public", "Institution"]}},
-                {"term": {"published": True}},
-            ]
+            "must": must_clauses
         }
     }
 
@@ -18,6 +30,7 @@ def hybrid_query(
     model_id: str,
     vector_field: str = "embedding",
     k: int = 40,
+    facets: list = None,
     **kwargs: Any,
 ):
     result = {
@@ -76,7 +89,8 @@ def hybrid_query(
                                 ],
                                 "query": query,
                             }
-                        }
+                        },
+                        facets
                     ),
                     filter(
                         {
@@ -87,7 +101,8 @@ def hybrid_query(
                                     "query_text": query,
                                 }
                             }
-                        }
+                        },
+                        facets
                     ),
                 ]
             },
