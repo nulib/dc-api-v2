@@ -43,7 +43,7 @@ class TestTools(TestCase):
         mock_opensearch.return_value.similarity_search.return_value = mock_results
 
         response = search.invoke("test query")
-        self.assertEqual(response, expected_results)
+        self.assertEqual(response, json.dumps(expected_results))
 
     @patch("agent.tools.opensearch_vector_store")
     def test_aggregate(self, mock_opensearch):

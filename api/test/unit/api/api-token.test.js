@@ -241,12 +241,14 @@ describe("ApiToken", function () {
       expect(token.can("read:Unpublished")).to.be.false;
       expect(token.can("chat")).to.be.true;
 
-      token.superUser();
-      expect(token.can("read:Public")).to.be.true;
-      expect(token.can("read:Published")).to.be.true;
-      expect(token.can("read:Private")).to.be.true;
-      expect(token.can("read:Unpublished")).to.be.true;
-      expect(token.can("chat")).to.be.true;
+      const suToken = new ApiToken();
+
+      suToken.superUser();
+      expect(suToken.can("read:Public")).to.be.true;
+      expect(suToken.can("read:Published")).to.be.true;
+      expect(suToken.can("read:Private")).to.be.true;
+      expect(suToken.can("read:Unpublished")).to.be.true;
+      expect(suToken.can("chat")).to.be.true;
     });
   });
 });

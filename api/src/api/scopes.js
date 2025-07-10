@@ -11,8 +11,9 @@ const Scopes = {
   "read:Private": (user) => user.isSuperUser() || user.isReadingRoom(),
   "read:Unpublished": (user) => user.isSuperUser(),
   chat: (user) =>
-    user.isLoggedIn() &&
-    ProviderCapabilities()[user.token.provider]?.includes("chat"),
+    (user.isLoggedIn() &&
+      ProviderCapabilities()[user.token.provider]?.includes("chat")) ||
+    user.isSuperUser(),
 };
 
 const addScopes = (apiToken) => {
