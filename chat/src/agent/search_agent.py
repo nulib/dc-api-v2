@@ -26,6 +26,11 @@ of their question to make it more answerable.
 
 MAX_RECURSION_LIMIT = 24
 
+
+class SearchAgentState(MessagesState):
+    """Extended state that includes facets context for the search agent."""
+    facets: Optional[List[dict]] = None
+
 class FacetsToolNode:
     """Custom tool node that injects facets into tool calls."""
     
@@ -38,17 +43,20 @@ class FacetsToolNode:
         """Update the facets for this tool node."""
         self.facets = facets
     
-    def __call__(self, state: MessagesState):
+    def __call__(self, state: SearchAgentState):
         """Execute tools with facets injected."""
         messages = state["messages"]
         last_message = messages[-1]
 
+        # Use facets from state if available, otherwise use instance facets
+        current_facets = state.get("facets") or self.facets
+
         # If there are tool calls and we have facets, inject them
-        if hasattr(last_message, 'tool_calls') and self.facets:
+        if hasattr(last_message, 'tool_calls') and current_facets:
             for tool_call in last_message.tool_calls:
                 if tool_call['name'] in ['search', 'aggregate']:
                     if 'facets' not in tool_call['args'] or tool_call['args']['facets'] is None:
-                        tool_call['args']['facets'] = self.facets
+                        tool_call['args']['facets'] = current_facets
         
         result = self.tool_node.invoke(state)
         return result
@@ -60,7 +68,7 @@ class SearchWorkflow:
         self.model = model
         self.system_message = system_message
 
-    def should_continue(self, state: MessagesState) -> Literal["tools", END]:
+    def should_continue(self, state: SearchAgentState) -> Literal["tools", END]:
         messages = state["messages"]
         last_message = messages[-1]
         # If the LLM makes a tool call, then route to the "tools" node
@@ -69,7 +77,7 @@ class SearchWorkflow:
         # Otherwise, stop (reply to the user)
         return END
 
-    def summarize(self, state: MessagesState):
+    def summarize(self, state: SearchAgentState):
         messages = state["messages"]
         last_message = messages[-1]
         
@@ -102,11 +110,48 @@ class SearchWorkflow:
 
         return {"messages": messages}
 
-    def call_model(self, state: MessagesState):
-        messages = [SystemMessage(content=self.system_message)] + state["messages"]
+    def call_model(self, state: SearchAgentState):
+        # Create dynamic system message based on facets context
+        system_content = self.system_message
+        
+        # Add facets context to system message if facets are present
+        facets = state.get("facets")
+        if facets:
+            facets_context = self._create_facets_context(facets)
+            system_content = f"{system_content}\n\n{facets_context}"
+        
+        messages = [SystemMessage(content=system_content)] + state["messages"]
         response: BaseMessage = self.model.invoke(messages)
         # We return a list, because this will get added to the existing list
         return {"messages": [response]}
+    
+    def _create_facets_context(self, facets: List[dict]) -> str:
+        """Create context message about applied facets/filters."""
+        if not facets:
+            return ""
+        
+        # Parse facets into human-readable format
+        filter_descriptions = []
+        for facet in facets:
+            for field, values in facet.items():
+                # Convert field names to more readable format
+                readable_field = field.replace('.keyword', '').replace('.label', '').replace('_', ' ').title()
+                if isinstance(values, list):
+                    values_str = ", ".join(str(v) for v in values)
+                else:
+                    values_str = str(values)
+                filter_descriptions.append(f"{readable_field}: {values_str}")
+        
+        filters_text = "; ".join(filter_descriptions)
+        
+        return f"""IMPORTANT CONTEXT: The user's search is currently filtered/scoped to specific content. 
+Active filters: {filters_text}
+
+When answering, be aware that:
+- All search results are already filtered by these criteria
+- You should acknowledge this context in your responses (e.g., "In the filtered results..." or "Among the {readable_field} content...")
+- Do NOT attempt to broaden the search or remove these filters
+- If results seem limited, explain that this is due to the applied filters rather than suggesting to broaden the search"""
 
 
 class SearchAgent:
@@ -132,8 +177,8 @@ class SearchAgent:
             model=model, system_message=system_message, metrics=metrics
         )
 
-        # Define a new graph
-        workflow = StateGraph(MessagesState)
+        # Define a new graph with extended state
+        workflow = StateGraph(SearchAgentState)
 
         # Define the two nodes we will cycle between
         workflow.add_node("agent", self.workflow_logic.call_model)
@@ -181,7 +226,8 @@ class SearchAgent:
                 {
                     "messages": [
                         HumanMessage(content=question + "\n" + "\n".join(doc_lines))
-                    ]
+                    ],
+                    "facets": facets
                 },
                 config={"configurable": {"thread_id": ref}, "callbacks": callbacks},
                 **kwargs,
@@ -189,7 +235,10 @@ class SearchAgent:
         else:
             try:
                 return self.search_agent.invoke(
-                    {"messages": [HumanMessage(content=question)]},
+                    {
+                        "messages": [HumanMessage(content=question)],
+                        "facets": facets
+                    },
                     config={
                         "configurable": {"thread_id": ref},
                         "callbacks": callbacks,
