@@ -1,10 +1,9 @@
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 from langchain_core.messages import AIMessage
-from langgraph.graph import MessagesState
 from langchain_core.tools import tool
 
-from agent.search_agent import FacetsToolNode
+from agent.search_agent import FacetsToolNode, SearchAgentState
 
 
 @tool
@@ -45,7 +44,7 @@ class TestFacetsToolNode(TestCase):
             {"name": "search", "args": {"query": "test query"}, "id": "call_123"}
         ]
         ai_message = AIMessage(content="", tool_calls=tool_calls)
-        state = MessagesState(messages=[ai_message])
+        state = SearchAgentState(messages=[ai_message])
 
         facets_tool_node(state)
 
@@ -69,7 +68,7 @@ class TestFacetsToolNode(TestCase):
             }
         ]
         ai_message = AIMessage(content="", tool_calls=tool_calls)
-        state = MessagesState(messages=[ai_message])
+        state = SearchAgentState(messages=[ai_message])
 
         facets_tool_node(state)
 
@@ -93,7 +92,7 @@ class TestFacetsToolNode(TestCase):
             }
         ]
         ai_message = AIMessage(content="", tool_calls=tool_calls)
-        state = MessagesState(messages=[ai_message])
+        state = SearchAgentState(messages=[ai_message])
 
         facets_tool_node(state)
 
@@ -112,9 +111,31 @@ class TestFacetsToolNode(TestCase):
             {"name": "search", "args": {"query": "test query"}, "id": "call_000"}
         ]
         ai_message = AIMessage(content="", tool_calls=tool_calls)
-        state = MessagesState(messages=[ai_message])
+        state = SearchAgentState(messages=[ai_message])
 
         facets_tool_node(state)
 
         modified_tool_calls = state["messages"][-1].tool_calls
         self.assertNotIn("facets", modified_tool_calls[0]["args"])
+
+    @patch("agent.search_agent.ToolNode")
+    def test_use_facets_from_state(self, mock_tool_node_class):
+        mock_tool_node_instance = MagicMock()
+        mock_tool_node_class.return_value = mock_tool_node_instance
+        mock_tool_node_instance.invoke.return_value = {"messages": []}
+
+        # Create tool node with no instance facets
+        facets_tool_node = FacetsToolNode(self.mock_tools, None)
+
+        # But provide facets in state
+        state_facets = [{"genre.label": "Photography"}]
+        tool_calls = [
+            {"name": "search", "args": {"query": "test query"}, "id": "call_state"}
+        ]
+        ai_message = AIMessage(content="", tool_calls=tool_calls)
+        state = SearchAgentState(messages=[ai_message], facets=state_facets)
+
+        facets_tool_node(state)
+
+        modified_tool_calls = state["messages"][-1].tool_calls
+        self.assertEqual(modified_tool_calls[0]["args"]["facets"], state_facets)
