@@ -1,22 +1,19 @@
 /* istanbul ignore file */
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectAclCommand } = require('@aws-sdk/client-s3');
 
 module.exports.handler = async (event) => {
-  const clientParams = {}
-
-  const getObjectParams = {
-    Bucket: event.bucket,
-    Key: event.key,
-    ResponseContentDisposition: `attachment; filename=${event.disposition}`,
-  };
-
-  const client = new S3Client(clientParams);
-  const command = new GetObjectCommand(getObjectParams);
-  const url = await getSignedUrl(client, command, { expiresIn: 3600 * 24 * 3 }); // 3 days
+  const region = process.env.AWS_REGION || 'us-east-1';
+  const { bucket, key } = event;
+  const s3Client = new S3Client({ region });
+  const command = new PutObjectAclCommand({
+    Bucket: bucket,
+    Key: key,
+    ACL: 'public-read'
+  });
+  await s3Client.send(command);
+  const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
 
   return {downloadLink: url}
-  
 };
 
 

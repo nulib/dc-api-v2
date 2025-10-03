@@ -442,7 +442,7 @@ Resources:
             - Sid: BucketAccess
               Effect: Allow
               Action:
-                - s3:GetObject
+                - s3:PutObjectAcl
               Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
