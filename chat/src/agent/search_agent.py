@@ -24,7 +24,42 @@ tool calls, summarize the information you have gathered so far and suggest ways 
 of their question to make it more answerable.
 """
 
-MAX_RECURSION_LIMIT = 16
+MAX_RECURSION_LIMIT = 24
+
+
+class SearchAgentState(MessagesState):
+    """Extended state that includes facets context for the search agent."""
+    facets: Optional[List[dict]] = None
+
+class FacetsToolNode:
+    """Custom tool node that injects facets into tool calls."""
+    
+    def __init__(self, tools, facets=None):
+        self.tools = tools
+        self.facets = facets
+        self.tool_node = ToolNode(tools)
+    
+    def set_facets(self, facets):
+        """Update the facets for this tool node."""
+        self.facets = facets
+    
+    def __call__(self, state: SearchAgentState):
+        """Execute tools with facets injected."""
+        messages = state["messages"]
+        last_message = messages[-1]
+
+        # Use facets from state if available, otherwise use instance facets
+        current_facets = state.get("facets") or self.facets
+
+        # If there are tool calls and we have facets, inject them
+        if hasattr(last_message, 'tool_calls') and current_facets:
+            for tool_call in last_message.tool_calls:
+                if tool_call['name'] in ['search', 'aggregate']:
+                    if 'facets' not in tool_call['args'] or tool_call['args']['facets'] is None:
+                        tool_call['args']['facets'] = current_facets
+        
+        result = self.tool_node.invoke(state)
+        return result
 
 
 class SearchWorkflow:
@@ -33,39 +68,90 @@ class SearchWorkflow:
         self.model = model
         self.system_message = system_message
 
-    def should_continue(self, state: MessagesState) -> Literal["tools", END]:
+    def should_continue(self, state: SearchAgentState) -> Literal["tools", END]:
         messages = state["messages"]
         last_message = messages[-1]
-        # If the LLM makes a tool call, then we route to the "tools" node
+        # If the LLM makes a tool call, then route to the "tools" node
         if last_message.tool_calls:
             return "tools"
-        # Otherwise, we stop (reply to the user)
+        # Otherwise, stop (reply to the user)
         return END
 
-    def summarize(self, state: MessagesState):
+    def summarize(self, state: SearchAgentState):
         messages = state["messages"]
         last_message = messages[-1]
-        if last_message.name not in ["search", "retrieve_documents"]:
+        
+        if not hasattr(last_message, 'name') or last_message.name not in ["search", "retrieve_documents"]:
             return {"messages": messages}
-
+        
         start_time = time.time()
+
+        # Handle both JSON string and already parsed content
+        if isinstance(last_message.content, str):
+            try:
+                content = minimize_documents(json.loads(last_message.content))
+            except json.JSONDecodeError:
+                return {"messages": messages}
+        elif isinstance(last_message.content, list):
+            content = minimize_documents(last_message.content)
+        else:
+            return {"messages": messages}
+    
+
         content = minimize_documents(json.loads(last_message.content))
         content = json.dumps(content, separators=(",", ":"))
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(
-            f"Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%"
+            f"summarize: Condensed {len(last_message.content)} bytes to {len(content)} bytes in {elapsed_time:.2f} seconds. Savings: {100 * (1 - len(content) / len(last_message.content)):.2f}%"
         )
 
         last_message.content = content
 
         return {"messages": messages}
 
-    def call_model(self, state: MessagesState):
-        messages = [SystemMessage(content=self.system_message)] + state["messages"]
+    def call_model(self, state: SearchAgentState):
+        # Create dynamic system message based on facets context
+        system_content = self.system_message
+        
+        # Add facets context to system message if facets are present
+        facets = state.get("facets")
+        if facets:
+            facets_context = self._create_facets_context(facets)
+            system_content = f"{system_content}\n\n{facets_context}"
+        
+        messages = [SystemMessage(content=system_content)] + state["messages"]
         response: BaseMessage = self.model.invoke(messages)
         # We return a list, because this will get added to the existing list
         return {"messages": [response]}
+    
+    def _create_facets_context(self, facets: List[dict]) -> str:
+        """Create context message about applied facets/filters."""
+        if not facets:
+            return ""
+        
+        # Parse facets into human-readable format
+        filter_descriptions = []
+        for facet in facets:
+            for field, values in facet.items():
+                # Convert field names to more readable format
+                readable_field = field.replace('.keyword', '').replace('.label', '').replace('_', ' ').title()
+                if isinstance(values, list):
+                    values_str = ", ".join(str(v) for v in values)
+                else:
+                    values_str = str(values)
+                filter_descriptions.append(f"{readable_field}: {values_str}")
+        
+        filters_text = "; ".join(filter_descriptions)
+        
+        return f"""IMPORTANT CONTEXT: The user's search is currently filtered/scoped to specific content. 
+Active filters: {filters_text}
+
+When answering, be aware that:
+- All search results are already filtered by these criteria
+- You should acknowledge this context in your responses (e.g., "In the filtered results..." or "Among the {readable_field} content...")
+- Do NOT attempt to broaden the search or remove these filters
+- If results seem limited, explain that this is due to the applied filters rather than suggesting to broaden the search"""
 
 
 class SearchAgent:
@@ -77,8 +163,10 @@ class SearchAgent:
         system_message: str = DEFAULT_SYSTEM_MESSAGE,
         **kwargs,
     ):
+        self.current_facets = None
+
         tools = [discover_fields, search, aggregate, retrieve_documents]
-        tool_node = ToolNode(tools)
+        self.facets_tool_node = FacetsToolNode(tools)
 
         try:
             model = model.bind_tools(tools)
@@ -89,12 +177,12 @@ class SearchAgent:
             model=model, system_message=system_message, metrics=metrics
         )
 
-        # Define a new graph
-        workflow = StateGraph(MessagesState)
+        # Define a new graph with extended state
+        workflow = StateGraph(SearchAgentState)
 
         # Define the two nodes we will cycle between
         workflow.add_node("agent", self.workflow_logic.call_model)
-        workflow.add_node("tools", tool_node)
+        workflow.add_node("tools", self.facets_tool_node)
         workflow.add_node("summarize", self.workflow_logic.summarize)
 
         # Set the entrypoint as `agent`
@@ -117,10 +205,14 @@ class SearchAgent:
         ref: str,
         *,
         docs: Optional[List[str]] = None,
+        facets: Optional[List[dict]] = None,
         callbacks: List[BaseCallbackHandler] = [],
         forget: bool = False,
         **kwargs,
     ):
+        self.current_facets = facets
+        self.facets_tool_node.set_facets(facets)
+
         if forget:
             self.checkpointer.delete_checkpoints(ref)
 
@@ -134,7 +226,8 @@ class SearchAgent:
                 {
                     "messages": [
                         HumanMessage(content=question + "\n" + "\n".join(doc_lines))
-                    ]
+                    ],
+                    "facets": facets
                 },
                 config={"configurable": {"thread_id": ref}, "callbacks": callbacks},
                 **kwargs,
@@ -142,11 +235,14 @@ class SearchAgent:
         else:
             try:
                 return self.search_agent.invoke(
-                    {"messages": [HumanMessage(content=question)]},
+                    {
+                        "messages": [HumanMessage(content=question)],
+                        "facets": facets
+                    },
                     config={
                         "configurable": {"thread_id": ref},
                         "callbacks": callbacks,
-                        "recursion_limit": MAX_RECURSION_LIMIT,
+                        "recursion_limit": MAX_RECURSION_LIMIT
                     },
                     **kwargs,
                 )

@@ -33,22 +33,25 @@ def chat_sync(event, context):
         config.question, config.ref, forget=config.forget, callbacks=[result]
     )
 
+    response_body = {
+        "answer": result.answers,
+        "is_dev_team": config.api_token.is_dev_team(),
+        "is_superuser": config.api_token.is_superuser(),
+        "k": config.k,
+        "model": config.model,
+        "question": config.question,
+        "ref": config.ref,
+        "artifacts": result.artifacts,
+        "token_counts": result.accumulator,
+    }
+
+    if config.facets is not None:
+        response_body["facets"] = config.facets
+
     return {
         "statusCode": 200,
         "headers": {"Content-Type": "application/json"},
-        "body": json.dumps(
-            {
-                "answer": result.answers,
-                "is_dev_team": config.api_token.is_dev_team(),
-                "is_superuser": config.api_token.is_superuser(),
-                "k": config.k,
-                "model": config.model,
-                "question": config.question,
-                "ref": config.ref,
-                "artifacts": result.artifacts,
-                "token_counts": result.accumulator,
-            }
-        ),
+        "body": json.dumps(response_body),
     }
 
 
@@ -59,7 +62,9 @@ def chat(event, context):
     config.setup_websocket(socket)
 
     if not config.user_can("chat"):
-        config.socket.send({"type": "error", "message": "Unauthorized"})
+        config.socket.send(
+            {"type": "error", "message": "Unauthorized. User cannot chat."}
+        )
         return {"statusCode": 401, "body": "Unauthorized"}
 
     if config.question is None or config.question == "":
@@ -90,7 +95,13 @@ def chat(event, context):
             config.socket.send(error_message)
             return {"statusCode": 429, "body": "Rate limit exceeded"}
 
-        config.socket.send({"type": "rate_limit", "remaining": int(remaining), "until": rate_limiter.get_retry_after(sub)})
+        config.socket.send(
+            {
+                "type": "rate_limit",
+                "remaining": int(remaining),
+                "until": rate_limiter.get_retry_after(sub),
+            }
+        )
 
     log_info = {
         "user": {
@@ -103,6 +114,10 @@ def chat(event, context):
         "question": config.question,
         "ref": config.ref,
     }
+
+    if config.facets is not None:
+        log_info["facets"] = config.facets
+
     metrics = MetricsCallbackHandler(context.log_stream_name, extra_data=log_info)
     callbacks = [SocketCallbackHandler(config.socket, config.ref), metrics]
     model = chat_model(model=config.model, streaming=config.stream_response)
@@ -114,6 +129,7 @@ def chat(event, context):
             config.ref,
             forget=config.forget,
             docs=config.docs,
+            facets=config.facets,
             callbacks=callbacks,
         )
         metrics.log_metrics()

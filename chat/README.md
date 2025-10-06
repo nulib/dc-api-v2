@@ -33,10 +33,11 @@ To initiate a chat conversation, send:
 ```
 
 Additional optional parameters:
-- `forget`: boolean (default: false) - Start a new conversation
+- `forget`: boolean (default: false) - Start a new conversation  
 - `model`: string - Specify the LLM model to use (superuser only)
 - `k`: number - Number of documents to retrieve (superuser only)
 - `temperature`: number - Model temperature (superuser only)
+- `facets`: array - Apply search filters/facets (see Facets/Filters section below)
 
 ##### Server to Client Messages
 
@@ -221,3 +222,100 @@ The chat service implements the following authorization levels:
   - Temperature control
   - Unrestricted context window
   - Scope to override system defaults
+
+## Facets and Filters System
+
+The chat system supports filtering search results using facets, which allows users to narrow down their searches to specific subsets of the digital collections. The system implements a dual-layer approach that maintains both functional filtering and LLM awareness.
+
+### Overview
+
+When facets are applied to a chat conversation, the system:
+1. **Injects facets into tool calls** - Ensures search and aggregation tools receive the filter parameters
+2. **Makes the LLM aware of filters** - Adds context to the system message so the LLM understands it's working with filtered data
+3. **Persists facets in conversation state** - Maintains filter context throughout the entire conversation
+
+### Usage
+
+To apply facets to a chat conversation, include them in the initial request:
+
+```json
+{
+  "question": "What photography is available?",
+  "facets": [
+    {"subject.label": "Nigeria"},
+    {"collection.title.keyword": "E. H. Duckworth Photograph Collection"},
+    {"work_type.keyword": "Image"}
+  ],
+  "auth": "jwt-token",
+  "ref": "abc123"
+}
+```
+
+### Implementation Details
+
+#### State Management (`SearchAgentState`)
+- Extends LangGraph's `MessagesState` to include a `facets` field
+- Persists facets throughout the conversation using LangGraph's state management
+- Allows facets to be accessed at any point in the conversation flow
+
+```python
+class SearchAgentState(MessagesState):
+    """Extended state that includes facets context for the search agent."""
+    facets: Optional[List[dict]] = None
+```
+
+#### Tool Injection (`FacetsToolNode`)
+- Automatically injects facets into `search` and `aggregate` tool calls
+- Uses facets from state if available, falls back to instance facets
+- Preserves existing facets if already present in tool arguments
+- Only injects into tools that support facet filtering
+
+#### LLM Context Awareness
+When facets are present, the system automatically enhances the system message with context like:
+
+```
+IMPORTANT CONTEXT: The user's search is currently filtered/scoped to specific content. 
+Active filters: Subject: Nigeria; Collection Title: E. H. Duckworth Photograph Collection; Work Type: Image
+
+When answering, be aware that:
+- All search results are already filtered by these criteria
+- You should acknowledge this context in your responses (e.g., "In the filtered results..." or "Among the Work Type content...")
+- Do NOT attempt to broaden the search or remove these filters
+- If results seem limited, explain that this is due to the applied filters rather than suggesting to broaden the search
+```
+
+#### Benefits
+
+1. **Improved Response Quality**: The LLM provides contextually appropriate responses that acknowledge the applied filters
+2. **Prevents Search Broadening**: The LLM won't attempt to remove filters when results seem limited
+3. **Better User Experience**: Responses are worded appropriately for filtered contexts
+4. **Backward Compatibility**: Existing tool injection continues to work
+
+### Facet Format
+
+Facets should be provided as an array of objects where each object represents a filter:
+
+```json
+[
+  {"field_name": "single_value"},
+  {"field_name": ["multiple", "values"]},
+  {"nested.field.keyword": "exact_match"}
+]
+```
+
+Common facet fields include:
+- `subject.label` - Subject terms
+- `collection.title.keyword` - Collection names  
+- `work_type.keyword` - Work types (Image, Text, etc.)
+- `genre.label` - Genre classifications
+- `language.label` - Languages
+- `date.created` - Creation dates
+
+### Architecture Notes
+
+The facets system leverages LangGraph's state management patterns:
+- **Static Runtime Context**: Immutable data passed at startup (not used for facets)
+- **Dynamic Runtime Context**: Mutable conversation state (used for facets persistence)
+- **Tool Node Integration**: Custom tool wrapper that intercepts and modifies tool calls
+
+This approach ensures facets are both functionally applied to searches and conceptually understood by the LLM, providing the best of both worlds for filtered search conversations.
