@@ -2,6 +2,7 @@ const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
 const ffmpeg = require('fluent-ffmpeg');
 const stream = require('stream');
+const path = require('path');
 
 module.exports.handler = async (event) => {
   const s3Client = new S3Client();
@@ -17,7 +18,9 @@ module.exports.handler = async (event) => {
       Bucket: bucket,
       Key: key,
       Body: pass,
-      ContentType: 'audio/mp3'
+      ContentType: 'audio/mp3',
+      ContentDisposition: `attachment; filename=${path.basename(key)}`,
+      ACL: 'public-read'
     }
   });
 
