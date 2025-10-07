@@ -142,11 +142,8 @@ In a nutshell:
 2. Edit the Markdown files in the `docs/docs` directory.
 3. To run `mkdocs` locally and preview your work:
    ```shell
-   cd docs
-   python -m venv ./.venv
-   pip install -r requirements.txt
    sg open all 8000
-   mkdocs serve -a 0.0.0.0:8000
+   make serve-docs
    ```
    Docs will be accessible at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/
 
@@ -174,3 +171,11 @@ Typescript types for the schemas (Works, Collections, FileSets) are automaticall
 
 - If a deploy to the `deploy/staging` branch contains changes to the `docs/docs/spec/data-types.yaml` file, new types are generated and a commit is made to the `staging` branch of `nulib/dcapi`. This is intended to be for local testing by NUL devs against the private staging API.
 - If a deploy to production (`main` branch) contains changes to the `docs/docs/spec/data-types.yaml` file, new types are generated and a PR is opened into the `main` branch of `nulib/dcapi-types`. Also, an issue is created in `nulib/repodev_planning_and_docs` to review the PR and publish the types package (manually).
+
+## Versioning
+
+The current API version is maintained in several different project files. To increment the version, use
+```
+make version VERSION=<major|minor|patch>
+```
+(default: `patch`)

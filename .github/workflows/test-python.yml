@@ -16,17 +16,17 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ci
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.12'
-          cache-dependency-path: chat/src/requirements.txt
-      - run: pip install -r requirements.txt && pip install -r requirements-dev.txt
-        working-directory: ./chat/src
+          enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
+      - run: uv sync --group dev
       - name: Check code style
-        run: ruff check .
+        run: uv run ruff check .
       - name: Run tests
         run: |
-          coverage run --include='src/**/*' -m pytest -m ""
-          coverage report
+          uv run coverage run --include='src/**/*' -m pytest -m ""
+          uv run coverage report
         env:
           AWS_REGION: us-east-1
