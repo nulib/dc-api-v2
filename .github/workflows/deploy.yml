@@ -9,6 +9,7 @@ on:
       - "node/**"
       - "chat/**"
       - "template.yaml"
+      - "**/template/yaml"
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
