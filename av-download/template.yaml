@@ -435,7 +435,8 @@ Resources:
       Runtime: nodejs20.x
       CodeUri: ./lambdas
       Handler: get-download-link.handler
-      Description: Creates presigned url
+      Description: Generates public-read download link
+      Timeout: 180
       Policies:
         - Version: 2012-10-17
           Statement:
