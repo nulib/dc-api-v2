@@ -33,6 +33,8 @@ help:
 	echo "make cover-node            | run node tests with coverage"
 	echo "make cover-python          | run python tests with coverage"
 
+./chat/dependencies/requirements.txt: ./chat/pyproject.toml
+	cd chat && uv export --format requirements-txt --no-hashes > dependencies/requirements.txt
 api: ./api/template.yaml ./api/src/package-lock.json $(wildcard ./api/src/**/*.js)
 chat: ./chat/template.yaml ./chat/dependencies/requirements.txt $(wildcard ./chat/src/**/*.py)
 av-download: ./av-download/template.yaml ./av-download/lambdas/package-lock.json $(wildcard ./av-download/lambdas/**/*.js)
@@ -74,20 +76,20 @@ style-node: deps-node
 test-node: deps-node
 	cd api && npm run test
 deps-python:
-	cd chat/src && pip install -r requirements.txt && pip install -r requirements-dev.txt
+	cd chat && uv sync --group dev
 cover-python: deps-python
-	cd chat && coverage run --source=src -m pytest -v && coverage report --skip-empty
+	cd chat && uv run coverage run --source=src -m pytest -v && uv run coverage report --skip-empty
 cover-html-python: deps-python
-	cd chat && coverage run --source=src -m pytest -v && coverage html --skip-empty
+	cd chat && uv run coverage run --source=src -m pytest -v && uv run coverage html --skip-empty
 style-python: deps-python
-	cd chat && ruff check . 
+	cd chat && uv run ruff check . 
 style-python-fix: deps-python
-	cd chat && ruff check --fix . 
+	cd chat && uv run ruff check --fix . 
 test-python: deps-python
-	cd chat && pytest
+	cd chat && uv run pytest
 python-version:
-	cd chat && python --version
-build: av-download/layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
+	cd chat && uv run python --version
+build: av-download/layers/ffmpeg/bin/ffmpeg api chat .aws-sam/build.toml
 validate:
 	cfn-lint template.yaml **/template.yaml --ignore-checks E3510 W1028 W8001
 serve-http: deps-node
