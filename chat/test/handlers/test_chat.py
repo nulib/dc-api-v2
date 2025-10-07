@@ -10,6 +10,7 @@ from moto import mock_aws
 
 from handlers import chat
 from core.apitoken import ApiToken
+from core.event_config import CHAT_MODEL
 from core.websocket import Websocket
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
@@ -117,7 +118,7 @@ class TestHandler(TestCase):
                 "is_superuser": False,
             },
             "k": 40,
-            "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "model": CHAT_MODEL,
             "question": "Question?",
             "ref": "test",
             "token_counts": {}

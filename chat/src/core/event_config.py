@@ -11,6 +11,7 @@ from uuid import uuid4
 from typing import Optional, List
 
 CHAIN_TYPE = "stuff"
+CHAT_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 DOCUMENT_VARIABLE_NAME = "context"
 K_VALUE = 40
 MAX_K = 100
@@ -66,9 +67,7 @@ class EventConfig:
         self.is_superuser = self.api_token.is_superuser()
         self.k = self._get_k()
         self.max_tokens = min(self.payload.get("max_tokens", MAX_TOKENS), MAX_TOKENS)
-        self.model = self._get_payload_value_with_superuser_check(
-            "model", "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        )
+        self.model = self._get_payload_value_with_superuser_check("model", CHAT_MODEL)
         self.prompt_text = self._get_prompt_text()
         self.request_context = self.event.get("requestContext", {})
         self.question = self.payload.get("question")
