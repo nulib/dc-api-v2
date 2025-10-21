@@ -13,11 +13,20 @@ const { wrap } = require("./middleware");
 function invalidDateParameters(verb, dates) {
   if (!["ListRecords", "ListIdentifiers"].includes(verb)) return [];
 
-  const regex = new RegExp(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/);
+  // OAI-PMH spec allows three date formats:
+  // 1. YYYY-MM-DD (date only)
+  // 2. YYYY-MM-DDThh:mm:ssZ (no fractional seconds)
+  // 3. YYYY-MM-DDThh:mm:ss.fZ to YYYY-MM-DDThh:mm:ss.ffffffZ (1-6 fractional seconds)
+  const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$/;
   let invalidDates = [];
 
   for (const [dateParameter, dateValue] of Object.entries(dates)) {
-    if (dateValue && !regex.test(dateValue)) {
+    if (
+      dateValue &&
+      !dateOnlyRegex.test(dateValue) &&
+      !dateTimeRegex.test(dateValue)
+    ) {
       invalidDates.push(dateParameter);
     } else {
       continue;
@@ -56,7 +65,7 @@ exports.handler = wrap(async (event) => {
   if (invalidDateParameters(verb, dates).length > 0)
     return invalidOaiRequest(
       "badArgument",
-      "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffffZ'"
+      "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ' (with optional fractional seconds)"
     );
   if (!verb) return invalidOaiRequest("badArgument", "Missing required verb");
 
