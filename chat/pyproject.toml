@@ -1,0 +1,32 @@
+[project]
+name = "dc-api-v2-chat"
+version = "2.8.0"
+requires-python = ">=3.12"
+dependencies = [
+  "boto3~=1.34",
+  "honeybadger~=0.20",
+  "langchain~=0.2",
+  "langchain-aws~=0.2",
+  "langchain-openai~=0.1",
+  "langgraph~=0.2",
+  "numpy==2.2.6",
+  "openai~=1.35",
+  "opensearch-py~=2.8",
+  "pyjwt~=2.6.0",
+  "python-dotenv~=1.0.0",
+  "requests~=2.32",
+  "requests-aws4auth~=1.3",
+  "tiktoken~=0.7,<0.12",
+  "wheel~=0.40"
+]
+
+[dependency-groups]
+dev = [
+  "moto~=5.0",
+  "pytest~=8.3",
+  "ruff~=0.2",
+  "coverage~=7.3"
+]
+
+[tool.uv]
+default-groups = []
