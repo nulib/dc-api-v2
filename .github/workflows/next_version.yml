@@ -1,0 +1,44 @@
+---
+name: Increment Version & Create Draft PR
+on:
+  workflow_dispatch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  increment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: deploy/staging
+      - name: Bump Version
+        id: increment
+        run: |
+          NEXT_VERSION=$(make version BUMP=patch)
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -am "Bump version to ${NEXT_VERSION}"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: deploy/staging
+      - name: Read PR Template
+        id: template
+        uses: jaywcjlove/github-action-read-file@main
+        with:
+          path: .github/PULL_REQUEST_TEMPLATE/production.md
+      - name: Create New Production PR
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: deploy/staging
+          destination_branch: main
+          pr_label: "release"
+          pr_title: Deploy vX.X.X to production
+          pr_body: |
+            ${{ steps.template.outputs.content }}
+          pr_draft: true

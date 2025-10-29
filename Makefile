@@ -148,15 +148,14 @@ reset:
 serve-docs:
 	cd docs && uv sync && uv run mkdocs serve -a 0.0.0.0:8000
 
-VERSION ?= patch
+BUMP ?= ""
 version:
-	for pkg in api api/dependencies api/src av-download/lambdas; do \
-		cd $$pkg; \
-		npm version $(VERSION); \
-		cd -; \
-	done; \
-	for pkg in chat docs; do \
-		cd $$pkg; \
-		uv version --bump $(VERSION); \
-		cd -; \
-	done;
+	@if [[ -n "$(BUMP)" ]]; then \
+		for pkg in api api/dependencies api/src av-download/lambdas; do \
+			(cd $$pkg && npm version $(BUMP)) >/dev/null 2>&1; \
+		done; \
+		for pkg in chat docs; do \
+			(cd $$pkg && uv version --bump $(BUMP)) >/dev/null 2>&1; \
+		done; \
+	fi; \
+	node -e 'console.log(require("./api/package.json").version)'

@@ -176,6 +176,6 @@ Typescript types for the schemas (Works, Collections, FileSets) are automaticall
 
 The current API version is maintained in several different project files. To increment the version, use
 ```
-make version VERSION=<major|minor|patch>
+make version BUMP=<major|minor|patch>
 ```
-(default: `patch`)
+If you don't specify a `BUMP` value, the command will simply print the current version.
