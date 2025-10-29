@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
+      actions: write
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - name: Set DEPLOY_ENV from Branch Name
@@ -48,6 +49,8 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
       - uses: aws-actions/setup-sam@v1
       - uses: aws-actions/configure-aws-credentials@master
         with:
@@ -69,8 +72,15 @@ jobs:
           HONEYBADGER_REVISION: ${{ github.sha }}
           SAM_CLI_BETA_BUILD_PERFORMANCE: 1
           SAM_CLI_BETA_PACKAGE_PERFORMANCE: 1
+      - name: Notify Honeybadger
+        run: .github/scripts/honeybadger_deploy_notification.sh
+        env:
+          DEPLOY_ENV: ${{ env.DEPLOY_ENV }}
+          HONEYBADGER_API_KEY: ${{ secrets.HONEYBADGER_API_KEY }}
+          HONEYBADGER_REVISION: ${{ github.sha }}
       - name: Get current API version
-        run: make version >> $GITHUB_ENV
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: echo "API_VERSION=$(make version)" >> $GITHUB_ENV
       - name: Tag Release
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
@@ -78,6 +88,7 @@ jobs:
           git config --global user.name "$(git log --pretty=format:"%an" | head -1)"
           git tag -a v${API_VERSION} -m "Release ${API_VERSION}"
       - name: Push changes
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
