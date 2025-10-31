@@ -152,10 +152,12 @@ BUMP ?= ""
 version:
 	@if [[ -n "$(BUMP)" ]]; then \
 		for pkg in api api/dependencies api/src av-download/lambdas; do \
-			(cd $$pkg && npm version $(BUMP)) >/dev/null 2>&1; \
+			echo -n "Bumping version in $$pkg: " >&2 ; \
+			(cd $$pkg && npm version $(BUMP)) >&2; \
 		done; \
 		for pkg in chat docs; do \
-			(cd $$pkg && uv version --bump $(BUMP)) >/dev/null 2>&1; \
+			echo "Bumping version in $$pkg: " >&2 ; \
+			(cd $$pkg && uv version --bump $(BUMP)) >&2; \
 		done; \
 	fi; \
 	node -e 'console.log(require("./api/package.json").version)'
