@@ -117,13 +117,61 @@ describe("Oai routes", () => {
         "badArgument"
       );
       expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
-        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DDThh:mm:ss.ffffffZ'"
+        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ' (with optional fractional seconds)"
       );
     });
 
     it("supports 'from' and 'until' parameters in ListRecords and ListIdentifiers verbs", async () => {
       const body =
         "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.791570Z&until=2022-11-22T06:16:13.791572Z";
+      mock
+        .post("/dc-v2-work/_search?scroll=2m")
+        .reply(200, helpers.testFixture("mocks/scroll.json"));
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody["OAI-PMH"].ListRecords.record)
+        .to.be.an("array")
+        .and.to.have.lengthOf(12);
+    });
+
+    it("accepts OAI-PMH standard date formats without fractional seconds (Primo compatibility)", async () => {
+      const body =
+        "verb=ListRecords&metadataPrefix=oai_dc&from=1970-01-02T00:00:00Z";
+      mock
+        .post("/dc-v2-work/_search?scroll=2m")
+        .reply(200, helpers.testFixture("mocks/scroll.json"));
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody["OAI-PMH"].ListRecords.record)
+        .to.be.an("array")
+        .and.to.have.lengthOf(12);
+    });
+
+    it("accepts OAI-PMH date-only format (YYYY-MM-DD)", async () => {
+      const body =
+        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-01-01&until=2022-12-31";
+      mock
+        .post("/dc-v2-work/_search?scroll=2m")
+        .reply(200, helpers.testFixture("mocks/scroll.json"));
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody["OAI-PMH"].ListRecords.record)
+        .to.be.an("array")
+        .and.to.have.lengthOf(12);
+    });
+
+    it("accepts OAI-PMH dates with varying fractional seconds (1-6 digits)", async () => {
+      const body =
+        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.7Z&until=2022-11-22T06:16:13.79157Z";
       mock
         .post("/dc-v2-work/_search?scroll=2m")
         .reply(200, helpers.testFixture("mocks/scroll.json"));

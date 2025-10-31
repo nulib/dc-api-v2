@@ -8,6 +8,7 @@ from moto import mock_aws
 
 from handlers import chat_sync
 from core.apitoken import ApiToken
+from core.event_config import CHAT_MODEL
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -57,7 +58,7 @@ class TestHandler(TestCase):
             "is_dev_team": True,
             "is_superuser": False,
             "k": 40,
-            "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "model": CHAT_MODEL,
             "question": "Question?",
             "ref": "test_ref",
             "artifacts": [],
@@ -87,7 +88,7 @@ class TestHandler(TestCase):
             "is_superuser": True,
             "is_dev_team": False,
             "k": 40,
-            "model": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "model": CHAT_MODEL,
             "question": "Question?",
             "ref": "test_ref",
             "artifacts": [],

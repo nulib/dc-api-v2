@@ -33,6 +33,8 @@ help:
 	echo "make cover-node            | run node tests with coverage"
 	echo "make cover-python          | run python tests with coverage"
 
+./chat/dependencies/requirements.txt: ./chat/pyproject.toml
+	cd chat && uv export --format requirements-txt --no-hashes > dependencies/requirements.txt
 api: ./api/template.yaml ./api/src/package-lock.json $(wildcard ./api/src/**/*.js)
 chat: ./chat/template.yaml ./chat/dependencies/requirements.txt $(wildcard ./chat/src/**/*.py)
 av-download: ./av-download/template.yaml ./av-download/lambdas/package-lock.json $(wildcard ./av-download/lambdas/**/*.js)
@@ -74,20 +76,20 @@ style-node: deps-node
 test-node: deps-node
 	cd api && npm run test
 deps-python:
-	cd chat/src && pip install -r requirements.txt && pip install -r requirements-dev.txt
+	cd chat && uv sync --group dev
 cover-python: deps-python
-	cd chat && coverage run --source=src -m pytest -v && coverage report --skip-empty
+	cd chat && uv run coverage run --source=src -m pytest -v && uv run coverage report --skip-empty
 cover-html-python: deps-python
-	cd chat && coverage run --source=src -m pytest -v && coverage html --skip-empty
+	cd chat && uv run coverage run --source=src -m pytest -v && uv run coverage html --skip-empty
 style-python: deps-python
-	cd chat && ruff check . 
+	cd chat && uv run ruff check . 
 style-python-fix: deps-python
-	cd chat && ruff check --fix . 
+	cd chat && uv run ruff check --fix . 
 test-python: deps-python
-	cd chat && pytest
+	cd chat && uv run pytest
 python-version:
-	cd chat && python --version
-build: av-download/layers/ffmpeg/bin/ffmpeg .aws-sam/build.toml
+	cd chat && uv run python --version
+build: av-download/layers/ffmpeg/bin/ffmpeg api chat .aws-sam/build.toml
 validate:
 	cfn-lint template.yaml **/template.yaml --ignore-checks E3510 W1028 W8001
 serve-http: deps-node
@@ -140,6 +142,20 @@ sync-code: sync
 secrets:
 	ln -s ../tfvars/dc-api/*.yaml .
 clean:
-	rm -rf .aws-sam api/.aws-sam chat/.aws-sam av-download/.aws-sam api/node_modules api/src/node_modules chat/**/__pycache__ chat/.coverage chat/.ruff_cache
+	rm -rf .aws-sam api/.aws-sam chat/.aws-sam av-download/.aws-sam api/node_modules api/src/node_modules av-download/lambdas/node_modules chat/**/__pycache__ chat/.coverage chat/.ruff_cache
 reset:
 	for f in $$(find . -maxdepth 2 -name '*.orig'); do mv $$f $${f%%.orig}; done
+serve-docs:
+	cd docs && uv sync && uv run mkdocs serve -a 0.0.0.0:8000
+
+BUMP ?= ""
+version:
+	@if [[ -n "$(BUMP)" ]]; then \
+		for pkg in api api/dependencies api/src av-download/lambdas; do \
+			(cd $$pkg && npm version $(BUMP)) >/dev/null 2>&1; \
+		done; \
+		for pkg in chat docs; do \
+			(cd $$pkg && uv version --bump $(BUMP)) >/dev/null 2>&1; \
+		done; \
+	fi; \
+	node -e 'console.log(require("./api/package.json").version)'

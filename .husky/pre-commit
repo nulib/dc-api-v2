@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 cd api && npm run lint && npm run prettier && cd -
-cd chat/src && ruff check . && cd -
+cd chat/src && uv run ruff check . && cd -

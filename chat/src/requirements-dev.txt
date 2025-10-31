@@ -1,5 +1,0 @@
-# Dev/Test Dependencies
-moto~=5.0
-pytest~=8.3
-ruff~=0.2
-coverage~=7.3
