@@ -103,6 +103,9 @@ describe("Oai routes", () => {
       expect(resultBody["OAI-PMH"].ListRecords.record)
         .to.be.an("array")
         .and.to.have.lengthOf(12);
+      const firstRecord =
+        resultBody["OAI-PMH"].ListRecords.record[0].header.datestamp._text;
+      expect(firstRecord).to.eq("2022-11-22T20:36:00Z");
     });
 
     it("validates 'from' and 'until' parameters", async () => {
@@ -117,13 +120,13 @@ describe("Oai routes", () => {
         "badArgument"
       );
       expect(resultBody["OAI-PMH"].error["_text"]).to.eq(
-        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ' (with optional fractional seconds)"
+        "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ'"
       );
     });
 
     it("supports 'from' and 'until' parameters in ListRecords and ListIdentifiers verbs", async () => {
       const body =
-        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.791570Z&until=2022-11-22T06:16:13.791572Z";
+        "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13Z&until=2022-11-22T06:16:15Z";
       mock
         .post("/dc-v2-work/_search?scroll=2m")
         .reply(200, helpers.testFixture("mocks/scroll.json"));
@@ -169,20 +172,15 @@ describe("Oai routes", () => {
         .and.to.have.lengthOf(12);
     });
 
-    it("accepts OAI-PMH dates with varying fractional seconds (1-6 digits)", async () => {
+    it("rejects OAI-PMH dates that include fractional seconds", async () => {
       const body =
         "verb=ListRecords&metadataPrefix=oai_dc&from=2022-11-22T06:16:13.7Z&until=2022-11-22T06:16:13.79157Z";
-      mock
-        .post("/dc-v2-work/_search?scroll=2m")
-        .reply(200, helpers.testFixture("mocks/scroll.json"));
       const event = helpers.mockEvent("POST", "/oai").body(body).render();
       const result = await handler(event);
-      expect(result.statusCode).to.eq(200);
+      expect(result.statusCode).to.eq(400);
       expect(result).to.have.header("content-type", /application\/xml/);
       const resultBody = convert.xml2js(result.body, xmlOpts);
-      expect(resultBody["OAI-PMH"].ListRecords.record)
-        .to.be.an("array")
-        .and.to.have.lengthOf(12);
+      expect(resultBody["OAI-PMH"].error._attributes.code).to.eq("badArgument");
     });
 
     it("uses an empty resumptionToken to tell harvesters that list requests are complete", async () => {
@@ -332,7 +330,7 @@ describe("Oai routes", () => {
       const resultBody = convert.xml2js(result.body, xmlOpts);
       const identifyElement = resultBody["OAI-PMH"].Identify;
       expect(identifyElement.earliestDatestamp._text).to.eq(
-        "2022-11-22T20:36:00.581418Z"
+        "2022-11-22T20:36:00Z"
       );
       expect(identifyElement.deletedRecord._text).to.eq("no");
       expect(identifyElement.granularity._text).to.eq("YYYY-MM-DDThh:mm:ssZ");

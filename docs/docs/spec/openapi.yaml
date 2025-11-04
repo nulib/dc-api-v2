@@ -30,7 +30,7 @@ tags:
       Endpoint implementing the Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH).
       As OAI-PMH is not a REST protocol, it is difficult to represent using OpenAPI/Swagger documentation.
       For full documentation and examples, please see the [official specification](https://www.openarchives.org/pmh/).
-      Note: all 'from' and 'until' query parameters are required to follow the format: 'YYYY:MM:DDThh:mm:ss.ffffffZ'. If you do not need nanosecond precision for your request, then pad the date with zero values, e.g. '2023-01-13T00:00:00.000000Z'
+      Note: all 'from' and 'until' query parameters must follow the OAI-PMH specification and use either 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ'. If you do not need second-level precision, use the date-only form.
 components:
   securitySchemes:
     bearerAuth:
@@ -338,17 +338,17 @@ paths:
             enum:
               - oai_dc
         - name: from
-          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Accepted formats `YYYY-MM-DD` or `YYYY-MM-DDThh:mm:ssZ`
           in: query
           required: false
-          example: 2023-01-01T08:12:23.561029Z
+          example: 2023-01-01T08:12:23Z
           schema:
             type: string
         - name: until
-          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+          description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Accepted formats `YYYY-MM-DD` or `YYYY-MM-DDThh:mm:ssZ`
           in: query
           required: false
-          example: 2023-01-12T12:03:59.224831Z
+          example: 2023-01-12T12:03:59Z
           schema:
             type: string
         - name: set
@@ -395,10 +395,10 @@ paths:
                   description: Exclusive parameter for retrieving additional results
                   type: string
                 from:
-                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Accepted formats `YYYY-MM-DD` or `YYYY-MM-DDThh:mm:ssZ`
                   type: string
                 until:
-                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Required format `YYYY:MM:DDThh:mm:ss.ffffffZ`
+                  description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Accepted formats `YYYY-MM-DD` or `YYYY-MM-DDThh:mm:ssZ`
                   type: string
                 set:
                   description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a collection id.
