@@ -1,6 +1,6 @@
 {
   "name": "dc-api",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "description": "NUL Digital Collections API",
   "repository": "https://github.com/nulib/dc-api-v2",
   "author": "nulib",
