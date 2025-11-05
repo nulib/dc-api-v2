@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - ".github/workflows/deploy.yml"
+      - "api/**"
+      - "av-download/**"
       - "node/**"
       - "chat/**"
       - "template.yaml"
