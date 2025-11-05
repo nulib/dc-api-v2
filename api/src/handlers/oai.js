@@ -16,9 +16,9 @@ function invalidDateParameters(verb, dates) {
   // OAI-PMH spec allows three date formats:
   // 1. YYYY-MM-DD (date only)
   // 2. YYYY-MM-DDThh:mm:ssZ (no fractional seconds)
-  // 3. YYYY-MM-DDThh:mm:ss.fZ to YYYY-MM-DDThh:mm:ss.ffffffZ (1-6 fractional seconds)
+  // 3. YYYY-MM-DDThh:mm:ssZ (seconds granularity, no fractional seconds)
   const dateOnlyRegex = /^\d{4}-\d{2}-\d{2}$/;
-  const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z$/;
+  const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
   let invalidDates = [];
 
   for (const [dateParameter, dateValue] of Object.entries(dates)) {
@@ -65,7 +65,7 @@ exports.handler = wrap(async (event) => {
   if (invalidDateParameters(verb, dates).length > 0)
     return invalidOaiRequest(
       "badArgument",
-      "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ' (with optional fractional seconds)"
+      "Invalid date -- make sure that 'from' or 'until' parameters are formatted as: 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ'"
     );
   if (!verb) return invalidOaiRequest("badArgument", "Missing required verb");
 

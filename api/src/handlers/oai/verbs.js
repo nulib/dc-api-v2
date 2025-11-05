@@ -1,6 +1,7 @@
 const { invalidOaiRequest, output } = require("../oai/xml-transformer");
 const { earliestRecord, oaiSearch, oaiSets } = require("../oai/search");
 const { deleteScroll, getWork, scroll } = require("../../api/opensearch");
+const { formatOaiDate } = require("./date-utils");
 
 const fieldMapper = {
   contributor: "dc:contributor",
@@ -29,7 +30,7 @@ const oaiAttributes = {
 function header(work) {
   let fields = {
     identifier: work.id,
-    datestamp: work.modified_date,
+    datestamp: formatOaiDate(work.modified_date),
   };
 
   if (work?.collection && Object.keys(work.collection).length > 0) {
@@ -81,7 +82,7 @@ const getRecord = async (url, id) => {
     const document = {
       "OAI-PMH": {
         _attributes: oaiAttributes,
-        responseDate: new Date().toISOString(),
+        responseDate: formatOaiDate(new Date()),
         request: {
           _attributes: {
             verb: "GetRecord",
@@ -108,7 +109,7 @@ const identify = async (url) => {
   const obj = {
     "OAI-PMH": {
       _attributes: oaiAttributes,
-      responseDate: new Date().toISOString(),
+      responseDate: formatOaiDate(new Date()),
       request: {
         _attributes: {
           verb: "Identify",
@@ -120,7 +121,7 @@ const identify = async (url) => {
         baseURL: url,
         protocolVersion: "2.0",
         adminEmail: "repository@northwestern.edu",
-        earliestDatestamp: earliestDatestamp,
+        earliestDatestamp: formatOaiDate(earliestDatestamp),
         deletedRecord: "no",
         granularity: "YYYY-MM-DDThh:mm:ssZ",
       },
@@ -161,14 +162,14 @@ const listIdentifiers = async (
     const headers = hits.map((hit) => header(hit._source));
     resumptionTokenElement = {
       _attributes: {
-        expirationDate: response.expiration,
+        expirationDate: formatOaiDate(response.expiration),
       },
       _text: scrollId,
     };
     const obj = {
       "OAI-PMH": {
         _attributes: oaiAttributes,
-        responseDate: new Date().toISOString(),
+        responseDate: formatOaiDate(new Date()),
         request: {
           _attributes: {
             verb: "ListIdentifiers",
@@ -205,7 +206,7 @@ const listMetadataFormats = (url) => {
   const obj = {
     "OAI-PMH": {
       _attributes: oaiAttributes,
-      responseDate: new Date().toISOString(),
+      responseDate: formatOaiDate(new Date()),
       request: {
         _attributes: {
           verb: "ListMetadataFormats",
@@ -256,14 +257,14 @@ const listRecords = async (
     records = hits.map((hit) => transform(hit._source));
     resumptionTokenElement = {
       _attributes: {
-        expirationDate: response.expiration,
+        expirationDate: formatOaiDate(response.expiration),
       },
       _text: scrollId,
     };
     const obj = {
       "OAI-PMH": {
         _attributes: oaiAttributes,
-        responseDate: new Date().toISOString(),
+        responseDate: formatOaiDate(new Date()),
         request: {
           _attributes: {
             verb: "ListRecords",
@@ -312,7 +313,7 @@ const listSets = async (url) => {
     const obj = {
       "OAI-PMH": {
         _attributes: oaiAttributes,
-        responseDate: new Date().toISOString(),
+        responseDate: formatOaiDate(new Date()),
         request: {
           _attributes: {
             verb: "ListSets",

@@ -1,4 +1,5 @@
 const convert = require("xml-js");
+const { formatOaiDate } = require("./date-utils");
 
 const json2xmlOptions = { compact: true, ignoreComment: true, spaces: 4 };
 
@@ -15,7 +16,7 @@ const invalidOaiRequest = (oaiCode, message, statusCode = 400) => {
         "xsi:schemaLocation":
           "http://www.openarchives.org/OAI/2.0/\nhttp://www.openarchives.org/OAI/2.0/OAI_PMH.xsd",
       },
-      responseDate: new Date().toISOString(),
+      responseDate: formatOaiDate(new Date()),
       error: {
         _attributes: {
           code: oaiCode,
