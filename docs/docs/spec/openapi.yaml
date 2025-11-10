@@ -168,6 +168,26 @@ paths:
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
+  /file-sets/{id}/annotations:
+    get:
+      operationId: getFileSetAnnotations
+      tags:
+        - FileSet
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/AnnotationsResponse"
+  /annotations/{id}:
+    get:
+      operationId: getAnnotationById
+      tags:
+        - Annotation
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/id"
+      responses:
+        200:
+          $ref: "./types.yaml#/components/responses/AnnotationResponse"
   /file-sets/{id}/authorization:
     get:
       operationId: getFileSetAuth

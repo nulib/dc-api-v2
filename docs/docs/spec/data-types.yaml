@@ -216,6 +216,11 @@ components:
               nullable: true
               additionalProperties:
                 type: string
+            annotations:
+              type: array
+              nullable: true
+              items:
+                $ref: "#/components/schemas/Annotation"
             extracted_metadata:
               type: object
               nullable: true
@@ -254,6 +259,28 @@ components:
         - Auxiliary
         - Preservation
         - Supplemental
+    Annotation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        language:
+          type: array
+          items:
+            type: string
+        content:
+          type: string
+        model:
+          type: string
+      required:
+        - id
+        - type
+        - language
+        - content
+        - model
     GenericIdLabel:
       type: object
       nullable: true

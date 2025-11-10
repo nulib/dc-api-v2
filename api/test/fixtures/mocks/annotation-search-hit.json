@@ -1,0 +1,28 @@
+{
+  "took": 1,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 1,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "dev-dc-v2-file-set",
+        "_type": "_doc",
+        "_id": "1234",
+        "_score": 1.0,
+        "_source": {
+          "id": "1234"
+        }
+      }
+    ]
+  }
+}

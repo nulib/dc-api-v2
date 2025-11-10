@@ -1,6 +1,6 @@
 [project]
 name = "dc-api-v2-docs"
-version = "2.8.2"
+version = "2.9.0"
 requires-python = ">=3.12"
 dependencies = [
   "mkdocs>=1.1.2,<2.0.0",

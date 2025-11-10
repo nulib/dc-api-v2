@@ -13,6 +13,26 @@ function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
   );
 }
 
+function addTranscriptionAnnotationsToCanvas(canvas, canvasId, transcriptions) {
+  const validTranscriptions = (transcriptions || []).filter(
+    hasTranscriptionContent
+  );
+  if (validTranscriptions.length === 0) return;
+
+  canvas.createAnnotationPage(
+    (pageId = `${canvasId}/annotations/page/0`),
+    (annotationPageBuilder) => {
+      annotationPageBuilder.addLabel("Transcription", "en");
+      validTranscriptions.forEach((annotation, index) => {
+        annotationPageBuilder.createAnnotation(
+          buildTranscriptionAnnotation({ annotation, canvasId, pageId, index })
+        );
+      });
+    },
+    true
+  );
+}
+
 function addThumbnailToCanvas(canvas, fileSet) {
   if (fileSet.representative_image_url) {
     canvas.addThumbnail({
@@ -84,6 +104,47 @@ function buildSupplementingAnnotation({ canvasId, fileSet }) {
   };
 }
 
+function buildTranscriptionAnnotation({ annotation, canvasId, pageId, index }) {
+  return {
+    id: `${pageId}/a${index}`,
+    type: "Annotation",
+    motivation: "supplementing",
+    body: buildTranscriptionBody(annotation),
+    target: canvasId,
+  };
+}
+
+function buildTranscriptionBody(annotation) {
+  const value = getTranscriptionContent(annotation);
+
+  const body = {
+    type: "TextualBody",
+    value: value,
+    format: "text/plain",
+  };
+  const languages = normalizeLanguages(annotation.language);
+  if (languages.length === 1) {
+    body.language = languages[0];
+  } else if (languages.length > 1) {
+    body.language = languages;
+  }
+  return body;
+}
+
+function normalizeLanguages(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return [value];
+}
+
+function getTranscriptionContent(annotation = {}) {
+  return typeof annotation.content === "string" ? annotation.content : "";
+}
+
+function hasTranscriptionContent(annotation) {
+  return getTranscriptionContent(annotation) !== "";
+}
+
 function isAltFormat(mimeType) {
   const acceptedTypes = [
     "application/pdf",
@@ -107,6 +168,7 @@ function isPDF(mimeType) {
 
 module.exports = {
   addSupplementingAnnotationToCanvas,
+  addTranscriptionAnnotationsToCanvas,
   addThumbnailToCanvas,
   annotationType,
   buildAnnotationBody,
@@ -114,6 +176,7 @@ module.exports = {
   buildImageResourceId,
   buildImageService,
   buildSupplementingAnnotation,
+  buildTranscriptionAnnotation,
   isAltFormat,
   isAudioVideo,
   isImage,
