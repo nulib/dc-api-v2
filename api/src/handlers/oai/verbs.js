@@ -137,7 +137,8 @@ const listIdentifiers = async (
   set,
   resumptionToken
 ) => {
-  if (!metadataPrefix) {
+  // metadataPrefix is only required when NOT using a resumptionToken
+  if (!resumptionToken && !metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
       "Missing required metadataPrefix argument"
@@ -232,7 +233,8 @@ const listRecords = async (
   set,
   resumptionToken
 ) => {
-  if (!metadataPrefix) {
+  // metadataPrefix is only required when NOT using a resumptionToken
+  if (!resumptionToken && !metadataPrefix) {
     return invalidOaiRequest(
       "badArgument",
       "Missing required metadataPrefix argument"
