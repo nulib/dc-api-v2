@@ -108,7 +108,7 @@ function buildTranscriptionAnnotation({ annotation, canvasId, pageId, index }) {
   return {
     id: `${pageId}/a${index}`,
     type: "Annotation",
-    motivation: "supplementing",
+    motivation: "commenting",
     body: buildTranscriptionBody(annotation),
     target: canvasId,
   };
