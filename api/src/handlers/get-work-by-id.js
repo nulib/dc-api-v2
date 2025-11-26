@@ -22,8 +22,11 @@ exports.handler = wrap(async (event) => {
 
   if (as && as === "iiif") {
     // Make it IIIFy
-    return manifestResponse.transform(esResponse);
-  } else {
-    return await opensearchResponse.transform(esResponse);
+    return await manifestResponse.transform(esResponse, {
+      allowPrivate,
+      allowUnpublished,
+    });
   }
+
+  return await opensearchResponse.transform(esResponse);
 });

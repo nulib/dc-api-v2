@@ -115,6 +115,31 @@ components:
                 $ref: "#/components/schemas/IndexDocument"
               info:
                 type: object
+    AnnotationsResponse:
+      description: Annotations for a FileSet
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: "./data-types.yaml#/components/schemas/Annotation"
+                nullable: true
+              info:
+                $ref: "./data-types.yaml#/components/schemas/Info"
+    AnnotationResponse:
+      description: A single annotation response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: "./data-types.yaml#/components/schemas/Annotation"
+              info:
+                $ref: "./data-types.yaml#/components/schemas/Info"
     SearchResponse:
       description: A page of search results
       content:

@@ -1,8 +1,14 @@
 const { IIIFBuilder } = require("iiif-builder");
-const { dcApiEndpoint, dcUrl } = require("../../../environment");
+const {
+  dcApiEndpoint,
+  dcUrl,
+  openSearchEndpoint,
+} = require("../../../environment");
 const { transformError } = require("../error");
+const { getFileSet } = require("../../opensearch");
 const {
   addSupplementingAnnotationToCanvas,
+  addTranscriptionAnnotationsToCanvas,
   addThumbnailToCanvas,
   buildAnnotationBody,
   buildImageResourceId,
@@ -18,7 +24,7 @@ const {
 } = require("./presentation-api/placeholder-canvas");
 const { nulLogo, provider } = require("./presentation-api/provider");
 
-function transform(response) {
+async function transform(response, options = {}) {
   if (response.statusCode === 200) {
     const builder = new IIIFBuilder();
 
@@ -26,6 +32,9 @@ function transform(response) {
     const source = openSearchResponse._source;
 
     const manifestId = `${dcApiEndpoint()}/works/${source.id}?as=iiif`;
+
+    const transcriptionMap = await fetchFileSetTranscriptions(source, options);
+    const transcriptionPages = {};
 
     const normalizedFlatManifestObj = builder.createManifest(
       manifestId,
@@ -63,6 +72,22 @@ function transform(response) {
             /** Add "supplementing" annotation */
             if (!isAuxiliary && fileSet.webvtt) {
               addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet);
+            }
+
+            /** Add transcription annotations */
+            const transcriptions = transcriptionMap[fileSet.id];
+            if (
+              source.work_type === "Image" &&
+              fileSet.role === "Access" &&
+              transcriptions?.length
+            ) {
+              const pageId = `${canvasId}/annotations/page/0`;
+              addTranscriptionAnnotationsToCanvas(
+                canvas,
+                canvasId,
+                transcriptions
+              );
+              transcriptionPages[pageId] = transcriptions;
             }
           });
         }
@@ -275,6 +300,22 @@ function transform(response) {
                   primaryFileSet
                 );
               }
+
+              /** Add transcription annotations */
+              const transcriptions = transcriptionMap[primaryFileSet.id];
+              if (
+                source.work_type === "Image" &&
+                primaryFileSet.role === "Access" &&
+                transcriptions?.length
+              ) {
+                const pageId = `${canvasId}/annotations/page/0`;
+                addTranscriptionAnnotationsToCanvas(
+                  canvas,
+                  canvasId,
+                  transcriptions
+                );
+                transcriptionPages[pageId] = transcriptions;
+              }
             });
           }
         );
@@ -320,6 +361,19 @@ function transform(response) {
           }
         }
       }
+
+      /** Re-do transcription text in annotation bodies as it's getting stripped somehow */
+      const annotationPages = jsonManifest.items[i]?.annotations || [];
+      annotationPages.forEach((page) => {
+        const pageTranscriptions = transcriptionPages[page.id];
+        if (!pageTranscriptions?.length) return;
+        page.items?.forEach((annotation, idx) => {
+          const sourceTranscription = pageTranscriptions[idx];
+          if (!sourceTranscription) return;
+          if (!annotation.body) annotation.body = {};
+          annotation.body.value = getTranscriptionContent(sourceTranscription);
+        });
+      });
     }
 
     jsonManifest.provider = [provider];
@@ -336,6 +390,44 @@ function transform(response) {
     };
   }
   return transformError(response);
+}
+
+async function fetchFileSetTranscriptions(source, options) {
+  if (source.work_type !== "Image") return {};
+  if (!openSearchEndpoint()) return {};
+
+  const candidates = (source.file_sets || []).filter(
+    (file_set) => file_set.role === "Access" && file_set.id
+  );
+
+  const allowPrivate = options.allowPrivate || false;
+  const allowUnpublished = options.allowUnpublished || false;
+
+  const results = await Promise.all(
+    candidates.map(async (file_set) => {
+      const response = await getFileSet(file_set.id, {
+        allowPrivate,
+        allowUnpublished,
+      });
+      if (response.statusCode !== 200) return null;
+      const body = JSON.parse(response.body);
+      const annotations =
+        body?._source?.annotations?.filter(
+          (annotation) => annotation.type === "transcription"
+        ) || [];
+      if (annotations.length === 0) return null;
+      return { id: file_set.id, annotations };
+    })
+  );
+
+  return results
+    .filter(Boolean)
+    .reduce((acc, { id, annotations }) => ({ ...acc, [id]: annotations }), {});
+}
+
+function getTranscriptionContent(annotation = {}) {
+  const value = annotation.content ?? "";
+  return typeof value === "string" ? value : "";
 }
 
 module.exports = { transform };
