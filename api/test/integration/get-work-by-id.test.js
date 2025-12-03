@@ -51,6 +51,24 @@ describe("Retrieve work by id", () => {
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/work-1234.json"));
 
+      // Minimal transcription fetch for Access file sets in the fixture
+      mock
+        .get("/dc-v2-file-set/_doc/076dcbd8-8c57-40e8-bdf7-dc9153c87a36")
+        .reply(200, {
+          _source: {
+            id: "076dcbd8-8c57-40e8-bdf7-dc9153c87a36",
+            annotations: [],
+          },
+        });
+      mock
+        .get("/dc-v2-file-set/_doc/51862c1c-c024-45dc-ab26-694bd8ebc16c")
+        .reply(200, {
+          _source: {
+            id: "51862c1c-c024-45dc-ab26-694bd8ebc16c",
+            annotations: [],
+          },
+        });
+
       const event = helpers
         .mockEvent("GET", "/works/{id}")
         .pathParams({ id: 1234 })

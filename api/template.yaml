@@ -334,6 +334,54 @@ Resources:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}
             Method: HEAD
+  getFileSetAnnotationsFunction:
+    Type: AWS::Serverless::Function
+    Condition: DeployAPI
+    Properties:
+      Handler: handlers/get-file-set-annotations.handler
+      Description: Gets annotations for a FileSet.
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Policies:
+        - !Ref SecretsPolicy
+        - !Ref readIndexPolicy
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/annotations
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/annotations
+            Method: HEAD
+  getAnnotationByIdFunction:
+    Type: AWS::Serverless::Function
+    Condition: DeployAPI
+    Properties:
+      Handler: handlers/get-annotation-by-id.handler
+      Description: Gets an Annotation by id.
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Policies:
+        - !Ref SecretsPolicy
+        - !Ref readIndexPolicy
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /annotations/{id}
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /annotations/{id}
+            Method: HEAD
   getFileSetAuthFunction:
     Type: AWS::Serverless::Function
     Condition: DeployAPI

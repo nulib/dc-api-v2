@@ -207,6 +207,25 @@ describe("Oai routes", () => {
       expect(resumptionToken).to.not.haveOwnProperty("_text");
     });
 
+    it("allows resumptionToken without metadataPrefix for ListRecords", async () => {
+      mock
+        .post(
+          "/_search/scroll/FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFm1jN3ZCajdnUURpbUhad1hIYnNsQmcAAAAAAAB2DhZXbmtMZVF5Q1JsMi1ScGRsYUlHLUtB"
+        )
+        .reply(200, helpers.testFixture("mocks/scroll.json"));
+
+      const body =
+        "verb=ListRecords&resumptionToken=FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFm1jN3ZCajdnUURpbUhad1hIYnNsQmcAAAAAAAB2DhZXbmtMZVF5Q1JsMi1ScGRsYUlHLUtB";
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      expect(resultBody["OAI-PMH"].ListRecords.record)
+        .to.be.an("array")
+        .and.to.have.lengthOf(12);
+    });
+
     it("returns a badResumptionToken error when a resumptionToken expires", async () => {
       mock
         .post(
@@ -478,6 +497,30 @@ describe("Oai routes", () => {
       const resumptionToken =
         resultBody["OAI-PMH"].ListIdentifiers.resumptionToken;
       expect(resumptionToken).to.not.haveOwnProperty("_text");
+    });
+
+    it("allows resumptionToken without metadataPrefix for ListIdentifiers", async () => {
+      mock
+        .post(
+          "/_search/scroll/FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFm1jN3ZCajdnUURpbUhad1hIYnNsQmcAAAAAAAB2DhZXbmtMZVF5Q1JsMi1ScGRsYUlHLUtB"
+        )
+        .reply(200, helpers.testFixture("mocks/scroll.json"));
+
+      const event = helpers
+        .mockEvent("GET", "/oai")
+        .queryParams({
+          verb: "ListIdentifiers",
+          resumptionToken:
+            "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFm1jN3ZCajdnUURpbUhad1hIYnNsQmcAAAAAAAB2DhZXbmtMZVF5Q1JsMi1ScGRsYUlHLUtB",
+        })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header("content-type", /application\/xml/);
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      const resumptionToken =
+        resultBody["OAI-PMH"].ListIdentifiers.resumptionToken;
+      expect(resumptionToken["_text"]).to.have.lengthOf(120);
     });
 
     it("returns a badResumptionToken error when a resumptionToken expires", async () => {

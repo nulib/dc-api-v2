@@ -1,0 +1,23 @@
+{
+  "_index": "dev-dc-v2-file-set",
+  "_type": "_doc",
+  "_id": "1234",
+  "_version": 1,
+  "found": true,
+  "_source": {
+    "id": "1234",
+    "api_model": "FileSet",
+    "visibility": "Public",
+    "published": true,
+    "mime_type": "image/tiff",
+    "annotations": [
+      {
+        "id": "36a47020-5410-4dda-a7ca-967fe3885bcd",
+        "type": "transcription",
+        "language": ["lg", "en"],
+        "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae nisl a leo faucibus consectetur a vel ante. Vivamus imperdiet, arcu a luctus mollis, libero lectus porta ex, quis dapibus quam lectus id urna. Pellentesque nec eros non dolor pharetra rutrum nec sit amet velit. Ut a nisl augue. Pellentesque fermentum odio risus, eget placerat sem vehicula sodales. Quisque pulvinar urna sit amet mi hendrerit faucibus. Phasellus a maximus est. Fusce bibendum pulvinar ipsum, nec blandit nulla feugiat non. Pellentesque est odio, ornare porta pulvinar sit amet, posuere congue nisi. Nam finibus felis metus, id dignissim nisl condimentum in. Proin convallis, leo ac imperdiet luctus, leo velit pulvinar dolor, ut lacinia massa est eu felis. Phasellus porta efficitur ex eu commodo. In fermentum neque sit amet porttitor pharetra. Sed sit amet pellentesque erat, sit amet accumsan risus. Sed varius condimentum nunc, sed luctus metus pretium nec.",
+        "model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
+      }
+    ]
+  }
+}
