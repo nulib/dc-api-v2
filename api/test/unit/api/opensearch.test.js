@@ -75,6 +75,77 @@ describe("getCollection()", function () {
   });
 });
 
+describe("getWorkFileSets()", function () {
+  helpers.saveEnvironment();
+  const mock = helpers.mockIndex();
+
+  it("gets file sets by work id", async function () {
+    const searchBody = {
+      size: 10000,
+      query: {
+        bool: {
+          must: [{ term: { work_id: "work-123" } }],
+          filter: [
+            {
+              bool: {
+                should: [
+                  { term: { visibility: "Public" } },
+                  { term: { visibility: "Institution" } },
+                ],
+              },
+            },
+            { term: { published: true } },
+          ],
+        },
+      },
+    };
+
+    mock
+      .post("/dc-v2-file-set/_search", JSON.stringify(searchBody))
+      .reply(200, helpers.testFixture("mocks/work-file-sets.json"));
+
+    const result = await opensearch.getWorkFileSets("work-123");
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).to.eq(200);
+    expect(body.hits.hits.length).to.be.greaterThan(0);
+  });
+
+  it("filters by role when provided", async function () {
+    const searchBody = {
+      size: 10000,
+      query: {
+        bool: {
+          must: [
+            { term: { work_id: "work-123" } },
+            { term: { role: "Access" } },
+          ],
+          filter: [
+            {
+              bool: {
+                should: [
+                  { term: { visibility: "Public" } },
+                  { term: { visibility: "Institution" } },
+                ],
+              },
+            },
+            { term: { published: true } },
+          ],
+        },
+      },
+    };
+
+    mock
+      .post("/dc-v2-file-set/_search", JSON.stringify(searchBody))
+      .reply(200, helpers.testFixture("mocks/work-file-sets-access.json"));
+
+    const result = await opensearch.getWorkFileSets("work-123", {
+      role: "Access",
+    });
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).to.eq(200);
+  });
+});
+
 describe("search()", function () {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
