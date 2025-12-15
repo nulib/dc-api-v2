@@ -19,6 +19,55 @@ async function getSharedLink(id, opts) {
   return getDocument("shared_links", id, opts);
 }
 
+async function getWorkFileSets(workId, opts = {}) {
+  Honeybadger.addBreadcrumb("Retrieving work file sets", {
+    metadata: { workId },
+  });
+
+  const {
+    allowPrivate = false,
+    allowUnpublished = false,
+    role = null,
+    source = null,
+  } = opts;
+
+  const visibilityFilters = [];
+  if (!allowPrivate) {
+    visibilityFilters.push({
+      bool: {
+        should: [
+          { term: { visibility: "Public" } },
+          { term: { visibility: "Institution" } },
+        ],
+      },
+    });
+  }
+  if (!allowUnpublished) {
+    visibilityFilters.push({ term: { published: true } });
+  }
+
+  const mustClauses = [{ term: { work_id: workId } }];
+  if (role) {
+    mustClauses.push({ term: { role: role } });
+  }
+
+  const searchBody = {
+    size: 10000,
+    query: {
+      bool: {
+        must: mustClauses,
+        filter: visibilityFilters,
+      },
+    },
+  };
+
+  if (source) {
+    searchBody._source = source;
+  }
+
+  return await search(prefix("dc-v2-file-set"), JSON.stringify(searchBody));
+}
+
 async function getDocument(index, id, opts = {}) {
   Honeybadger.addBreadcrumb("Retrieving document", { metadata: { index, id } });
   const request = initRequest(`/${prefix(index)}/_doc/${id}`);
@@ -133,6 +182,7 @@ module.exports = {
   getFileSet,
   getSharedLink,
   getWork,
+  getWorkFileSets,
   search,
   scroll,
   deleteScroll,

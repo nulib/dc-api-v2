@@ -5,7 +5,7 @@ const {
   openSearchEndpoint,
 } = require("../../../environment");
 const { transformError } = require("../error");
-const { getFileSet } = require("../../opensearch");
+const { getWorkFileSets } = require("../../opensearch");
 const {
   addSupplementingAnnotationToCanvas,
   addTranscriptionAnnotationsToCanvas,
@@ -396,33 +396,31 @@ async function fetchFileSetTranscriptions(source, options) {
   if (source.work_type !== "Image") return {};
   if (!openSearchEndpoint()) return {};
 
-  const candidates = (source.file_sets || []).filter(
-    (file_set) => file_set.role === "Access" && file_set.id
-  );
-
   const allowPrivate = options.allowPrivate || false;
   const allowUnpublished = options.allowUnpublished || false;
 
-  const results = await Promise.all(
-    candidates.map(async (file_set) => {
-      const response = await getFileSet(file_set.id, {
-        allowPrivate,
-        allowUnpublished,
-      });
-      if (response.statusCode !== 200) return null;
-      const body = JSON.parse(response.body);
-      const annotations =
-        body?._source?.annotations?.filter(
-          (annotation) => annotation.type === "transcription"
-        ) || [];
-      if (annotations.length === 0) return null;
-      return { id: file_set.id, annotations };
-    })
-  );
+  const response = await getWorkFileSets(source.id, {
+    allowPrivate,
+    allowUnpublished,
+    role: "Access",
+    source: ["id", "annotations"],
+  });
 
-  return results
-    .filter(Boolean)
-    .reduce((acc, { id, annotations }) => ({ ...acc, [id]: annotations }), {});
+  if (response.statusCode !== 200) return {};
+
+  const body = JSON.parse(response.body);
+  const hits = body?.hits?.hits || [];
+
+  return hits.reduce((acc, hit) => {
+    const fileSetId = hit._source?.id;
+    const annotations = (hit._source?.annotations || []).filter(
+      (annotation) => annotation.type === "transcription"
+    );
+    if (fileSetId && annotations.length > 0) {
+      acc[fileSetId] = annotations;
+    }
+    return acc;
+  }, {});
 }
 
 function getTranscriptionContent(annotation = {}) {

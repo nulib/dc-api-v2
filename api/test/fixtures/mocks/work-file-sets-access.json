@@ -1,0 +1,33 @@
+{
+  "took": 2,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 1,
+      "relation": "eq"
+    },
+    "max_score": 1.0,
+    "hits": [
+      {
+        "_index": "dc-v2-file-set",
+        "_type": "_doc",
+        "_id": "fileset-access-1",
+        "_score": 1.0,
+        "_source": {
+          "id": "fileset-access-1",
+          "api_model": "FileSet",
+          "work_id": "work-123",
+          "role": "Access",
+          "visibility": "Public",
+          "published": true
+        }
+      }
+    ]
+  }
+}
