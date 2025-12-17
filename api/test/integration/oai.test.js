@@ -55,6 +55,51 @@ describe("Oai routes", () => {
         );
     });
 
+    it("properly extracts values from complex fields for GetRecord", async () => {
+      const body = "verb=GetRecord&identifier=1234&metadataPrefix=oai_dc";
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/work-1234.json"));
+      const event = helpers.mockEvent("POST", "/oai").body(body).render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+
+      const resultBody = convert.xml2js(result.body, xmlOpts);
+      const metadata =
+        resultBody["OAI-PMH"].GetRecord.record.metadata["oai_dc:dc"];
+
+      // Verify subject uses label_with_role
+      expect(metadata["dc:subject"]).to.be.an("array");
+      const subjectValues = metadata["dc:subject"].map((s) => s._text);
+      expect(subjectValues).to.include("Cats on postage stamps (Topical)");
+
+      // Verify contributor uses label_with_role
+      expect(metadata["dc:contributor"]).to.be.an("array");
+      const contributorValues = metadata["dc:contributor"].map((c) => c._text);
+      expect(contributorValues[0]).to.include("Metallica (Musical group)");
+
+      // Verify creator uses label
+      expect(metadata["dc:creator"]).to.be.an("array");
+      const creatorValues = metadata["dc:creator"].map((c) => c._text);
+      expect(creatorValues[0]).to.include("Dessa");
+
+      // Verify language contains full URI
+      // xml-js returns a single object when there's one element, array for multiple
+      const languageData = Array.isArray(metadata["dc:language"])
+        ? metadata["dc:language"]
+        : [metadata["dc:language"]];
+      const languageValues = languageData.map((l) => l._text);
+      expect(languageValues).to.include(
+        "http://id.loc.gov/vocabulary/languages/crh"
+      );
+      languageValues.forEach((lang) => {
+        expect(lang).to.include("http://");
+      });
+
+      // Verify rights contains label
+      expect(metadata["dc:rights"]._text).to.include("Copyright");
+    });
+
     it("enforces the id parameter for the GetRecord verb", async () => {
       const body = "verb=GetRecord&metadataPrefix=oai_dc";
       const event = helpers.mockEvent("POST", "/oai").body(body).render();

@@ -27,6 +27,64 @@ const oaiAttributes = {
     "http://www.openarchives.org/OAI/2.0/\nhttp://www.openarchives.org/OAI/2.0/OAI_PMH.xsd",
 };
 
+function extractDcValue(fieldName, fieldValue) {
+  // Handle null/undefined
+  if (!fieldValue) return null;
+
+  // Handle simple string or array of strings (title, description, etc.)
+  if (
+    typeof fieldValue === "string" ||
+    (Array.isArray(fieldValue) && typeof fieldValue[0] === "string")
+  ) {
+    return fieldValue;
+  }
+
+  // Handle single object fields (rights_statement)
+  if (!Array.isArray(fieldValue) && typeof fieldValue === "object") {
+    return extractSingleValue(fieldName, fieldValue);
+  }
+
+  // Handle array of objects (subject, contributor, creator, language)
+  if (Array.isArray(fieldValue) && typeof fieldValue[0] === "object") {
+    const extracted = fieldValue.map((item) =>
+      extractSingleValue(fieldName, item)
+    );
+    return extracted.filter((val) => val !== null); // Remove nulls
+  }
+
+  return fieldValue;
+}
+
+function extractSingleValue(fieldName, item) {
+  if (!item) return null;
+
+  switch (fieldName) {
+    case "subject":
+    case "contributor":
+      // Use label_with_role if available, fallback to label
+      return item.label_with_role || item.label || null;
+
+    case "language":
+      // Use the full URI (e.g., 'http://id.loc.gov/vocabulary/languages/crh')
+      if (item.id && typeof item.id === "string") {
+        return item.id;
+      }
+      return item.label || null;
+
+    case "creator":
+      // Use label field
+      return item.label || null;
+
+    case "rights_statement":
+      // Use label field
+      return item.label || null;
+
+    default:
+      // For unknown complex types, try label field or return as-is
+      return item.label || item;
+  }
+}
+
 function header(work) {
   let fields = {
     identifier: work.id,
@@ -47,7 +105,18 @@ function transform(work) {
   const filteredWork = Object.keys(work)
     .filter((key) => Object.keys(fieldMapper).includes(key))
     .reduce((obj, key) => {
-      obj[fieldMapper[key]] = work[key];
+      const dcFieldName = fieldMapper[key];
+      const extractedValue = extractDcValue(key, work[key]);
+
+      // Only include field if it has a value
+      if (
+        extractedValue !== null &&
+        extractedValue !== undefined &&
+        !(Array.isArray(extractedValue) && extractedValue.length === 0)
+      ) {
+        obj[dcFieldName] = extractedValue;
+      }
+
       return obj;
     }, {});
 
