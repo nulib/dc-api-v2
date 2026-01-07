@@ -97,6 +97,11 @@ async function buildCollection(responseBody, pageInfo) {
     ];
   }
 
+  const navPlace = buildCollectionNavPlace(responseBody?.hits?.hits);
+  if (navPlace) {
+    result.navPlace = navPlace;
+  }
+
   return result;
 }
 
@@ -234,6 +239,49 @@ function loadItem(item, itemType, size) {
       }),
     };
   }
+}
+
+function buildCollectionNavPlace(hits = []) {
+  if (!hits || hits.length === 0) return null;
+
+  const allFeatures = [];
+
+  hits.forEach((hit) => {
+    const source = hit._source;
+    if (!source) return;
+
+    const navPlace = source.navPlace || source.nav_place;
+    if (!navPlace || typeof navPlace !== "object") return;
+
+    const features = Array.isArray(navPlace.features) ? navPlace.features : [];
+    const pointFeatures = features
+      .filter(
+        (feature) =>
+          feature?.geometry?.type === "Point" &&
+          Array.isArray(feature.geometry.coordinates) &&
+          feature.geometry.coordinates.length >= 2
+      )
+      .map((feature) => {
+        const { geometry, ...rest } = feature || {};
+        return {
+          ...rest,
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: geometry.coordinates,
+          },
+        };
+      });
+
+    allFeatures.push(...pointFeatures);
+  });
+
+  if (!allFeatures.length) return null;
+
+  return {
+    type: "FeatureCollection",
+    features: allFeatures,
+  };
 }
 
 module.exports = { transform };

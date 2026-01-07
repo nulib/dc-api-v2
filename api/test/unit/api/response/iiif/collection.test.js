@@ -129,3 +129,227 @@ describe("IIIF Collection response for top level colllections", () => {
     expect(body.items[0].type).to.eq("Collection");
   });
 });
+
+describe("IIIF Collection with navPlace aggregation", () => {
+  helpers.saveEnvironment();
+
+  let pager;
+  beforeEach(() => {
+    pager = new Paginator(
+      "http://dcapi.library.northwestern.edu/api/v2/",
+      "search",
+      ["works"],
+      { query: { query_string: { query: "test" } } },
+      "iiif",
+      {
+        includeToken: false,
+        queryStringParameters: {
+          collectionLabel: "Test Collection with NavPlace",
+          collectionSummary: "Collection containing works with geographic data",
+          query: "test",
+        },
+      }
+    );
+  });
+
+  it("aggregates navPlace from multiple works", async () => {
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        hits: {
+          total: { value: 2 },
+          hits: [
+            {
+              _source: {
+                id: "work-1",
+                title: "Work with NavPlace 1",
+                nav_place: {
+                  type: "FeatureCollection",
+                  features: [
+                    {
+                      type: "Feature",
+                      geometry: {
+                        type: "Point",
+                        coordinates: [88.3639, 22.5726],
+                      },
+                      properties: {
+                        label: { en: ["Calcutta"] },
+                        summary: { en: ["British survey depot"] },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              _source: {
+                id: "work-2",
+                title: "Work with NavPlace 2",
+                navPlace: {
+                  type: "FeatureCollection",
+                  features: [
+                    {
+                      type: "Feature",
+                      geometry: {
+                        type: "Point",
+                        coordinates: [166.93453, -0.5033],
+                      },
+                      properties: {
+                        label: { en: ["Ewa District"] },
+                        summary: { en: ["Ewa District, Nauru"] },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      }),
+    };
+
+    const result = await transformer.transform(response, pager);
+    expect(result.statusCode).to.eq(200);
+
+    const body = JSON.parse(result.body);
+    expect(body.navPlace).to.exist;
+    expect(body.navPlace.type).to.eq("FeatureCollection");
+    expect(body.navPlace.features).to.have.lengthOf(2);
+    expect(body.navPlace.features[0].geometry.type).to.eq("Point");
+    expect(body.navPlace.features[0].geometry.coordinates).to.deep.eq([
+      88.3639, 22.5726,
+    ]);
+    expect(body.navPlace.features[1].geometry.coordinates).to.deep.eq([
+      166.93453, -0.5033,
+    ]);
+  });
+
+  it("filters out non-Point geometries from navPlace", async () => {
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        hits: {
+          total: { value: 1 },
+          hits: [
+            {
+              _source: {
+                id: "work-1",
+                title: "Work with mixed geometries",
+                nav_place: {
+                  type: "FeatureCollection",
+                  features: [
+                    {
+                      type: "Feature",
+                      geometry: {
+                        type: "Point",
+                        coordinates: [88.3639, 22.5726],
+                      },
+                      properties: {
+                        label: { en: ["Calcutta"] },
+                      },
+                    },
+                    {
+                      type: "Feature",
+                      geometry: {
+                        type: "Polygon",
+                        coordinates: [
+                          [
+                            [0, 0],
+                            [10, 0],
+                            [10, 10],
+                            [0, 10],
+                            [0, 0],
+                          ],
+                        ],
+                      },
+                      properties: {
+                        label: { en: ["Ignored polygon"] },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      }),
+    };
+
+    const result = await transformer.transform(response, pager);
+    const body = JSON.parse(result.body);
+
+    expect(body.navPlace.features).to.have.lengthOf(1);
+    expect(body.navPlace.features[0].geometry.type).to.eq("Point");
+  });
+
+  it("omits navPlace when no works have navPlace data", async () => {
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        hits: {
+          total: { value: 1 },
+          hits: [
+            {
+              _source: {
+                id: "work-1",
+                title: "Work without NavPlace",
+              },
+            },
+          ],
+        },
+      }),
+    };
+
+    const result = await transformer.transform(response, pager);
+    const body = JSON.parse(result.body);
+
+    expect(body.navPlace).to.be.undefined;
+  });
+
+  it("omits navPlace when all features are filtered out", async () => {
+    const response = {
+      statusCode: 200,
+      body: JSON.stringify({
+        hits: {
+          total: { value: 1 },
+          hits: [
+            {
+              _source: {
+                id: "work-1",
+                title: "Work with only polygon",
+                nav_place: {
+                  type: "FeatureCollection",
+                  features: [
+                    {
+                      type: "Feature",
+                      geometry: {
+                        type: "Polygon",
+                        coordinates: [
+                          [
+                            [0, 0],
+                            [10, 0],
+                            [10, 10],
+                            [0, 10],
+                            [0, 0],
+                          ],
+                        ],
+                      },
+                      properties: {
+                        label: { en: ["Polygon only"] },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      }),
+    };
+
+    const result = await transformer.transform(response, pager);
+    const body = JSON.parse(result.body);
+
+    expect(body.navPlace).to.be.undefined;
+  });
+});

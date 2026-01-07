@@ -98,6 +98,31 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     );
   });
 
+  it("populates Manifest navPlace with point features", async () => {
+    const { manifest } = await setup();
+    expect(manifest.navPlace).to.deep.eq({
+      type: "FeatureCollection",
+      features: [
+        {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [88.3639, 22.5726],
+          },
+          properties: {
+            label: { en: ["Calcutta"] },
+            summary: { en: ["British survey depot"] },
+          },
+        },
+      ],
+    });
+  });
+
+  it("omits navPlace when source has no navPlace data", async () => {
+    const { manifest } = await setup("mocks/work-1234-no-collection.json");
+    expect(manifest.navPlace).to.be.undefined;
+  });
+
   it("populates Manifest partOf", async () => {
     const { source, manifest } = await setup();
     const partOf = manifest.partOf[0];
