@@ -434,34 +434,42 @@ function getTranscriptionContent(annotation = {}) {
 
 function buildNavPlace(source = {}) {
   const navPlace = source.navPlace || source.nav_place;
-  if (!navPlace || typeof navPlace !== "object") return null;
+  if (!Array.isArray(navPlace)) return null;
 
-  const features = Array.isArray(navPlace.features) ? navPlace.features : [];
-  const pointFeatures = features
+  const pointFeatures = navPlace
     .filter(
-      (feature) =>
-        feature?.geometry?.type === "Point" &&
-        Array.isArray(feature.geometry.coordinates) &&
-        feature.geometry.coordinates.length >= 2
+      (place) =>
+        place?.coordinates &&
+        Array.isArray(place.coordinates) &&
+        place.coordinates.length >= 2 &&
+        place.label
     )
-    .map((feature) => {
-      const { geometry, ...rest } = feature || {};
-      return {
-        ...rest,
+    .map((place) => {
+      const feature = {
         type: "Feature",
         geometry: {
           type: "Point",
-          coordinates: geometry.coordinates,
+          coordinates: place.coordinates,
+        },
+        properties: {
+          label: { en: [place.label] },
         },
       };
+
+      if (place.id) {
+        feature.id = place.id;
+      }
+
+      if (place.summary) {
+        feature.properties.summary = { en: [place.summary] };
+      }
+
+      return feature;
     });
 
   if (!pointFeatures.length) return null;
 
-  const { features: _features, ...rest } = navPlace;
-
   return {
-    ...rest,
     type: "FeatureCollection",
     features: pointFeatures,
   };

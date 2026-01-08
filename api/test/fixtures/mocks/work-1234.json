@@ -236,40 +236,14 @@
         "variants": []
       }
     ],
-    "nav_place": {
-      "type": "FeatureCollection",
-      "features": [
-        {
-          "type": "Feature",
-          "geometry": {
-            "type": "Point",
-            "coordinates": [88.3639, 22.5726]
-          },
-          "properties": {
-            "label": { "en": ["Calcutta"] },
-            "summary": { "en": ["British survey depot"] }
-          }
-        },
-        {
-          "type": "Feature",
-          "geometry": {
-            "type": "Polygon",
-            "coordinates": [
-              [
-                [0, 0],
-                [10, 0],
-                [10, 10],
-                [0, 10],
-                [0, 0]
-              ]
-            ]
-          },
-          "properties": {
-            "label": { "en": ["Ignored polygon"] }
-          }
-        }
-      ]
-    },
+    "nav_place": [
+      {
+        "id": "https://sws.geonames.org/1275004/",
+        "label": "Calcutta",
+        "summary": "British survey depot",
+        "coordinates": [88.3639, 22.5726]
+      }
+    ],
     "modified_date": "2022-10-13T20:56:31.249155Z",
     "notes": [
       {

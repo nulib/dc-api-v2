@@ -105,6 +105,7 @@ describe("Image Work as IIIF Manifest response transformer", () => {
       features: [
         {
           type: "Feature",
+          id: "https://sws.geonames.org/1275004/",
           geometry: {
             type: "Point",
             coordinates: [88.3639, 22.5726],

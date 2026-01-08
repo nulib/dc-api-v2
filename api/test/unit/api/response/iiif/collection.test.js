@@ -163,44 +163,28 @@ describe("IIIF Collection with navPlace aggregation", () => {
               _source: {
                 id: "work-1",
                 title: "Work with NavPlace 1",
-                nav_place: {
-                  type: "FeatureCollection",
-                  features: [
-                    {
-                      type: "Feature",
-                      geometry: {
-                        type: "Point",
-                        coordinates: [88.3639, 22.5726],
-                      },
-                      properties: {
-                        label: { en: ["Calcutta"] },
-                        summary: { en: ["British survey depot"] },
-                      },
-                    },
-                  ],
-                },
+                nav_place: [
+                  {
+                    id: "https://sws.geonames.org/1275004/",
+                    label: "Calcutta",
+                    summary: "British survey depot",
+                    coordinates: [88.3639, 22.5726],
+                  },
+                ],
               },
             },
             {
               _source: {
                 id: "work-2",
                 title: "Work with NavPlace 2",
-                navPlace: {
-                  type: "FeatureCollection",
-                  features: [
-                    {
-                      type: "Feature",
-                      geometry: {
-                        type: "Point",
-                        coordinates: [166.93453, -0.5033],
-                      },
-                      properties: {
-                        label: { en: ["Ewa District"] },
-                        summary: { en: ["Ewa District, Nauru"] },
-                      },
-                    },
-                  ],
-                },
+                navPlace: [
+                  {
+                    id: "https://sws.geonames.org/2110435/",
+                    label: "Ewa District",
+                    summary: "Ewa District, Nauru",
+                    coordinates: [166.93453, -0.5033],
+                  },
+                ],
               },
             },
           ],
@@ -235,39 +219,16 @@ describe("IIIF Collection with navPlace aggregation", () => {
               _source: {
                 id: "work-1",
                 title: "Work with mixed geometries",
-                nav_place: {
-                  type: "FeatureCollection",
-                  features: [
-                    {
-                      type: "Feature",
-                      geometry: {
-                        type: "Point",
-                        coordinates: [88.3639, 22.5726],
-                      },
-                      properties: {
-                        label: { en: ["Calcutta"] },
-                      },
-                    },
-                    {
-                      type: "Feature",
-                      geometry: {
-                        type: "Polygon",
-                        coordinates: [
-                          [
-                            [0, 0],
-                            [10, 0],
-                            [10, 10],
-                            [0, 10],
-                            [0, 0],
-                          ],
-                        ],
-                      },
-                      properties: {
-                        label: { en: ["Ignored polygon"] },
-                      },
-                    },
-                  ],
-                },
+                nav_place: [
+                  {
+                    label: "Calcutta",
+                    coordinates: [88.3639, 22.5726],
+                  },
+                  {
+                    label: "Ignored entry",
+                    coordinates: [0],
+                  },
+                ],
               },
             },
           ],
@@ -317,29 +278,12 @@ describe("IIIF Collection with navPlace aggregation", () => {
               _source: {
                 id: "work-1",
                 title: "Work with only polygon",
-                nav_place: {
-                  type: "FeatureCollection",
-                  features: [
-                    {
-                      type: "Feature",
-                      geometry: {
-                        type: "Polygon",
-                        coordinates: [
-                          [
-                            [0, 0],
-                            [10, 0],
-                            [10, 10],
-                            [0, 10],
-                            [0, 0],
-                          ],
-                        ],
-                      },
-                      properties: {
-                        label: { en: ["Polygon only"] },
-                      },
-                    },
-                  ],
-                },
+                nav_place: [
+                  {
+                    label: "Invalid entry",
+                    coordinates: [0],
+                  },
+                ],
               },
             },
           ],
