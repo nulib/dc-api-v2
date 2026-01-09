@@ -378,6 +378,10 @@ async function transform(response, options = {}) {
 
     jsonManifest.provider = [provider];
     jsonManifest.logo = [nulLogo];
+    const navPlace = buildNavPlace(source);
+    if (navPlace) {
+      jsonManifest.navPlace = navPlace;
+    }
 
     return {
       statusCode: 200,
@@ -426,6 +430,49 @@ async function fetchFileSetTranscriptions(source, options) {
 function getTranscriptionContent(annotation = {}) {
   const value = annotation.content ?? "";
   return typeof value === "string" ? value : "";
+}
+
+function buildNavPlace(source = {}) {
+  const navPlace = source.navPlace || source.nav_place;
+  if (!Array.isArray(navPlace)) return null;
+
+  const pointFeatures = navPlace
+    .filter(
+      (place) =>
+        place?.coordinates &&
+        Array.isArray(place.coordinates) &&
+        place.coordinates.length >= 2 &&
+        place.label
+    )
+    .map((place) => {
+      const feature = {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: place.coordinates,
+        },
+        properties: {
+          label: { en: [place.label] },
+        },
+      };
+
+      if (place.id) {
+        feature.id = place.id;
+      }
+
+      if (place.summary) {
+        feature.properties.summary = { en: [place.summary] };
+      }
+
+      return feature;
+    });
+
+  if (!pointFeatures.length) return null;
+
+  return {
+    type: "FeatureCollection",
+    features: pointFeatures,
+  };
 }
 
 module.exports = { transform };
