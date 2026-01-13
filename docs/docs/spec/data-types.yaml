@@ -426,6 +426,34 @@ components:
         - Audio
         - Image
         - Video
+    NavPlace:
+      type: array
+      description: Geographic points for IIIF navPlace construction.
+      items:
+        $ref: "#/components/schemas/NavPlaceEntry"
+    NavPlaceEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+          description: Identifier for the place.
+        label:
+          type: string
+          description: Human-readable label for the place.
+        summary:
+          type: string
+          nullable: true
+          description: Optional summary for the place.
+        coordinates:
+          type: array
+          description: Longitude/latitude coordinates.
+          minItems: 2
+          items:
+            type: number
+      required:
+        - label
+        - coordinates
     Work:
       type: object
       description: A single work response
@@ -637,6 +665,8 @@ components:
           description: Place of publication.
           items:
             $ref: "#/components/schemas/ControlledTerm"
+        nav_place:
+          $ref: "#/components/schemas/NavPlace"
         modified_date:
           type: string
           format: date-time

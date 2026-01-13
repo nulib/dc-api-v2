@@ -5,8 +5,8 @@ on:
       - deploy/staging
       - main
     paths:
-      - .github/workflows/docs.yaml
-      - docs/*
+      - .github/workflows/docs.yml
+      - docs/**
   workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

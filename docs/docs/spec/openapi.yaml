@@ -232,6 +232,7 @@ paths:
         - Work
       parameters:
         - $ref: "./types.yaml#/components/parameters/id"
+        - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/DocumentResponse"
