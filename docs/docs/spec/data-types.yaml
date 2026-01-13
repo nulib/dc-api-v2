@@ -452,7 +452,9 @@ components:
           items:
             type: number
       required:
+        - id
         - label
+        - summary
         - coordinates
     Work:
       type: object
@@ -856,6 +858,7 @@ components:
         - library_unit
         - license
         - location
+        - nav_place
         - modified_date
         - notes
         - physical_description_material
