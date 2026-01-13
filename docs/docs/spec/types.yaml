@@ -112,7 +112,9 @@ components:
             type: object
             properties:
               data:
-                $ref: "#/components/schemas/IndexDocument"
+                oneOf:
+                  - $ref: "#/components/schemas/IndexDocument"
+                  - $ref: "#/components/schemas/IiifPresentationManifest"
               info:
                 type: object
     AnnotationsResponse:
@@ -153,8 +155,11 @@ components:
       type: object
       description: A [IIIF Presentation v3.x](https://iiif.io/api/presentation/3.0/) Manifest
     IndexDocument:
-      type: object
       description: A single index document
+      oneOf:
+        - $ref: "./data-types.yaml#/components/schemas/Collection"
+        - $ref: "./data-types.yaml#/components/schemas/FileSet"
+        - $ref: "./data-types.yaml#/components/schemas/Work"
     OpenSearchResponse:
       type: object
       properties:
