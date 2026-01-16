@@ -28,8 +28,8 @@ function buildPlaceholderCanvas(id, fileSet, size = 640) {
               service: [
                 {
                   ["@id"]: representative_image_url,
-                  ["@type"]: "ImageService2",
-                  profile: "http://iiif.io/api/image/2/level2.json",
+                  ["@type"]: "ImageService3",
+                  profile: "http://iiif.io/api/image/3/level2.json",
                 },
               ],
             },

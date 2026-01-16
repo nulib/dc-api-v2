@@ -83,8 +83,8 @@ function buildImageService(representativeImageUrl) {
   return [
     {
       id: representativeImageUrl,
-      profile: "http://iiif.io/api/image/2/level2.json",
-      type: "ImageService2",
+      profile: "http://iiif.io/api/image/3/level2.json",
+      type: "ImageService3",
     },
   ];
 }
