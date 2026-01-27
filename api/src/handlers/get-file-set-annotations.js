@@ -2,6 +2,7 @@ const { wrap } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
 const { appInfo } = require("../environment");
 const opensearchResponse = require("../api/response/opensearch");
+const annotationsResponse = require("../api/response/iiif/annotations.js")
 
 /**
  * Returns annotations for a FileSet
@@ -19,6 +20,15 @@ exports.handler = wrap(async (event) => {
 
   const body = JSON.parse(esResponse.body);
   const annotations = body?._source?.annotations ?? null;
+
+  const as = event.queryStringParameters.as;
+
+  if (as && as === "iiif") {
+    return await annotationsResponse.transform(esResponse, {
+      allowPrivate,
+      allowUnpublished,
+    });
+  }
 
   return {
     statusCode: 200,
