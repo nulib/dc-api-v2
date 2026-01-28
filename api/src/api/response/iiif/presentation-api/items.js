@@ -14,28 +14,6 @@ function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
   );
 }
 
-function addTranscriptionAnnotationsToCanvas(
-  canvas,
-  canvasId,
-  transcriptions,
-  fileSet,
-  canvasAnnotations
-) {
-  const validTranscriptions = (transcriptions || []).filter(
-    hasTranscriptionContent
-  );
-  if (validTranscriptions.length === 0) return;
-
-  const pageId = `${dcApiEndpoint()}/file-sets/${
-    fileSet.id
-  }/annotations?as=iiif`;
-
-  canvasAnnotations[canvasId] = {
-    id: pageId,
-    type: "AnnotationPage",
-  };
-}
-
 function addThumbnailToCanvas(canvas, fileSet) {
   if (fileSet.representative_image_url) {
     canvas.addThumbnail({
@@ -171,7 +149,6 @@ function isPDF(mimeType) {
 
 module.exports = {
   addSupplementingAnnotationToCanvas,
-  addTranscriptionAnnotationsToCanvas,
   addThumbnailToCanvas,
   annotationType,
   buildAnnotationBody,

@@ -8,7 +8,6 @@ const { transformError } = require("../error");
 const { getWorkFileSets } = require("../../opensearch");
 const {
   addSupplementingAnnotationToCanvas,
-  addTranscriptionAnnotationsToCanvas,
   addThumbnailToCanvas,
   buildAnnotationBody,
   buildImageResourceId,
@@ -81,13 +80,12 @@ async function transform(response, options = {}) {
               fileSet.role === "Access" &&
               transcriptions?.length
             ) {
-              addTranscriptionAnnotationsToCanvas(
-                canvas,
-                canvasId,
-                transcriptions,
-                fileSet,
-                canvasAnnotations
-              );
+              canvasAnnotations[canvasId] = {
+                id: `${dcApiEndpoint()}/file-sets/${
+                  fileSet.id
+                }/annotations?as=iiif`,
+                type: "AnnotationPage",
+              };
             }
           });
         }
@@ -308,13 +306,12 @@ async function transform(response, options = {}) {
                 primaryFileSet.role === "Access" &&
                 transcriptions?.length
               ) {
-                addTranscriptionAnnotationsToCanvas(
-                  canvas,
-                  canvasId,
-                  transcriptions,
-                  primaryFileSet,
-                  canvasAnnotations
-                );
+                canvasAnnotations[canvasId] = {
+                  id: `${dcApiEndpoint()}/file-sets/${
+                    primaryFileSet.id
+                  }/annotations?as=iiif`,
+                  type: "AnnotationPage",
+                };
               }
             });
           }
