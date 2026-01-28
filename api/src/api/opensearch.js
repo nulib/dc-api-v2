@@ -67,9 +67,9 @@ async function getWorkFileSets(workId, opts = {}) {
     searchBody.sort = [
       {
         [sortBy]: {
-          "order": sortOrder
-        }
-      }
+          order: sortOrder,
+        },
+      },
     ];
   }
 

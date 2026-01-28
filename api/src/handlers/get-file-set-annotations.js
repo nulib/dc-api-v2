@@ -2,7 +2,7 @@ const { wrap } = require("./middleware");
 const { getFileSet } = require("../api/opensearch");
 const { appInfo } = require("../environment");
 const opensearchResponse = require("../api/response/opensearch");
-const annotationsResponse = require("../api/response/iiif/annotations.js")
+const annotationsResponse = require("../api/response/iiif/annotations.js");
 
 /**
  * Returns annotations for a FileSet
