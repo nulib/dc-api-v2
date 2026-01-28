@@ -1,4 +1,5 @@
 /**  */
+const { dcApiEndpoint } = require("../../../../environment");
 
 function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
   canvas.createAnnotationPage(
@@ -13,24 +14,18 @@ function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
   );
 }
 
-function addTranscriptionAnnotationsToCanvas(canvas, canvasId, transcriptions) {
+function addTranscriptionAnnotationsToCanvas(canvas, canvasId, transcriptions, fileSet, canvasAnnotations) {
   const validTranscriptions = (transcriptions || []).filter(
     hasTranscriptionContent
   );
   if (validTranscriptions.length === 0) return;
 
-  canvas.createAnnotationPage(
-    (pageId = `${canvasId}/annotations/page/0`),
-    (annotationPageBuilder) => {
-      annotationPageBuilder.addLabel("Transcription", "en");
-      validTranscriptions.forEach((annotation, index) => {
-        annotationPageBuilder.createAnnotation(
-          buildTranscriptionAnnotation({ annotation, canvasId, pageId, index })
-        );
-      });
-    },
-    true
-  );
+  const pageId = `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`;
+
+  canvasAnnotations[canvasId] = {
+    id: pageId,
+    type: "AnnotationPage"
+  };
 }
 
 function addThumbnailToCanvas(canvas, fileSet) {

@@ -10,8 +10,8 @@ async function transform(response, options = {}) {
   const fileSetId = body._id;
   const fileSetIndex = await getFileSetIndex(workId, fileSetId, options);
 
-  const canvasId = `${dcApiEndpoint()}/works/${workId}?as=iiif/canvas/access/${fileSetIndex}`;
-  const annotationPageId = `${canvasId}/annotations/page/0`;
+  const canvasId = `${dcApiEndpoint()}/works/${workId}?as=iiif/canvas/${fileSetIndex}`;
+  const annotationPageId = `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`;
 
   // Build annotation items - filter for transcriptions only
   // We currently will only have one annotation and it's a transcription
@@ -54,6 +54,7 @@ async function getFileSetIndex(workId, fileSetId, options)  {
     allowPrivate: options.allowPrivate,
     allowUnpublished: options.allowUnpublished,
     role: "Access", 
+    sortBy: "rank",
   });
 
   const fileSetBody = JSON.parse(fileSetsResponse.body);

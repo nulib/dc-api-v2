@@ -29,6 +29,8 @@ async function getWorkFileSets(workId, opts = {}) {
     allowUnpublished = false,
     role = null,
     source = null,
+    sortBy = null,
+    sortOrder = "asc",
   } = opts;
 
   const visibilityFilters = [];
@@ -60,6 +62,16 @@ async function getWorkFileSets(workId, opts = {}) {
       },
     },
   };
+
+  if (sortBy) {
+    searchBody.sort = [
+      {
+        [sortBy]: {
+          "order": sortOrder
+        }
+      }
+    ];
+  }
 
   if (source) {
     searchBody._source = source;
