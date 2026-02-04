@@ -103,13 +103,13 @@ start-with-step: deps-node env.json
 	export AWS_DEFAULT_REGION=us-east-1 ;\
 	sam local start-lambda --warm-containers=LAZY -t av-download/template.yaml --host 0.0.0.0 --port 3005 --env-vars $$PWD/env.json --log-file lambda.log & \
 	echo $$! > .sam-pids ;\
-	sg open all 3005 ;\
+	sgport open all 3005 ;\
 	sam local start-api --warm-containers=LAZY -t api/template.yaml --env-vars $$PWD/env.json --host 0.0.0.0 --port 3002 --log-file dc-api.log \
 		--ssl-cert-file $$HOME/.dev_cert/dev.rdc.cert.pem --ssl-key-file $$HOME/.dev_cert/dev.rdc.key.pem & \
 	echo $$! >> .sam-pids ;\
 	docker run --rm -p 8083:8083 -e LAMBDA_ENDPOINT=http://172.17.0.1:3005/ amazon/aws-stepfunctions-local ;\
 	echo -n "Shutting down..." ;\
-	sg close all 3005 ;\
+	sgport close all 3005 ;\
 	kill $$(cat .sam-pids) ;\
 	rm -f .sam-pids ;\
 	echo ""

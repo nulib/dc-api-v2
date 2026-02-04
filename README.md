@@ -61,7 +61,7 @@ Develop against changes to the API.
 2. Open the port so it can be accessed in the browser.
 
 ```
-sg open all 3003
+sgport open all 3003
 ```
 
 3. Point to the proxy URL and start DC app (in your `/environment/dc-nextjs` shell)
@@ -142,7 +142,7 @@ In a nutshell:
 2. Edit the Markdown files in the `docs/docs` directory.
 3. To run `mkdocs` locally and preview your work:
    ```shell
-   sg open all 8000
+   sgport open all 8000
    make serve-docs
    ```
    Docs will be accessible at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/
