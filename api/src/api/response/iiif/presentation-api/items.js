@@ -1,4 +1,5 @@
 /**  */
+const { dcApiEndpoint } = require("../../../../environment");
 
 function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
   canvas.createAnnotationPage(
@@ -8,26 +9,6 @@ function addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet) {
       annotationPageBuilder.createAnnotation(
         buildSupplementingAnnotation({ canvasId, fileSet })
       );
-    },
-    true
-  );
-}
-
-function addTranscriptionAnnotationsToCanvas(canvas, canvasId, transcriptions) {
-  const validTranscriptions = (transcriptions || []).filter(
-    hasTranscriptionContent
-  );
-  if (validTranscriptions.length === 0) return;
-
-  canvas.createAnnotationPage(
-    (pageId = `${canvasId}/annotations/page/0`),
-    (annotationPageBuilder) => {
-      annotationPageBuilder.addLabel("Transcription", "en");
-      validTranscriptions.forEach((annotation, index) => {
-        annotationPageBuilder.createAnnotation(
-          buildTranscriptionAnnotation({ annotation, canvasId, pageId, index })
-        );
-      });
     },
     true
   );
@@ -168,7 +149,6 @@ function isPDF(mimeType) {
 
 module.exports = {
   addSupplementingAnnotationToCanvas,
-  addTranscriptionAnnotationsToCanvas,
   addThumbnailToCanvas,
   annotationType,
   buildAnnotationBody,
