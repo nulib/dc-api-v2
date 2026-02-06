@@ -97,6 +97,11 @@ async function buildCollection(responseBody, pageInfo) {
     ];
   }
 
+  const navPlace = buildCollectionNavPlace(responseBody?.hits?.hits);
+  if (navPlace) {
+    result.navPlace = navPlace;
+  }
+
   return result;
 }
 
@@ -234,6 +239,60 @@ function loadItem(item, itemType, size) {
       }),
     };
   }
+}
+
+function buildCollectionNavPlace(hits = []) {
+  if (!hits || hits.length === 0) return null;
+
+  const allFeatures = [];
+
+  hits.forEach((hit) => {
+    const source = hit._source;
+    if (!source) return;
+
+    const navPlace = source.navPlace || source.nav_place;
+    if (!Array.isArray(navPlace)) return;
+
+    const pointFeatures = navPlace
+      .filter(
+        (place) =>
+          place?.coordinates &&
+          Array.isArray(place.coordinates) &&
+          place.coordinates.length >= 2 &&
+          place.label
+      )
+      .map((place) => {
+        const feature = {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: place.coordinates,
+          },
+          properties: {
+            label: { en: [place.label] },
+          },
+        };
+
+        if (place.id) {
+          feature.id = place.id;
+        }
+
+        if (place.summary) {
+          feature.properties.summary = { en: [place.summary] };
+        }
+
+        return feature;
+      });
+
+    allFeatures.push(...pointFeatures);
+  });
+
+  if (!allFeatures.length) return null;
+
+  return {
+    type: "FeatureCollection",
+    features: allFeatures,
+  };
 }
 
 module.exports = { transform };

@@ -8,7 +8,6 @@ const { transformError } = require("../error");
 const { getWorkFileSets } = require("../../opensearch");
 const {
   addSupplementingAnnotationToCanvas,
-  addTranscriptionAnnotationsToCanvas,
   addThumbnailToCanvas,
   buildAnnotationBody,
   buildImageResourceId,
@@ -34,7 +33,7 @@ async function transform(response, options = {}) {
     const manifestId = `${dcApiEndpoint()}/works/${source.id}?as=iiif`;
 
     const transcriptionMap = await fetchFileSetTranscriptions(source, options);
-    const transcriptionPages = {};
+    const canvasAnnotations = {}; // Track which canvases have annotation page references
 
     const normalizedFlatManifestObj = builder.createManifest(
       manifestId,
@@ -81,13 +80,12 @@ async function transform(response, options = {}) {
               fileSet.role === "Access" &&
               transcriptions?.length
             ) {
-              const pageId = `${canvasId}/annotations/page/0`;
-              addTranscriptionAnnotationsToCanvas(
-                canvas,
-                canvasId,
-                transcriptions
-              );
-              transcriptionPages[pageId] = transcriptions;
+              canvasAnnotations[canvasId] = {
+                id: `${dcApiEndpoint()}/file-sets/${
+                  fileSet.id
+                }/annotations?as=iiif`,
+                type: "AnnotationPage",
+              };
             }
           });
         }
@@ -308,13 +306,12 @@ async function transform(response, options = {}) {
                 primaryFileSet.role === "Access" &&
                 transcriptions?.length
               ) {
-                const pageId = `${canvasId}/annotations/page/0`;
-                addTranscriptionAnnotationsToCanvas(
-                  canvas,
-                  canvasId,
-                  transcriptions
-                );
-                transcriptionPages[pageId] = transcriptions;
+                canvasAnnotations[canvasId] = {
+                  id: `${dcApiEndpoint()}/file-sets/${
+                    primaryFileSet.id
+                  }/annotations?as=iiif`,
+                  type: "AnnotationPage",
+                };
               }
             });
           }
@@ -341,10 +338,13 @@ async function transform(response, options = {}) {
     /**
      * Add a placeholderCanvas property to a Canvas if the annotation body is of type "Image"
      * (iiif-builder package currently doesn't support adding this property)
+     * Also add external annotation page references
      */
     for (let i = 0; i < jsonManifest.items.length; i++) {
-      if (jsonManifest.items[i]?.items[0]?.items[0]?.body.type === "Image") {
-        const { id, thumbnail } = jsonManifest.items[i];
+      const canvas = jsonManifest.items[i];
+
+      if (canvas?.items[0]?.items[0]?.body.type === "Image") {
+        const { id, thumbnail } = canvas;
         if (thumbnail) {
           const placeholderFileSet = source.file_sets.find(
             (fileSet) =>
@@ -354,7 +354,7 @@ async function transform(response, options = {}) {
 
           // only add the placeholderCanvas property if the fileSet has width and height
           if (placeholderFileSet.width && placeholderFileSet.height) {
-            jsonManifest.items[i].placeholderCanvas = buildPlaceholderCanvas(
+            canvas.placeholderCanvas = buildPlaceholderCanvas(
               id,
               placeholderFileSet
             );
@@ -362,22 +362,18 @@ async function transform(response, options = {}) {
         }
       }
 
-      /** Re-do transcription text in annotation bodies as it's getting stripped somehow */
-      const annotationPages = jsonManifest.items[i]?.annotations || [];
-      annotationPages.forEach((page) => {
-        const pageTranscriptions = transcriptionPages[page.id];
-        if (!pageTranscriptions?.length) return;
-        page.items?.forEach((annotation, idx) => {
-          const sourceTranscription = pageTranscriptions[idx];
-          if (!sourceTranscription) return;
-          if (!annotation.body) annotation.body = {};
-          annotation.body.value = getTranscriptionContent(sourceTranscription);
-        });
-      });
+      // Add external annotation page reference if this canvas has transcriptions
+      if (canvasAnnotations[canvas.id]) {
+        canvas.annotations = [canvasAnnotations[canvas.id]];
+      }
     }
 
     jsonManifest.provider = [provider];
     jsonManifest.logo = [nulLogo];
+    const navPlace = buildNavPlace(source);
+    if (navPlace) {
+      jsonManifest.navPlace = navPlace;
+    }
 
     return {
       statusCode: 200,
@@ -423,9 +419,47 @@ async function fetchFileSetTranscriptions(source, options) {
   }, {});
 }
 
-function getTranscriptionContent(annotation = {}) {
-  const value = annotation.content ?? "";
-  return typeof value === "string" ? value : "";
+function buildNavPlace(source = {}) {
+  const navPlace = source.navPlace || source.nav_place;
+  if (!Array.isArray(navPlace)) return null;
+
+  const pointFeatures = navPlace
+    .filter(
+      (place) =>
+        place?.coordinates &&
+        Array.isArray(place.coordinates) &&
+        place.coordinates.length >= 2 &&
+        place.label
+    )
+    .map((place) => {
+      const feature = {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: place.coordinates,
+        },
+        properties: {
+          label: { en: [place.label] },
+        },
+      };
+
+      if (place.id) {
+        feature.id = place.id;
+      }
+
+      if (place.summary) {
+        feature.properties.summary = { en: [place.summary] };
+      }
+
+      return feature;
+    });
+
+  if (!pointFeatures.length) return null;
+
+  return {
+    type: "FeatureCollection",
+    features: pointFeatures,
+  };
 }
 
 module.exports = { transform };

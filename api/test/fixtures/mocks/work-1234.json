@@ -236,6 +236,14 @@
         "variants": []
       }
     ],
+    "nav_place": [
+      {
+        "id": "https://sws.geonames.org/1275004/",
+        "label": "Calcutta",
+        "summary": "British survey depot",
+        "coordinates": [88.3639, 22.5726]
+      }
+    ],
     "modified_date": "2022-10-13T20:56:31.249155Z",
     "notes": [
       {

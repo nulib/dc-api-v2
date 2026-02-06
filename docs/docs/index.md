@@ -344,6 +344,29 @@ Additionally, IIIF manifests provide a rich set of metadata that can be used to 
 
 One of the primary benefits of using IIIF is the scope to easily access and manipulate images and other multimedia resources solely making HTTP requests. The IIIF specification makes allowances for cropping, rotation, and zooming in a standardized way. This allows users to easily access, manipulate, and display images in a consistent way across different applications that implement the specification.
 
+IIIF manifests may include the `navPlace` extension for geographic context. Provide a GeoJSON-like `FeatureCollection` on the work, and only `Feature` entries with `geometry.type` set to `Point` are included in the manifest for plotting.
+
+```json title="navPlace example"
+{
+  "navPlace": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [88.3639, 22.5726]
+        },
+        "properties": {
+          "label": { "en": ["Calcutta"] },
+          "summary": { "en": ["British survey depot"] }
+        }
+      }
+    ]
+  }
+}
+```
+
 ### Example
 
 === "cURL"

@@ -61,7 +61,7 @@ Develop against changes to the API.
 2. Open the port so it can be accessed in the browser.
 
 ```
-sg open all 3003
+sgport open all 3003
 ```
 
 3. Point to the proxy URL and start DC app (in your `/environment/dc-nextjs` shell)
@@ -142,7 +142,7 @@ In a nutshell:
 2. Edit the Markdown files in the `docs/docs` directory.
 3. To run `mkdocs` locally and preview your work:
    ```shell
-   sg open all 8000
+   sgport open all 8000
    make serve-docs
    ```
    Docs will be accessible at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/
@@ -151,7 +151,7 @@ In a nutshell:
 
 We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
 
-The existing spec files ([`openapi.yaml`](docs/docs/spec/openapi.yaml) and [`types.yaml`](docs/docs/spec/types.yaml)) are the best reference for understanding and updating the spec. It's especially important to understand how `openapi.yaml` uses the [`$ref` keyword](https://swagger.io/docs/specification/using-ref/) to refer to reusable elements defined in `types.yaml`.
+The existing spec files ([`openapi.yaml`](docs/docs/spec/openapi.yaml), [`types.yaml`](docs/docs/spec/types.yaml), and [`data-types.yaml`](docs/docs/spec/data-types.yaml)) are the best reference for understanding and updating the spec. It's especially important to understand how `openapi.yaml` uses the [`$ref` keyword](https://swagger.io/docs/specification/using-ref/) to refer to reusable elements defined in `types.yaml`, and how `types.yaml` pulls model schemas from `data-types.yaml`.
 
 For an in-depth look, or to learn how to define things for which there aren't good examples in our spec, refer to the [full OpenAPI documentation](https://swagger.io/docs/specification/).
 
