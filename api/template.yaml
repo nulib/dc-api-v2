@@ -822,10 +822,12 @@ Resources:
         TextPart: |
           Hello,
 
-          You recently requested a login link for NUL Digital Collections. Click the link below to log in, 
+          You recently requested a login link for NUL Digital Collections. Click the link below to log in,
           or copy and paste it into your browser's address bar:
 
           {{magicLink}}
+
+          This link provides access to AI search functionality only and does not grant access to restricted collections.
 
           This link will expire in 15 minutes.
 
@@ -957,14 +959,17 @@ Resources:
                                 Hello,
                               </h2>
                               <p>
-                                You recently requested a login link for 
-                                <span style='font-weight: bold;'>NUL Digital Collections</span>. 
+                                You recently requested a login link for
+                                <span style='font-weight: bold;'>NUL Digital Collections</span>.
                                 Click the button below to log in:
                               </p>
                               <p style='text-align: center'>
                                 <a href='{{magicLink}}' target='_blank' style='display: inline-block; padding: 16px 32px; font-family: Arial, sans-serif; font-size: 18px; color: #ffffff; text-decoration: none; border-radius: 6px; background-color: #4e2a84;'>
                                   Log In
                                 </a>
+                              </p>
+                              <p>
+                                This link provides access to AI search functionality only and does not grant access to restricted collections.
                               </p>
                               <p style='text-align: center; font-style: italic'>
                                 (This <a href='{{magicLink}}'>link</a> will expire in 15 minutes. If you did not request this email, you can safely ignore it.)
