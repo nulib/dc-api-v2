@@ -1,6 +1,6 @@
 [project]
 name = "dc-api-v2-chat"
-version = "2.9.2"
+version = "2.9.3"
 requires-python = ">=3.12"
 dependencies = [
   "boto3~=1.34",
