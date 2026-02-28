@@ -86,9 +86,9 @@ describe("IIIF response presentation API items helpers", () => {
 
     expect(imageService.id).to.eq(accessImage.representative_image_url);
     expect(imageService.profile).to.eq(
-      "http://iiif.io/api/image/2/level2.json"
+      "http://iiif.io/api/image/3/level2.json"
     );
-    expect(imageService.type).to.eq("ImageService2");
+    expect(imageService.type).to.eq("ImageService3");
   });
 
   it("buildSupplementingAnnotation({ canvasId, fileSet })", () => {
