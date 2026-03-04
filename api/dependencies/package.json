@@ -1,6 +1,6 @@
 {
   "name": "dc-api-dependencies",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "description": "NUL Digital Collections API Dependencies",
   "repository": "https://github.com/nulib/dc-api-v2",
   "author": "nulib",
