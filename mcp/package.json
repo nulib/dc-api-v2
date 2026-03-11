@@ -1,0 +1,47 @@
+{
+  "name": "dc-api-mcp",
+  "version": "2.9.4",
+  "private": true,
+  "scripts": {
+    "http": "tsx watch apps/mcp/main.ts",
+    "stdio": "tsx apps/mcp/main.ts --stdio",
+    "build": "npm run build:ui && vite build --config apps/mcp/vite.config.ts && cp apps/mcp/package.json dist/apps/mcp",
+    "build:ui": "vite build --config apps/viewer/vite.config.ts",
+    "build:ui:watch": "vite build --watch --config apps/viewer/vite.config.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.563.0",
+    "@modelcontextprotocol/ext-apps": "^1.2.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@nulib/dcapi-types": "^2.9.1",
+    "aws-lambda": "^1.0.7",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "openapi-fetch": "^0.17.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@samvera/clover-iiif": "^3.3.8",
+    "@types/aws-lambda": "^8.10.161",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
+    "@vitejs/plugin-react": "^4.0.0",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.0.2",
+    "openapi-typescript": "^7.13.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-singlefile": "^2.3.0"
+  },
+  "author": "nulib",
+  "license": "Apache-2.0"
+}

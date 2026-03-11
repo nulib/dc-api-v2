@@ -13,7 +13,7 @@ Description: dc-api-v2 API
 Globals:
   Function:
     CodeUri: ./src
-    Runtime: nodejs20.x
+    Runtime: nodejs24.x
     Architectures:
       - x86_64
     MemorySize: 128
@@ -118,9 +118,9 @@ Parameters:
 Conditions:
   CustomConfigSecret:
     Fn::Not:
-    - Fn::Equals:
-      - !Ref ApiConfigPrefix
-      - ""
+      - Fn::Equals:
+          - !Ref ApiConfigPrefix
+          - ""
   DeployAPI:
     Fn::Equals: [!Ref DeployAPI, "true"]
   DeployAVDownload:
@@ -129,8 +129,8 @@ Conditions:
     Fn::Equals: [!Ref DeployChat, "true"]
   WriteSecret:
     Fn::Equals:
-    - !Ref WriteConfigSecret
-    - true
+      - !Ref WriteConfigSecret
+      - true
 Resources:
   #* apiDependencies:
   #*   Type: AWS::Serverless::LayerVersion
@@ -148,7 +148,7 @@ Resources:
     Type: AWS::SecretsManager::Secret
     Condition: WriteSecret
     Properties:
-      Name: 
+      Name:
         Fn::If:
           - CustomConfigSecret
           - !Sub "${ApiConfigPrefix}/config/dcapi"
@@ -471,10 +471,10 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: handlers/get-provider-capabilities.handler
-      Description: boolean to indicate whether auth provider currently supports feature  
+      Description: boolean to indicate whether auth provider currently supports feature
       #* Layers:
       #*   - !Ref apiDependencies
-      Environment: 
+      Environment:
         Variables:
           PROVIDER_CAPABILITIES: !Ref ProviderCapabilities
       Policies:
@@ -740,6 +740,30 @@ Resources:
             ApiId: !Ref dcApi
             Path: /oai
             Method: POST
+  mcpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../mcp
+      Handler: mcp/lambda.handler
+      Runtime: nodejs24.x
+      Environment:
+        Variables:
+          DC_API_BASE: !Ref DcApiEndpoint
+          SECRETS_PATH: !Ref SecretsPath
+          VIEWER_PATH: viewer
+      Timeout: 30
+      MemorySize: 256
+      Policies:
+        - !Ref SecretsPolicy
+      Events:
+        ApiEvent:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /mcp
+            Method: any
+    Metadata:
+      BuildMethod: makefile
   chatWebsocketEndpoint:
     Type: AWS::Serverless::Function
     Condition: DeployChat
@@ -749,8 +773,8 @@ Resources:
       #* Layers:
       #*   - !Ref apiDependencies
       Environment:
-       Variables:
-         WEBSOCKET_URI: !Ref ChatWebSocketURI
+        Variables:
+          WEBSOCKET_URI: !Ref ChatWebSocketURI
       Policies:
         - !Ref SecretsPolicy
       Events:
@@ -794,7 +818,7 @@ Resources:
             Path: /chat/feedback
             Method: POST
   chatFeedbackBucket:
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
   chatFeedbackTopic:
     Type: AWS::SNS::Topic
     Properties:
