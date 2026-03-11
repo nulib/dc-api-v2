@@ -28,6 +28,7 @@ help:
 	echo "make serve-https           | run the SAM server locally (HTTPS on port 3002)"
 	echo "make style-node            | run node code style check"
 	echo "make style-python          | run python code style check"
+	echo "make test-mcp              | run mcp tests"
 	echo "make test-node             | run node tests"
 	echo "make test-python           | run python tests"
 	echo "make cover-node            | run node tests with coverage"
@@ -68,7 +69,14 @@ deps-api:
 deps-av-download:
 	cd av-download/lambdas ;\
 	npm list >/dev/null 2>&1 || npm ci
-deps-node: deps-api deps-av-download
+deps-mcp: 
+	cd mcp ;\
+	npm list >/dev/null 2>&1 ;\
+	deps=$$? ;\
+	test $$deps -eq 0 || npm ci
+test-mcp: deps-mcp
+	cd mcp && npm test
+deps-node: deps-api deps-av-download deps-mcp
 cover-node: deps-node
 	cd api && npm run test:coverage
 style-node: deps-node
