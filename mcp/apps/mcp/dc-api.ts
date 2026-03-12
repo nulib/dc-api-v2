@@ -26,6 +26,23 @@ const ExcludeFields = [
   "preservation_level",
   "project",
   "status",
+  "terms_of_use",
+  "contributor.facet",
+  "creator.facet",
+  "genre.facet",
+  "language.facet",
+  "location.facet",
+  "style_period.facet",
+  "subject.facet",
+  "technique.facet",
+  "contributor.label_with_role",
+  "creator.label_with_role",
+  "genre.label_with_role",
+  "language.label_with_role",
+  "location.label_with_role",
+  "style_period.label_with_role",
+  "subject.label_with_role",
+  "technique.label_with_role",
   "contributor.variants",
   "creator.variants",
   "genre.variants",
@@ -36,14 +53,66 @@ const ExcludeFields = [
   "technique.variants"
 ];
 
+const IncludeFields = [
+  "id",
+  "title",
+  "thumbnail",
+  "collection",
+  "description",
+  "iiif_manifest"
+];
+
 type SearchOptions = {
   models?: sc["parameters"]["models"];
 } & so["postSearchWithModels"]["parameters"]["query"];
+
+const removeFields = (obj: any, fields: string[]) => {
+  for (const field of fields) {
+    const fieldPath = field.split(".");
+    removeAtPath(obj, fieldPath);
+  }
+  console.log(obj);
+};
+
+const removeAtPath = (current: any, path: string[]) => {
+  if (!current || typeof current !== "object") return;
+
+  if (path.length === 1) {
+    if (Array.isArray(current)) {
+      for (const item of current) {
+        if (item && typeof item === "object") {
+          delete item[path[0]];
+        }
+      }
+    } else {
+      delete current[path[0]];
+    }
+    return;
+  }
+
+  const [head, ...rest] = path;
+  const next = current[head];
+  if (Array.isArray(next)) {
+    for (const item of next) {
+      removeAtPath(item, rest);
+    }
+  } else {
+    removeAtPath(next, rest);
+  }
+};
+
+export const getCollection = async (id: string) => {
+  const response = await client.GET("/collections/{id}", {
+    params: { path: { id } }
+  });
+  return response.data;
+};
 
 export const getWork = async (id: string) => {
   const response = await client.GET("/works/{id}", {
     params: { path: { id } }
   });
+  removeFields(response.data?.data, ExcludeFields);
   return response.data;
 };
 
@@ -58,7 +127,7 @@ export const search = async (query: object, options: SearchOptions = {}) => {
           ? (options.page - 1) * options.size
           : undefined,
       ...query,
-      _source: { excludes: ExcludeFields }
+      _source: { includes: IncludeFields, excludes: ExcludeFields }
     },
     params: {
       path: { models: models || ["works"] },

@@ -748,9 +748,7 @@ Resources:
       Runtime: nodejs24.x
       Environment:
         Variables:
-          DC_API_BASE: !Ref DcApiEndpoint
           SECRETS_PATH: !Ref SecretsPath
-          VIEWER_PATH: viewer
       Timeout: 30
       MemorySize: 256
       Policies:

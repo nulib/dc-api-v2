@@ -36,7 +36,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT  
+      bearerFormat: JWT
 security:
   - anonymous: []
   - bearerAuth: []
@@ -287,11 +287,7 @@ paths:
       tags:
         - Search
       requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-
+        $ref: "https://raw.githubusercontent.com/opensearch-project/opensearch-api-specification/refs/tags/v0.2.0/spec/namespaces/_core.yaml#/components/requestBodies/search"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -321,6 +317,8 @@ paths:
         - $ref: "./types.yaml#/components/parameters/size"
         - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
+      requestBody:
+        $ref: "https://raw.githubusercontent.com/opensearch-project/opensearch-api-specification/refs/tags/v0.2.0/spec/namespaces/_core.yaml#/components/requestBodies/search"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"

@@ -16,7 +16,7 @@ export const config = {
       .lte(20)
       .optional()
       .default(10)
-      .describe("The maximum number of search results to return"),
+      .describe("The maximum number of search results to return per page"),
     page: z
       .number()
       .gte(1)

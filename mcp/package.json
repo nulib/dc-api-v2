@@ -5,9 +5,7 @@
   "scripts": {
     "http": "tsx watch apps/mcp/main.ts",
     "stdio": "tsx apps/mcp/main.ts --stdio",
-    "build": "npm run build:ui && vite build --config apps/mcp/vite.config.ts && cp apps/mcp/package.json dist/apps/mcp",
-    "build:ui": "vite build --config apps/viewer/vite.config.ts",
-    "build:ui:watch": "vite build --watch --config apps/viewer/vite.config.ts"
+    "build": "vite build --config apps/mcp/vite.config.ts"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.563.0",
@@ -21,7 +19,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@samvera/clover-iiif": "^3.3.8",
+    "@nulib/clover-mcp": "^0.1.0",
     "@types/aws-lambda": "^8.10.161",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

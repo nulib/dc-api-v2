@@ -2,31 +2,28 @@ import * as z from "zod/v4";
 import { components } from "../api-schema.d";
 import { getWork } from "../dc-api";
 
-export const name = "view-work";
+export const name = "get-work";
 export const config = {
-  title: "View Work",
+  title: "Get Work",
   description:
-    "View a work from the NUL Digital Collections in an interactive viewer.",
+    "Retrieve the metadata for a work from the NUL Digital Collections.",
   inputSchema: z.object({
-    work_id: z.string().describe("The ID of the work to view")
+    work_id: z.string().describe("The ID of the work to retrieve")
   })
 };
 
 export const handler = async ({ work_id }: { work_id: string }) => {
   const work = await getWork(work_id);
-  const { id, title, iiif_manifest } =
-    work?.data as components["schemas"]["Work"];
+  const structuredContent = work?.data as components["schemas"]["Work"];
 
   return {
     content: [
       {
         type: "text" as const,
-        text: `${id} - "${title}"`
+        text: structuredContent.title
       }
     ],
-    structuredContent: {
-      iiifContentUrl: iiif_manifest
-    }
+    structuredContent
   };
 };
 
