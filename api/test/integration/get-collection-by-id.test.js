@@ -88,6 +88,7 @@ describe("Retrieve collection by id", () => {
     it("returns a single collection as a IIIF collection", async () => {
       const originalQuery = {
         query: { query_string: { query: "collection.id:1234" } },
+        sort: [{ accession_number: "asc" }],
       };
       const authQuery = new RequestPipeline(originalQuery)
         .authFilter(helpers.preprocess({}))
@@ -141,6 +142,7 @@ describe("Retrieve collection by id", () => {
 
       const originalQuery = {
         query: { query_string: { query: "collection.id:1234" } },
+        sort: [{ accession_number: "asc" }],
       };
 
       let preProcessedEvent = helpers.preprocess(event);

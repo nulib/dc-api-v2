@@ -37,6 +37,7 @@ const getIiifCollectionById = async (event) => {
   return await doSearch(event, {
     includeToken: false,
     parameterOverrides,
+    defaultSort: [{ accession_number: "asc" }],
   });
 };
 
