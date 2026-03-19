@@ -39,6 +39,10 @@ const doSearch = async (event, searchParams = {}) => {
     return invalidRequest(error.message);
   }
 
+  if (!searchContext.sort && searchParams.defaultSort) {
+    searchContext.sort = searchParams.defaultSort;
+  }
+
   if (!validModels(models, format)) {
     return invalidRequest(`Invalid models requested: ${models}`);
   }

@@ -36,9 +36,9 @@ describe("RequestPipeline", () => {
     expect(result.searchContext.query.bool.must).to.deep.include(
       requestBody.query
     );
-    expect(result.searchContext.query.bool.must_not).to.deep.include(
-      { term: { visibility: "Private" } },
-      { term: { published: false } }
+    expect(result.searchContext.query.bool.filter).to.deep.include(
+      { terms: { visibility: ["Institution", "Public"] } },
+      { terms: { published: [true] } }
     );
   });
 
@@ -56,9 +56,9 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.deep.include(
-        { term: { visibility: "Private" } },
-        { term: { published: false } }
+      expect(result.searchContext.query.bool.filter).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
       );
     });
 
@@ -71,11 +71,11 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.deep.include({
-        term: { published: false },
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { published: [true] },
       });
-      expect(result.searchContext.query.bool.must_not).not.to.deep.include({
-        term: { visibility: "Private" },
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { visibility: ["Private", "Institution", "Public"] },
       });
     });
   });
@@ -90,9 +90,9 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.deep.include(
-        { term: { visibility: "Private" } },
-        { term: { published: false } }
+      expect(result.searchContext.query.bool.filter).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
       );
     });
 
@@ -105,7 +105,12 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.be.empty;
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { published: [true, false] },
+      });
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { visibility: ["Private", "Institution", "Public"] },
+      });
     });
   });
 
@@ -140,15 +145,114 @@ describe("RequestPipeline", () => {
       };
       pipeline = new RequestPipeline(requestBody);
       const result = pipeline.authFilter(event);
-      for (const i in requestBody.query.hybrid.queries) {
-        const originalQuery = requestBody.query.hybrid.queries[i];
-        const newQuery = result.searchContext.query.hybrid.queries[i];
-        expect(newQuery.bool.must).to.deep.include(originalQuery);
-        expect(newQuery.bool.must_not).to.deep.include(
-          { term: { visibility: "Private" } },
-          { term: { published: false } }
-        );
+      const [originalNeuralQuery, originalMatchQuery] =
+        requestBody.query.hybrid.queries;
+      const [newNeuralQuery, newMatchQuery] =
+        result.searchContext.query.hybrid.queries;
+
+      expect(newNeuralQuery.neural.embedding).to.deep.include(
+        originalNeuralQuery.neural.embedding
+      );
+      expect(newMatchQuery).to.deep.include(originalMatchQuery);
+      expect(
+        newNeuralQuery.neural.embedding.filter.bool.filter
+      ).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
+      );
+      expect(newMatchQuery.bool.filter).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
+      );
+    });
+  });
+
+  describe("addNeuralModelId", () => {
+    let oldModelId;
+    beforeEach(() => {
+      oldModelId = process.env.OPENSEARCH_MODEL_ID;
+      process.env.OPENSEARCH_MODEL_ID = "MODEL_ID";
+      requestBody.query = {
+        neural: {
+          embedding: {
+            query_text:
+              "Do you have any materials related to testing the request pipeline?",
+            k: 5,
+          },
+        },
+      };
+      pipeline = new RequestPipeline(requestBody);
+    });
+
+    afterEach(() => {
+      if (oldModelId) {
+        process.env.OPENSEARCH_MODEL_ID = oldModelId;
+      } else {
+        delete process.env.OPENSEARCH_MODEL_ID;
       }
+      oldModelId = null;
+    });
+
+    it("does not modify the query if OPENSEARCH_MODEL_ID is not set", () => {
+      delete process.env.OPENSEARCH_MODEL_ID;
+      pipeline.addNeuralModelId();
+      expect(pipeline.searchContext.query).to.deep.equal(requestBody.query);
+    });
+
+    it("does not modify the query if there are no neural queries", () => {
+      requestBody.query = {
+        term: {
+          all_titles: "request pipeline testing",
+        },
+      };
+      pipeline = new RequestPipeline(requestBody);
+      pipeline.addNeuralModelId();
+      expect(pipeline.searchContext.query).to.deep.equal(requestBody.query);
+    });
+
+    it("does not modify the query if there is already a model_id", () => {
+      requestBody.query.neural.embedding.model_id = "EXISTING_MODEL_ID";
+      pipeline = new RequestPipeline(requestBody);
+      pipeline.addNeuralModelId();
+      expect(pipeline.searchContext.query.neural.embedding.model_id).to.eq(
+        "EXISTING_MODEL_ID"
+      );
+    });
+
+    it("automatically adds the model_id to a neural query", () => {
+      pipeline.addNeuralModelId();
+      expect(pipeline.searchContext.query.neural.embedding.model_id).to.eq(
+        "MODEL_ID"
+      );
+    });
+
+    it("recursively adds the model_id to all neural queries in a hybrid query", () => {
+      event.userToken = new ApiToken();
+      requestBody.query = {
+        hybrid: {
+          queries: [
+            {
+              neural: {
+                embedding: {
+                  query_text:
+                    "Do you have any materials related to testing the request pipeline?",
+                  k: 5,
+                },
+              },
+            },
+            {
+              term: {
+                all_titles: "request pipeline testing",
+              },
+            },
+          ],
+        },
+      };
+      pipeline = new RequestPipeline(requestBody);
+      pipeline.addNeuralModelId();
+      expect(
+        pipeline.searchContext.query.hybrid.queries[0].neural.embedding.model_id
+      ).to.eq("MODEL_ID");
     });
   });
 });

@@ -1,22 +1,57 @@
 const sortJson = require("sort-json");
 const { defaultSearchSize } = require("../../environment");
 
-function filterFor(query, event) {
-  const matchTheQuery = query;
-  const beUnpublished = { term: { published: false } };
-  const beRestricted = { term: { visibility: "Private" } };
+function filterFor(event) {
+  const publishedValues = event.userToken.can("read:Unpublished")
+    ? [true, false]
+    : [true];
+  const userVisibility = new Set(
+    event.userToken.can("read:Private")
+      ? ["Private", "Institution", "Public"]
+      : ["Institution", "Public"]
+  );
+  const requestVisibility = event?.queryStringParameters?.visibility
+    ?.split(",")
+    ?.map((v) => v[0].toUpperCase() + v.slice(1)) || [
+    "Private",
+    "Institution",
+    "Public",
+  ];
+  const visibilityValues = requestVisibility.filter((v) =>
+    userVisibility.has(v)
+  );
 
-  let filter = { must: [matchTheQuery], must_not: [] };
+  return [
+    { terms: { published: publishedValues } },
+    { terms: { visibility: visibilityValues } },
+  ];
+}
 
-  if (!event.userToken.can("read:Unpublished")) {
-    filter.must_not.push(beUnpublished);
+function addFilter(query, filter) {
+  let result = { ...query };
+  if (result.bool) {
+    result.bool.filter ||= [];
+    result.bool.filter.push(...filter);
+  } else if (result.neural) {
+    const boolFilter = { bool: { filter: filter } };
+    if (result.neural.filter) {
+      boolFilter.bool.filter.push(result.neural.filter);
+    }
+    const neuralField = Object.keys(result.neural)[0];
+    result.neural[neuralField].filter = boolFilter;
+  } else if (result.hybrid) {
+    result.hybrid.queries = result.hybrid.queries.map((subQuery) =>
+      addFilter(subQuery, filter)
+    );
+  } else {
+    result = {
+      bool: {
+        must: [result],
+        filter: filter,
+      },
+    };
   }
-
-  if (!event.userToken.can("read:Private")) {
-    filter.must_not.push(beRestricted);
-  }
-
-  return { bool: filter };
+  return result;
 }
 
 module.exports = class RequestPipeline {
@@ -33,23 +68,44 @@ module.exports = class RequestPipeline {
   // - Add `track_total_hits` to search context (so we can get accurate hits.total.value)
 
   authFilter(event) {
-    if (this.searchContext.query?.hybrid?.queries) {
-      this.searchContext.query = {
-        hybrid: {
-          queries: this.searchContext.query.hybrid.queries.map((query) =>
-            filterFor(query, event)
-          ),
-        },
-      };
-    } else {
-      this.searchContext.query = filterFor(this.searchContext.query, event);
-    }
+    this.searchContext.query = addFilter(
+      this.searchContext.query,
+      filterFor(event)
+    );
     this.searchContext.track_total_hits = true;
+    return this;
+  }
+
+  addNeuralModelId() {
+    const neuralModelId = process.env.OPENSEARCH_MODEL_ID;
+    if (!neuralModelId) return this;
+
+    const recursivelyAddNeuralModelId = (query) => {
+      if (Array.isArray(query)) {
+        for (const subQuery of query) {
+          recursivelyAddNeuralModelId(subQuery);
+        }
+      }
+
+      if (typeof query !== "object" || query === null) return this;
+
+      for (const key in query) {
+        if (key === "neural") {
+          const [field] = Object.keys(query.neural);
+          query.neural[field].model_id ||= neuralModelId;
+        } else {
+          recursivelyAddNeuralModelId(query[key]);
+        }
+      }
+    };
+
+    recursivelyAddNeuralModelId(this.searchContext.query);
 
     return this;
   }
 
   toJson() {
+    this.addNeuralModelId();
     return JSON.stringify(sortJson(this.searchContext));
   }
 };
