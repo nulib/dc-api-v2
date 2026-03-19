@@ -36,9 +36,9 @@ describe("RequestPipeline", () => {
     expect(result.searchContext.query.bool.must).to.deep.include(
       requestBody.query
     );
-    expect(result.searchContext.query.bool.must_not).to.deep.include(
-      { term: { visibility: "Private" } },
-      { term: { published: false } }
+    expect(result.searchContext.query.bool.filter).to.deep.include(
+      { terms: { visibility: ["Institution", "Public"] } },
+      { terms: { published: [true] } }
     );
   });
 
@@ -56,9 +56,9 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.deep.include(
-        { term: { visibility: "Private" } },
-        { term: { published: false } }
+      expect(result.searchContext.query.bool.filter).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
       );
     });
 
@@ -71,11 +71,11 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.deep.include({
-        term: { published: false },
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { published: [true] },
       });
-      expect(result.searchContext.query.bool.must_not).not.to.deep.include({
-        term: { visibility: "Private" },
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { visibility: ["Private", "Institution", "Public"] },
       });
     });
   });
@@ -90,9 +90,9 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.deep.include(
-        { term: { visibility: "Private" } },
-        { term: { published: false } }
+      expect(result.searchContext.query.bool.filter).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
       );
     });
 
@@ -105,7 +105,12 @@ describe("RequestPipeline", () => {
       expect(result.searchContext.query.bool.must).to.deep.include(
         requestBody.query
       );
-      expect(result.searchContext.query.bool.must_not).to.be.empty;
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { published: [true, false] },
+      });
+      expect(result.searchContext.query.bool.filter).to.deep.include({
+        terms: { visibility: ["Private", "Institution", "Public"] },
+      });
     });
   });
 
@@ -140,15 +145,25 @@ describe("RequestPipeline", () => {
       };
       pipeline = new RequestPipeline(requestBody);
       const result = pipeline.authFilter(event);
-      for (const i in requestBody.query.hybrid.queries) {
-        const originalQuery = requestBody.query.hybrid.queries[i];
-        const newQuery = result.searchContext.query.hybrid.queries[i];
-        expect(newQuery.bool.must).to.deep.include(originalQuery);
-        expect(newQuery.bool.must_not).to.deep.include(
-          { term: { visibility: "Private" } },
-          { term: { published: false } }
-        );
-      }
+      const [originalNeuralQuery, originalMatchQuery] =
+        requestBody.query.hybrid.queries;
+      const [newNeuralQuery, newMatchQuery] =
+        result.searchContext.query.hybrid.queries;
+
+      expect(newNeuralQuery.neural.embedding).to.deep.include(
+        originalNeuralQuery.neural.embedding
+      );
+      expect(newMatchQuery).to.deep.include(originalMatchQuery);
+      expect(
+        newNeuralQuery.neural.embedding.filter.bool.filter
+      ).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
+      );
+      expect(newMatchQuery.bool.filter).to.deep.include(
+        { terms: { visibility: ["Institution", "Public"] } },
+        { terms: { published: [true] } }
+      );
     });
   });
 

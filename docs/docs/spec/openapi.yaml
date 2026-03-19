@@ -36,7 +36,7 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT  
+      bearerFormat: JWT
 security:
   - anonymous: []
   - bearerAuth: []
@@ -279,6 +279,7 @@ paths:
         - $ref: "./types.yaml#/components/parameters/size"
         - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
+        - $ref: "./types.yaml#/components/parameters/visibility"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -286,12 +287,17 @@ paths:
       operationId: postSearch
       tags:
         - Search
+      parameters:
+        - $ref: "./types.yaml#/components/parameters/page"
+        - $ref: "./types.yaml#/components/parameters/size"
+        - $ref: "./types.yaml#/components/parameters/sort"
+        - $ref: "./types.yaml#/components/parameters/as"
+        - $ref: "./types.yaml#/components/parameters/visibility"
       requestBody:
         content:
           application/json:
             schema:
               type: object
-
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -308,6 +314,7 @@ paths:
         - $ref: "./types.yaml#/components/parameters/size"
         - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
+        - $ref: "./types.yaml#/components/parameters/visibility"
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
@@ -321,6 +328,12 @@ paths:
         - $ref: "./types.yaml#/components/parameters/size"
         - $ref: "./types.yaml#/components/parameters/sort"
         - $ref: "./types.yaml#/components/parameters/as"
+        - $ref: "./types.yaml#/components/parameters/visibility"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         200:
           $ref: "./types.yaml#/components/responses/SearchResponse"
