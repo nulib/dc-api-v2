@@ -49,7 +49,36 @@ module.exports = class RequestPipeline {
     return this;
   }
 
+  addNeuralModelId() {
+    const neuralModelId = process.env.OPENSEARCH_MODEL_ID;
+    if (!neuralModelId) return this;
+
+    const recursivelyAddNeuralModelId = (query) => {
+      if (Array.isArray(query)) {
+        for (const subQuery of query) {
+          recursivelyAddNeuralModelId(subQuery);
+        }
+      }
+
+      if (typeof query !== "object" || query === null) return this;
+
+      for (const key in query) {
+        if (key === "neural") {
+          const [field] = Object.keys(query.neural);
+          query.neural[field].model_id ||= neuralModelId;
+        } else {
+          recursivelyAddNeuralModelId(query[key]);
+        }
+      }
+    };
+
+    recursivelyAddNeuralModelId(this.searchContext.query);
+
+    return this;
+  }
+
   toJson() {
+    this.addNeuralModelId();
     return JSON.stringify(sortJson(this.searchContext));
   }
 };
