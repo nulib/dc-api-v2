@@ -103,6 +103,20 @@ components:
         type: integer
         minimum: 1
         maximum: 300
+    visibility:
+      name: visibility
+      in: query
+      required: false
+      description: Filter search results by visibility
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          enum:
+            - public
+            - institution
+            - private
   responses:
     DocumentResponse:
       description: A single document response
