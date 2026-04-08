@@ -262,5 +262,25 @@ describe("Search routes", () => {
         "?_source_includes=title%2Caccession_number"
       );
     });
+
+    it("returns the query when as=_explain is specified", async () => {
+      const originalQuery = {
+        query: { query_string: { query: "*" } },
+      };
+      const event = helpers
+        .mockEvent("GET", "/search")
+        .queryParams({ as: "_explain" })
+        .render();
+      const authQuery = new RequestPipeline(originalQuery)
+        .authFilter(helpers.preprocess(event))
+        .toJson();
+      const expectedQuery = JSON.parse(authQuery);
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.models).to.eq("dc-v2-work");
+      expect(resultBody.body).to.deep.equal(expectedQuery);
+    });
   });
 });
