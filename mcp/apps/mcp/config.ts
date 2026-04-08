@@ -66,7 +66,7 @@ export const DC_STREAMING_BASE = ensureTrailingBackslash(
   getEnvVar(
     "DC_STREAMING_BASE",
     Secrets.meadow?.streaming?.base_url,
-    "https://meadow-streaming.rdc-staging.library.northwestern.edu/"
+    "https://meadow-streaming.rdc.library.northwestern.edu/"
   )
 );
 
@@ -79,3 +79,5 @@ export const DC_RESOURCE_ORIGINS = [
   DC_IIIF_ORIGIN,
   DC_STREAMING_ORIGIN
 ].filter((origin): origin is string => !!origin);
+
+export const DEBUG = getEnvVar("DEBUG", "false").toLowerCase() === "true";

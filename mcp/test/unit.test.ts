@@ -151,7 +151,8 @@ describe("Pure Function Unit Tests", () => {
       const input = {
         query: "landscape",
         fields: {
-          work_type: "Image"
+          work_type: "Image",
+          technique: "Photograph"
         },
         max_results: 10,
         page: 1,
@@ -159,9 +160,10 @@ describe("Pure Function Unit Tests", () => {
       };
 
       const { query } = buildQuery(input);
-      expect(query.query.hybrid).toBeDefined();
-      expect(query.query.hybrid.queries).toBeDefined();
-      expect(query.query.hybrid.queries.length).toBe(2);
+      expect(query.query.neural).toBeDefined();
+      expect(query.query.neural.embedding).toBeDefined();
+      expect(query.query.neural.embedding.filter).toBeDefined();
+      expect(query.query.neural.embedding.filter.bool?.should?.length).toBe(2);
     });
 
     it("should apply public_only filter when true", () => {

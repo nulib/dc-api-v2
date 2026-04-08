@@ -1,15 +1,24 @@
 import * as z from "zod/v4";
 import { search } from "../dc-api.js";
-import { handleToolError } from "../common/functions.js";
-import { buildQuery } from "../common/works.js";
+import { handleToolError, trimMultilineString } from "../common/functions.js";
+import { buildQuery, controlledFieldList } from "../common/works.js";
 import { workResultsSchema, workSearchSchema } from "../common/schemas.js";
 
 export const name = "search";
 
+const description = `Search for works in the Digital Collections using field-based and/or natural language queries. 
+  If both a natural language query and specific field values are provided, the natural language 
+  query will take priority, using the specified field values as additional constraints. The 
+  result will also include a list of aggregations that show how many results match different 
+  values for certain fields. For example, you could see how many results match each collection, 
+  work type, or visibility and use that information to refine your search. Perform an empty 
+  search to retrieve all works and their aggregations. The ${controlledFieldList()} fields are 
+  case-sensitive, exact match fields. Do not guess controlled vocabulary values. Always call 
+  find-terms first when searching by ${controlledFieldList("or")}.`;
+
 export const config = {
   title: "Search",
-  description:
-    "Search for works in the Digital Collections using field-based and/or natural language queries. The result will also include a list of aggregations that show how many results match different values for certain fields. For example, you could see how many results match each collection, work type, or visibility and use that information to refine your search. Perform an empty search to retrieve all works and their aggregations.",
+  description: trimMultilineString(description),
   inputSchema: workSearchSchema,
   outputSchema: workResultsSchema,
   annotations: {

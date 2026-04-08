@@ -1,5 +1,5 @@
 import createClient from "openapi-fetch";
-import { DC_API_BASE } from "./config.js";
+import { DC_API_BASE, DEBUG } from "./config.js";
 import type {
   components as sc,
   operations as so,
@@ -147,6 +147,16 @@ export const search = async (query: object, options: SearchOptions = {}) => {
     body,
     params
   });
+
+  if (DEBUG) {
+    params.query.as = "_explain" as any;
+    const explainResponse = await client.POST("/search/{models}", {
+      body,
+      params
+    });
+    response.data = { ...response.data, explain: explainResponse.data };
+  }
+
   normalizeAggregations(response.data);
   return response.data;
 };

@@ -11,7 +11,8 @@ export const name = "similarity-search";
 
 export const config = {
   title: "Search for Similar Works",
-  description: "Find works similar to a given work.",
+  description:
+    "Find works that are similar to a given work. Uses semantic similarity based on work embeddings.",
   inputSchema: similaritySearchSchema,
   outputSchema: workResultsSchema,
   annotations: {

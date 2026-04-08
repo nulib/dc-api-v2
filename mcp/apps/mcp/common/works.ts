@@ -6,6 +6,36 @@ import {
   isEnum
 } from "./schemas.js";
 
+const ControlledFields = [
+  "contributor",
+  "creator",
+  "genre",
+  "language",
+  "location",
+  "style_period",
+  "subject",
+  "technique"
+];
+
+export const controlledFieldList = (conjunction = "and") =>
+  ControlledFields.slice(0, -1).join(", ") +
+  `, ${conjunction} ` +
+  ControlledFields.slice(-1);
+
+export const controlledFieldAggregations = (count: number = 10) =>
+  Object.fromEntries(
+    ControlledFields.map((field) => [
+      field,
+      {
+        terms: {
+          field: `${field}.label`,
+          size: count,
+          min_doc_count: 5
+        }
+      }
+    ])
+  );
+
 const FieldOverrides = {
   collection: "collection.title",
   contributor: "contributor.label",
@@ -16,7 +46,9 @@ const FieldOverrides = {
   notes: "note.note",
   style_period: "style_period.label",
   subject: "subject.label",
-  technique: "technique.label"
+  technique: "technique.label",
+  text: "all_text",
+  controlled_terms: "all_controlled_labels"
 };
 
 const options = ({
@@ -82,8 +114,8 @@ export const buildQuery = ({
   if (query && shoulds.length > 0) {
     // hybrid search only if there's a query and at least one field
     main = {
-      hybrid: {
-        queries: [fieldSearch, neuralSearch]
+      neural: {
+        embedding: { ...neuralSearch.neural.embedding, filter: fieldSearch }
       }
     };
   } else if (query) {
@@ -103,6 +135,7 @@ export const buildQuery = ({
   const result = {
     query: main,
     aggs: {
+      ...controlledFieldAggregations(),
       collection: {
         terms: {
           field: "collection.title.keyword",
