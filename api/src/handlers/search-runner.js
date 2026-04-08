@@ -65,10 +65,24 @@ const doSearch = async (event, searchParams = {}) => {
     .authFilter(event)
     .toJson();
 
+  const searchModels = modelsToTargets(models);
+  const searchQuery = sanitizeQueryString(event.queryStringParameters);
+
+  if (format === "_explain") {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        models: searchModels,
+        body: JSON.parse(filteredSearchContext),
+        query: searchQuery,
+      }),
+    };
+  }
+
   const esResponse = await search(
-    modelsToTargets(models),
+    searchModels,
     filteredSearchContext,
-    sanitizeQueryString(event.queryStringParameters)
+    searchQuery
   );
 
   return await responseTransformer.transformSearchResult(esResponse, pager);
