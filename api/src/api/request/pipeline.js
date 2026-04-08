@@ -34,10 +34,10 @@ function addFilter(query, filter) {
     result.bool.filter.push(...filter);
   } else if (result.neural) {
     const boolFilter = { bool: { filter: filter } };
-    if (result.neural.filter) {
-      boolFilter.bool.filter.push(result.neural.filter);
-    }
     const neuralField = Object.keys(result.neural)[0];
+    if (result.neural[neuralField].filter) {
+      boolFilter.bool.filter.push(result.neural[neuralField].filter);
+    }
     result.neural[neuralField].filter = boolFilter;
   } else if (result.hybrid) {
     result.hybrid.queries = result.hybrid.queries.map((subQuery) =>
