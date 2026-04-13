@@ -114,6 +114,57 @@ describe("RequestPipeline", () => {
     });
   });
 
+  describe("neural", () => {
+    it("applies the filter to a neural query", () => {
+      event.userToken = new ApiToken();
+      requestBody.query = {
+        neural: {
+          embedding: {
+            query_text:
+              "Do you have any materials related to testing the request pipeline?",
+            model_id: "MODEL_ID",
+            k: 5,
+          },
+        },
+      };
+      pipeline = new RequestPipeline(requestBody);
+      const result = pipeline.authFilter(event);
+      expect(result.searchContext.size).to.eq(50);
+      expect(result.searchContext.query.neural.embedding).to.deep.include(
+        requestBody.query.neural.embedding
+      );
+      expect(
+        result.searchContext.query.neural.embedding.filter.bool.filter.length
+      ).to.eq(2);
+    });
+
+    it("adds to an existing neural query filter", () => {
+      event.userToken = new ApiToken();
+      requestBody.query = {
+        neural: {
+          embedding: {
+            filter: {
+              term: { "visibility.keyword": "Public" },
+            },
+            query_text:
+              "Do you have any materials related to testing the request pipeline?",
+            model_id: "MODEL_ID",
+            k: 5,
+          },
+        },
+      };
+      pipeline = new RequestPipeline(requestBody);
+      const result = pipeline.authFilter(event);
+      expect(result.searchContext.size).to.eq(50);
+      expect(result.searchContext.query.neural.embedding).to.deep.include(
+        requestBody.query.neural.embedding
+      );
+      expect(
+        result.searchContext.query.neural.embedding.filter.bool.filter.length
+      ).to.eq(3);
+    });
+  });
+
   describe("hybrid", () => {
     it("applies the filter to all subqueries", () => {
       event.userToken = new ApiToken();
