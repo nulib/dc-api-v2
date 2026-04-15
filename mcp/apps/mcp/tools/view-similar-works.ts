@@ -19,7 +19,7 @@ export const config = {
 
 export const handler = async (input: z.infer<typeof config.inputSchema>) => {
   try {
-    const { query, options } = buildSimilaritySearchQuery(
+    const { query, options } = await buildSimilaritySearchQuery(
       similaritySearchSchema.parse(input)
     );
     const iiifUrl = buildIIIFSearchUrl(query, options);

@@ -110,11 +110,13 @@ export const getCollection = async (id: string) => {
   return response.data;
 };
 
-export const getWork = async (id: string) => {
+export const getWork = async (id: string, raw: boolean = false) => {
   const response = await client.GET("/works/{id}", {
     params: { path: { id } }
   });
-  removeFields(response.data?.data, ExcludeFields);
+  if (!raw) {
+    removeFields(response.data?.data, ExcludeFields);
+  }
   return response.data;
 };
 
@@ -132,12 +134,33 @@ export const visibilities = (public_only?: boolean) => {
   return public_only ? "public" : "institution,public";
 };
 
-export const search = async (query: object, options: SearchOptions = {}) => {
+export const search = async (query: any, options: SearchOptions = {}) => {
   const { models, ...restOptions } = options;
+
+  const searchPipeline = query?.query?.hybrid
+    ? {
+        search_pipeline: {
+          phase_results_processors: [
+            {
+              "normalization-processor": {
+                combination: {
+                  parameters: { weights: [0.25, 0.75] },
+                  technique: "arithmetic_mean"
+                },
+                normalization: { technique: "l2" }
+              }
+            }
+          ]
+        }
+      }
+    : undefined;
+
   const body = {
     ...query,
+    ...searchPipeline,
     _source: { includes: IncludeFields, excludes: ExcludeFields }
   };
+
   const params = {
     path: { models: models || ["works"] },
     query: restOptions

@@ -78,30 +78,21 @@ export const workSearchableFields = z
     contributor: z
       .string()
       .optional()
-      .describe(
-        "[Controlled] An entity responsible for making contributions to the work"
-      ),
+      .describe("An entity responsible for making contributions to the work"),
     creator: z
       .string()
       .optional()
-      .describe(
-        "[Controlled] An entity primarily responsible for making the work"
-      ),
+      .describe("An entity primarily responsible for making the work"),
     description: z.string().optional().describe("An account of the work"),
     genre: z
       .string()
       .optional()
-      .describe(
-        "[Controlled] Describes what the original object is, not what it is about"
-      ),
+      .describe("Describes what the original object is, not what it is about"),
     keywords: z
       .string()
       .optional()
       .describe("Keywords or tags used to describe this content"),
-    language: z
-      .string()
-      .optional()
-      .describe("[Controlled] A language of the work"),
+    language: z.string().optional().describe("A language of the work"),
     library_unit: z
       .enum(LibraryUnits)
       .optional()
@@ -109,11 +100,8 @@ export const workSearchableFields = z
     license: z
       .enum(Licenses)
       .optional()
-      .describe("[Controlled] The Creative Commons license for the work"),
-    location: z
-      .string()
-      .optional()
-      .describe("[Controlled] Place of publication"),
+      .describe("The Creative Commons license for the work"),
+    location: z.string().optional().describe("Place of publication"),
     notes: z.string().optional().describe("Notes associated with the work"),
     publisher: z
       .string()
@@ -127,12 +115,9 @@ export const workSearchableFields = z
       .string()
       .optional()
       .describe(
-        "[Controlled] A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work."
+        "A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work."
       ),
-    subject: z
-      .string()
-      .optional()
-      .describe("[Controlled] The subject of the work"),
+    subject: z.string().optional().describe("The subject of the work"),
     table_of_contents: z
       .string()
       .optional()
@@ -142,7 +127,7 @@ export const workSearchableFields = z
     technique: z
       .string()
       .optional()
-      .describe("[Controlled] The technique used in the creation of the work"),
+      .describe("The technique used in the creation of the work"),
     title: z.string().optional().describe("The title of the work"),
     work_type: z.enum(WorkTypes).optional().describe("The type of the work"),
     text: z.string().optional().describe("Full text associated with the work"),
@@ -150,11 +135,11 @@ export const workSearchableFields = z
       .string()
       .optional()
       .describe(
-        "All controlled terms associated with the work, across all fields. Useful for searching across all controlled fields simultaneously without specifying which field. Unlike other controlled fields, this is searched as free text, not an exact match."
+        "All controlled terms associated with the work, across all fields. Useful for searching across all controlled fields simultaneously without specifying which field."
       )
   })
   .describe(
-    "Structured field search. Best when searching for specific known items or values, or for narrowing a search by specifying particular fields to search within. Fields marked with [Controlled] are fields that have a controlled list of terms. When searching against these fields, the search will look for exact matches against the labels of the controlled terms. For example, searching for 'French' in the language field will match works with the language 'French', but not works with the language 'French (France)'. Use the 'controlled_terms' field or the 'find-terms' tool to find the exact controlled term to search for when searching against controlled fields."
+    "Structured field search. Best when searching for specific known items or values, or for narrowing a search by specifying particular fields to search within."
   );
 
 export const workSearchSchema = z

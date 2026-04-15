@@ -25,9 +25,12 @@ export const config = {
 
 export const handler = async (input: z.infer<typeof config.inputSchema>) => {
   try {
-    const { query, options } = buildSimilaritySearchQuery(input);
+    const { query, options } = await buildSimilaritySearchQuery(input);
     const response: any = await search(query, options);
     const structuredContent = workResultsSchema.parse(response);
+    structuredContent.data = structuredContent.data
+      .filter((work) => work.id !== input.work_id)
+      .slice(0, input.max_results);
     return {
       content: [
         {

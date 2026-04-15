@@ -4,7 +4,6 @@ import GetWorkTool from "./tools/get-work.js";
 import ListCollectionsTool from "./tools/list-collections.js";
 import SearchTool from "./tools/search-works.js";
 import SimilaritySearchTool from "./tools/similarity-search.js";
-import FindTermsTool from "./tools/find-terms.js";
 import ViewCollectionTool from "./tools/view-collection.js";
 import ViewSearchResultsTool from "./tools/view-search-results.js";
 import ViewSimilarWorksTool from "./tools/view-similar-works.js";
@@ -21,12 +20,6 @@ export const createServer = () => {
   });
 
   server.registerTool(SearchTool.name, SearchTool.config, SearchTool.handler);
-
-  server.registerTool(
-    FindTermsTool.name,
-    FindTermsTool.config,
-    FindTermsTool.handler
-  );
 
   server.registerTool(
     GetWorkTool.name,
