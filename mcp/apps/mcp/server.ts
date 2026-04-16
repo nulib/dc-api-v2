@@ -9,14 +9,16 @@ import ViewSearchResultsTool from "./tools/view-search-results.js";
 import ViewSimilarWorksTool from "./tools/view-similar-works.js";
 import ViewWorkTool from "./tools/view-work.js";
 import { CloverUIResource } from "@nulib/clover-mcp";
+import version from "./common/version.js";
+
+console.error(`DC API MCP Server version: ${version}`);
 
 const CLOVER_RESOURCE_URI = "ui://clover-viewer/mcp-app.html";
-
 export const createServer = () => {
   const server = new McpServer({
     name: "dc-api-mcp",
     description: "A MCP server for the Digital Collections API",
-    version: "2.9.4"
+    version
   });
 
   server.registerTool(SearchTool.name, SearchTool.config, SearchTool.handler);

@@ -4,6 +4,7 @@ import * as path from "node:path";
 import { fromTraffic } from "@msw/source/traffic";
 import { setupServer } from "msw/node";
 
+process.env.SECRETS_PATH = ""; // Disable AWS Secrets Manager in replay tests
 if (process.env.MSW_MODE === "record") {
   console.log("Recording HTTP interactions to fixtures...");
 
@@ -25,7 +26,6 @@ if (process.env.MSW_MODE === "record") {
 }
 
 if (process.env.MSW_MODE === "replay") {
-  process.env.SECRETS_PATH = ""; // Disable AWS Secrets Manager in replay tests
   console.log("Replaying HTTP interactions from fixtures...");
   const traffic = JSON.parse(
     fs.readFileSync(

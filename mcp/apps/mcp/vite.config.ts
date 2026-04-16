@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 import path from "node:path";
+import version from "./common/version.js";
 
+console.log(`Building MCP version ${version}...`);
 export default defineConfig({
   root: path.resolve(__dirname),
   define: {
-    "process.env": "process.env" // pass through as-is
+    "process.env": "process.env", // pass through as-is
+    __VERSION__: JSON.stringify(version)
   },
   build: {
     target: "es2022",
