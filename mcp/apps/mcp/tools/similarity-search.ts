@@ -11,7 +11,8 @@ export const name = "similarity-search";
 
 export const config = {
   title: "Search for Similar Works",
-  description: "Find works similar to a given work.",
+  description:
+    "Find works that are similar to a given work. Uses semantic similarity based on work embeddings.",
   inputSchema: similaritySearchSchema,
   outputSchema: workResultsSchema,
   annotations: {
@@ -24,9 +25,12 @@ export const config = {
 
 export const handler = async (input: z.infer<typeof config.inputSchema>) => {
   try {
-    const { query, options } = buildSimilaritySearchQuery(input);
+    const { query, options } = await buildSimilaritySearchQuery(input);
     const response: any = await search(query, options);
     const structuredContent = workResultsSchema.parse(response);
+    structuredContent.data = structuredContent.data
+      .filter((work) => work.id !== input.work_id)
+      .slice(0, input.max_results);
     return {
       content: [
         {

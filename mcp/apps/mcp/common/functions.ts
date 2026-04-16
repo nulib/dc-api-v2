@@ -54,3 +54,10 @@ export const handleToolError = (error: unknown) => {
   }
   throw new McpError(ErrorCode.InternalError, (error as Error).toString());
 };
+
+export const trimMultilineString = (str: string) =>
+  str
+    .split("\n")
+    .map((line) => line.trim())
+    .join(" ")
+    .trim();

@@ -1,7 +1,15 @@
-build:
+clean:
 	rm -rf node_modules
-	npm ci
-	npm run build
 
-build-mcpFunction: build
-	cp -r dist/apps/* apps/mcp/package.json $(ARTIFACTS_DIR)
+node_modules:
+	npm ci
+
+
+dist/apps/mcp/lambda.js: node_modules
+	npm run build
+	cp apps/mcp/package.json dist/apps/mcp/
+
+build: dist/apps/mcp/lambda.js
+
+build-mcpFunction: clean dist/apps/mcp/lambda.js
+	cp -r dist/apps/* $(ARTIFACTS_DIR)

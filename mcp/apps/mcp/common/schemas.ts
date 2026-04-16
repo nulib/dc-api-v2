@@ -54,19 +54,12 @@ export const sharedResultSchema = z.object({
       version: z.string().describe("The version of the API endpoint")
     })
     .strip(),
-  aggregations: z
-    .object({
-      collection: aggregation.describe(
-        "Aggregation of search results by collection"
-      ),
-      work_type: aggregation.describe(
-        "Aggregation of search results by work type"
-      ),
-      visibility: aggregation.describe(
-        "Aggregation of search results by visibility"
-      )
-    })
-    .strip()
+  aggregations: z.any().optional(),
+  explain: z
+    .any()
+    .describe(
+      "The explain output from Elasticsearch for the search query. Only included if the MCP is running in debug mode."
+    )
     .optional()
 });
 
@@ -136,7 +129,14 @@ export const workSearchableFields = z
       .optional()
       .describe("The technique used in the creation of the work"),
     title: z.string().optional().describe("The title of the work"),
-    work_type: z.enum(WorkTypes).optional().describe("The type of the work")
+    work_type: z.enum(WorkTypes).optional().describe("The type of the work"),
+    text: z.string().optional().describe("Full text associated with the work"),
+    controlled_terms: z
+      .string()
+      .optional()
+      .describe(
+        "All controlled terms associated with the work, across all fields. Useful for searching across all controlled fields simultaneously without specifying which field."
+      )
   })
   .describe(
     "Structured field search. Best when searching for specific known items or values, or for narrowing a search by specifying particular fields to search within."
@@ -159,7 +159,9 @@ export const workSearchSchema = z
 
 export const workResultSchema = z.object({
   id: z.string().describe("The unique identifier for the search result item"),
-  title: z.string().describe("The title of the search result item"),
+  title: z
+    .union([z.string(), z.null()])
+    .describe("The title of the search result item"),
   description: z
     .array(z.string())
     .describe("A brief description of the search result item"),
