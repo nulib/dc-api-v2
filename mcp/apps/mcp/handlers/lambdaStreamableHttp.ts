@@ -39,11 +39,22 @@ function makeRequest(event: APIGatewayProxyEventV2): Request {
   return new Request(url, request);
 }
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, Mcp-Session-Id, Mcp-Protocol-Version"
+};
+
 export const streamableHttpHandler = (server: McpServer) => {
   return async (
     event: APIGatewayProxyEventV2,
     _context: Context
   ): Promise<APIGatewayProxyResultV2> => {
+    if (event.requestContext.http.method === "OPTIONS") {
+      return { statusCode: 204, headers: corsHeaders, body: "" };
+    }
+
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined // stateless
     });
@@ -54,7 +65,10 @@ export const streamableHttpHandler = (server: McpServer) => {
       const res = await transport.handleRequest(req);
       return {
         statusCode: res.status,
-        headers: Object.fromEntries(res.headers.entries()),
+        headers: {
+          ...Object.fromEntries(res.headers.entries()),
+          ...corsHeaders
+        },
         body: await res.text()
       };
     } catch (err) {
