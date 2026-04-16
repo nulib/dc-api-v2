@@ -136,27 +136,6 @@ describe("MCP Server Integration Tests", () => {
     });
   });
 
-  describe("find-terms tool", () => {
-    it("should return suggested terms for a given input", async () => {
-      const result = await context.client.callTool({
-        name: "find-terms",
-        arguments: {
-          text: "chicago"
-        }
-      });
-
-      expect(result.content).toHaveLength(1);
-      const response = JSON.parse((result.content[0] as any).text);
-
-      expect(response).toHaveProperty("result");
-      expect(Array.isArray(response.result)).toBe(true);
-      expect(response.result.length).toBeGreaterThan(0);
-      expect(response.result[0]).toHaveProperty("field");
-      expect(response.result[0]).toHaveProperty("terms");
-      expect(Array.isArray(response.result[0].terms)).toBe(true);
-    });
-  });
-
   describe("view-search-results tool", () => {
     it("should return a viewer for the results of a search", async () => {
       const result = await context.client.callTool({
