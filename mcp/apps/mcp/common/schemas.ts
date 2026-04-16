@@ -159,7 +159,9 @@ export const workSearchSchema = z
 
 export const workResultSchema = z.object({
   id: z.string().describe("The unique identifier for the search result item"),
-  title: z.string().describe("The title of the search result item"),
+  title: z
+    .union([z.string(), z.null()])
+    .describe("The title of the search result item"),
   description: z
     .array(z.string())
     .describe("A brief description of the search result item"),
