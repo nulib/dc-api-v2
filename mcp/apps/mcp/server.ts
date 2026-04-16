@@ -11,8 +11,6 @@ import ViewWorkTool from "./tools/view-work.js";
 import { CloverUIResource } from "@nulib/clover-mcp";
 import version from "./common/version.js";
 
-console.error(`DC API MCP Server version: ${version}`);
-
 const CLOVER_RESOURCE_URI = "ui://clover-viewer/mcp-app.html";
 export const createServer = () => {
   const server = new McpServer({
