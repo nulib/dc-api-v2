@@ -159,7 +159,7 @@ serve-docs:
 BUMP ?= ""
 version:
 	@if [[ -n "$(BUMP)" ]]; then \
-		for pkg in api api/dependencies api/src av-download/lambdas; do \
+		for pkg in api api/dependencies api/src av-download/lambdas mcp mcp/apps/mcp; do \
 			echo -n "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && npm version $(BUMP)) >&2; \
 		done; \
