@@ -167,5 +167,7 @@ version:
 			echo "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && uv version --bump $(BUMP)) >&2; \
 		done; \
+		VERSION=$$(node -p "require('./api/src/package.json').version") ;\
+		sed -Ei 's/("version":\s*")[^"]+(")/\1$$VERSION\2/' mcp/server.json ;\
 	fi; \
 	node -e 'console.log(require("./api/package.json").version)'

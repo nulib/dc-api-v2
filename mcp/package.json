@@ -1,5 +1,6 @@
 {
   "name": "dc-api-mcp",
+  "mcpName": "edu.northwestern.library.dc/dc-api",
   "version": "2.10.2",
   "private": true,
   "scripts": {
