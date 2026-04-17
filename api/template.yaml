@@ -65,7 +65,8 @@ Parameters:
     Description: URL of Digital Collections website
   DeployAPI:
     Type: String
-    Description: Whether to deploy all the API functions or only the ones required for other stacks
+    Description: Whether to deploy all the API functions or only the ones required
+      for other stacks
   DeployAVDownload:
     Type: String
     Description: Set to true to deploy AVDownload
@@ -122,11 +123,11 @@ Conditions:
           - !Ref ApiConfigPrefix
           - ""
   DeployAPI:
-    Fn::Equals: [!Ref DeployAPI, "true"]
+    Fn::Equals: [ !Ref DeployAPI, "true" ]
   DeployAVDownload:
-    Fn::Equals: [!Ref DeployAVDownload, "true"]
+    Fn::Equals: [ !Ref DeployAVDownload, "true" ]
   DeployChat:
-    Fn::Equals: [!Ref DeployChat, "true"]
+    Fn::Equals: [ !Ref DeployChat, "true" ]
   WriteSecret:
     Fn::Equals:
       - !Ref WriteConfigSecret
@@ -140,7 +141,7 @@ Resources:
   #*     ContentUri: ./dependencies
   #*     CompatibleRuntimes:
   #*       - nodejs20.x
-  #*     LicenseInfo: Apache-2.0
+  #*     LicenseInfo: MIT
   #*   Metadata:
   #*     BuildMethod: nodejs20.x
   # Configuration

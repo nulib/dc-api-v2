@@ -49,7 +49,8 @@ Resources:
             Action: "sts:AssumeRole"
       Path: "/"
       ManagedPolicyArns:
-        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonAPIGatewayPushTo\
+          CloudWatchLogs"
   ChatWebSocket:
     Type: AWS::ApiGatewayV2::Api
     Properties:
@@ -57,7 +58,7 @@ Resources:
       ProtocolType: WEBSOCKET
       RouteSelectionExpression: "$request.body.message"
   CheckpointBucket:
-    Type: 'AWS::S3::Bucket'
+    Type: "AWS::S3::Bucket"
     Properties:
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -69,29 +70,29 @@ Resources:
     Properties:
       ApiId: !Ref ChatWebSocket
       RouteKey: $connect
-      RouteResponseSelectionExpression: '$default'
+      RouteResponseSelectionExpression: "$default"
       AuthorizationType: NONE
       ApiKeyRequired: false
       OperationName: ConnectRoute
-      Target: !Sub 'integrations/${ConnectInteg}'
+      Target: !Sub "integrations/${ConnectInteg}"
   ConnectInteg:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref ChatWebSocket
       Description: Connect Integration
       IntegrationType: MOCK
-      RequestTemplates: 
-        "200" : '{"statusCode" : 200}'
-      TemplateSelectionExpression: '200'
-      PassthroughBehavior: 'WHEN_NO_MATCH'
+      RequestTemplates:
+        "200": "{\"statusCode\" : 200}"
+      TemplateSelectionExpression: "200"
+      PassthroughBehavior: "WHEN_NO_MATCH"
   ConnectIntegResp:
     Type: AWS::ApiGatewayV2::IntegrationResponse
     Properties:
       ApiId: !Ref ChatWebSocket
       IntegrationId: !Ref ConnectInteg
-      IntegrationResponseKey: '$default'
+      IntegrationResponseKey: "$default"
       ResponseTemplates:
-        "200" : '{"statusCode" : 200}'
+        "200": "{\"statusCode\" : 200}"
   ConnectRouteResponse:
     Type: AWS::ApiGatewayV2::RouteResponse
     Properties:
@@ -103,28 +104,28 @@ Resources:
     Properties:
       ApiId: !Ref ChatWebSocket
       RouteKey: $disconnect
-      RouteResponseSelectionExpression: '$default'
+      RouteResponseSelectionExpression: "$default"
       AuthorizationType: NONE
       OperationName: DisconnectRoute
-      Target: !Sub 'integrations/${DisconnectInteg}'
+      Target: !Sub "integrations/${DisconnectInteg}"
   DisconnectInteg:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref ChatWebSocket
       Description: Disconnect Integration
       IntegrationType: MOCK
-      RequestTemplates: 
-        "200" : '{"statusCode" : 200}'
-      TemplateSelectionExpression: '200'
-      PassthroughBehavior: 'WHEN_NO_MATCH'
+      RequestTemplates:
+        "200": "{\"statusCode\" : 200}"
+      TemplateSelectionExpression: "200"
+      PassthroughBehavior: "WHEN_NO_MATCH"
   DisconnectIntegResp:
     Type: AWS::ApiGatewayV2::IntegrationResponse
     Properties:
       ApiId: !Ref ChatWebSocket
       IntegrationId: !Ref DisconnectInteg
-      IntegrationResponseKey: '$default'
+      IntegrationResponseKey: "$default"
       ResponseTemplates:
-        "200" : '{"statusCode" : 200}'
+        "200": "{\"statusCode\" : 200}"
   DisconnectRouteResponse:
     Type: AWS::ApiGatewayV2::RouteResponse
     Properties:
@@ -136,28 +137,28 @@ Resources:
     Properties:
       ApiId: !Ref ChatWebSocket
       RouteKey: $default
-      RouteResponseSelectionExpression: '$default'
+      RouteResponseSelectionExpression: "$default"
       AuthorizationType: NONE
       OperationName: DefaultRoute
-      Target: !Sub 'integrations/${DefaultInteg}'
+      Target: !Sub "integrations/${DefaultInteg}"
   DefaultInteg:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref ChatWebSocket
       Description: Default Integration
       IntegrationType: MOCK
-      RequestTemplates: 
-        "200" : '{"statusCode" : 200}'
-      TemplateSelectionExpression: '200'
+      RequestTemplates:
+        "200": "{\"statusCode\" : 200}"
+      TemplateSelectionExpression: "200"
   DefaultIntegResp:
     Type: AWS::ApiGatewayV2::IntegrationResponse
     Properties:
       ApiId: !Ref ChatWebSocket
       IntegrationId: !Ref DefaultInteg
       IntegrationResponseKey: $default
-      ResponseTemplates: 
-        "200" : '{"statusCode" : 200, "connectionId" : "$context.connectionId"}'
-      TemplateSelectionExpression: '200'
+      ResponseTemplates:
+        "200": "{\"statusCode\" : 200, \"connectionId\" : \"$context.connectionId\"}"
+      TemplateSelectionExpression: "200"
   DefaultRouteResponse:
     Type: AWS::ApiGatewayV2::RouteResponse
     Properties:
@@ -171,14 +172,15 @@ Resources:
       RouteKey: chat
       AuthorizationType: NONE
       OperationName: ChatRoute
-      Target: !Sub 'integrations/${ChatIntegration}'
+      Target: !Sub "integrations/${ChatIntegration}"
   ChatIntegration:
     Type: AWS::ApiGatewayV2::Integration
     Properties:
       ApiId: !Ref ChatWebSocket
       Description: Chat Integration
       IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatFunction.Arn}/invocations"
+      IntegrationUri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/\
+        functions/${ChatFunction.Arn}/invocations"
   ChatPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -198,7 +200,7 @@ Resources:
   #*       - x86_64
   #*     CompatibleRuntimes:
   #*       - python3.12
-  #*     LicenseInfo: "Apache-2.0"
+  #*     LicenseInfo: "MIT"
   #*   Metadata:
   #*     BuildMethod: python3.12
   ChatFunction:
@@ -227,50 +229,51 @@ Resources:
           RATE_LIMIT_TABLE_NAME: !Ref RateLimitTable
           NO_COLOR: 1
       Policies:
-      - !Ref SecretsPolicy
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'execute-api:ManageConnections'
-          Resource:
-          - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocket}/*'
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'es:ESHttpGet'
-          - 'es:ESHttpPost'
-          Resource: '*'
-      - Statement:
-        - Effect: Allow
-          Action:
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-          Resource: !Sub "${ChatMetricsLog.Arn}:*"
-      - Statement:
-        - Effect: Allow
-          Action:
-          - s3:GetObject
-          - s3:ListBucket
-          - s3:PutObject
-          - s3:DeleteObject
-          - s3:ListBucket
-          Resource:
-          - !Sub "arn:aws:s3:::${CheckpointBucket}"
-          - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
-      - Statement:
-        - Effect: Allow
-          Action:
-          - bedrock:InvokeModel
-          - bedrock:InvokeModelWithResponseStream
-          Resource: "*"
-      - Statement:
-        - Effect: Allow
-          Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          Resource: !GetAtt RateLimitTable.Arn
+        - !Ref SecretsPolicy
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "execute-api:ManageConnections"
+              Resource:
+                - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChatWebSocket\
+                  }/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "es:ESHttpGet"
+                - "es:ESHttpPost"
+              Resource: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub "${ChatMetricsLog.Arn}:*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+                - s3:PutObject
+                - s3:DeleteObject
+                - s3:ListBucket
+              Resource:
+                - !Sub "arn:aws:s3:::${CheckpointBucket}"
+                - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt RateLimitTable.Arn
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   ChatSyncFunction:
@@ -301,45 +304,45 @@ Resources:
       FunctionUrlConfig:
         AuthType: AWS_IAM
       Policies:
-      - !Ref SecretsPolicy
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'es:ESHttpGet'
-          - 'es:ESHttpPost'
-          Resource: '*'
-      - Statement:
-        - Effect: Allow
-          Action:
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-          Resource: !Sub "${ChatMetricsLog.Arn}:*"
-      - Statement:
-        - Effect: Allow
-          Action:
-          - s3:GetObject
-          - s3:ListBucket
-          - s3:PutObject
-          - s3:DeleteObject
-          - s3:ListBucket
-          Resource:
-          - !Sub "arn:aws:s3:::${CheckpointBucket}"
-          - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
-      - Statement:
-        - Effect: Allow
-          Action:
-          - bedrock:InvokeModel
-          - bedrock:InvokeModelWithResponseStream
-          Resource: "*"
-      # Add DynamoDB permissions
-      - Statement:
-        - Effect: Allow
-          Action:
-          - dynamodb:GetItem
-          - dynamodb:PutItem
-          - dynamodb:UpdateItem
-          - dynamodb:DeleteItem
-          Resource: !GetAtt RateLimitTable.Arn
+        - !Ref SecretsPolicy
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "es:ESHttpGet"
+                - "es:ESHttpPost"
+              Resource: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !Sub "${ChatMetricsLog.Arn}:*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+                - s3:PutObject
+                - s3:DeleteObject
+                - s3:ListBucket
+              Resource:
+                - !Sub "arn:aws:s3:::${CheckpointBucket}"
+                - !Sub "arn:aws:s3:::${CheckpointBucket}/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: "*"
+        # Add DynamoDB permissions
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:DeleteItem
+              Resource: !GetAtt RateLimitTable.Arn
     #* Metadata:
     #*   BuildMethod: nodejs20.x
   RateLimitTable:
@@ -365,10 +368,10 @@ Resources:
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
-    - ConnectRoute
-    - DisconnectRoute
-    - DefaultRoute
-    - ChatRoute
+      - ConnectRoute
+      - DisconnectRoute
+      - DefaultRoute
+      - ChatRoute
     Properties:
       ApiId: !Ref ChatWebSocket
   Stage:
@@ -383,7 +386,7 @@ Resources:
 Outputs:
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
-    Value: !Sub 'wss://${ChatWebSocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'
+    Value: !Sub "wss://${ChatWebSocket}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
   RateLimitTableName:
     Description: "Name of the DynamoDB table used for rate limiting"
     Value: !Ref RateLimitTable

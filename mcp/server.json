@@ -1,13 +1,30 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "edu.northwestern.library.dc/dc-api",
-  "version": "2.10.2",
+  "name": "io.github.nulib/dc-api",
+  "version": "2.10.4",
   "title": "Northwestern University Libraries Digital Collections API",
   "description": "Agent integration with the Northwestern University Libraries Digital Collections API",
   "repository": {
     "url": "https://github.com/nulib/dc-api-v2",
     "source": "github"
   },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@nulib/dc-api-mcp",
+      "version": "2.10.4",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/nulib/dc-api-mcp:2.10.4",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
   "remotes": [
     {
       "type": "streamable-http",
