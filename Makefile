@@ -168,6 +168,9 @@ version:
 			(cd $$pkg && uv version --bump $(BUMP)) >&2; \
 		done; \
 		VERSION=$$(node -p "require('./api/src/package.json').version") ;\
-		(cd mcp && jq --arg v "$$VERSION" '(.. | objects | select(has("version")) | .version) |= $$v' server.json > server.tmp.json && mv server.tmp.json server.json) >&2 ;\
+		(cd mcp && \
+			jq --arg v "$$VERSION" '(.. | objects | select(has("version")) | .version) |= $$v' server.json > server.tmp.json && \
+			mv server.tmp.json server.json && \
+			sed -i -E "s|\"ghcr\.io/nulib/dc-api-mcp:[^\"]+\"|\"ghcr.io/nulib/dc-api-mcp:$$VERSION\"|g" server.json) >&2 ;\
 	fi; \
 	node -e 'console.log(require("./api/package.json").version)'
