@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "edu.northwestern.library.dc/dc-api",
+  "name": "io.github.nulib/dc-api",
   "version": "2.10.3",
   "title": "Northwestern University Libraries Digital Collections API",
   "description": "Agent integration with the Northwestern University Libraries Digital Collections API",
