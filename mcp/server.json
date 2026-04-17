@@ -8,6 +8,24 @@
     "url": "https://github.com/nulib/dc-api-v2",
     "source": "github"
   },
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@nulib/dc-api-mcp",
+      "version": "2.10.2",
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/nulib/dc-api-mcp",
+      "version": "2.10.2",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
   "remotes": [
     {
       "type": "streamable-http",

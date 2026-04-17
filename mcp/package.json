@@ -1,12 +1,30 @@
 {
-  "name": "dc-api-mcp",
+  "name": "@nulib/dc-api-mcp",
   "mcpName": "edu.northwestern.library.dc/dc-api",
   "version": "2.10.2",
-  "private": true,
+  "description": "Agent integration with the Northwestern University Libraries Digital Collections API",
+  "repository": {
+    "url": "https://github.com/nulib/dc-api-v2",
+    "type": "git"
+  },
+  "private": false,
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "scripts": {
     "http": "tsx watch apps/mcp/handlers/main.ts",
     "stdio": "tsx apps/mcp/handlers/main.ts --stdio",
     "build": "vite build --config apps/mcp/vite.config.ts",
+    "clean": "rm -rf dist",
+    "prepare": "rm -rf dist && PUBLISHING=true npm run build",
     "test": "MSW_MODE=${MSW_MODE:-replay} vitest run",
     "test:clear": "rm -rf test/fixtures/*.har",
     "test:record": "concurrently --kill-others -n 'RECORD,TEST' 'mitmdump --set hardump=test/fixtures/interactions.har -s test/support/redact.py' 'MSW_MODE=record vitest run'",
@@ -53,5 +71,5 @@
     "vitest": "^3.0.0"
   },
   "author": "nulib",
-  "license": "Apache-2.0"
+  "license": "MIT"
 }

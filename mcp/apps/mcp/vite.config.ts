@@ -13,7 +13,7 @@ export default defineConfig({
     target: "es2022",
     outDir: path.resolve(__dirname, "../../dist/apps/mcp"),
     emptyOutDir: false,
-    sourcemap: true,
+    sourcemap: process.env.PUBLISHING !== "true",
     rollupOptions: {
       external: [/^@aws-sdk\/.+/, /^node:.+/],
       input: path.resolve(__dirname, "handlers/lambda.ts"),
