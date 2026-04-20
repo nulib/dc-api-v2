@@ -16,15 +16,17 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 permissions:
-  contents: write
   actions: write
+  contents: write
+  packages: write
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: write
       actions: write
+      contents: write
+      packages: write
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - name: Set DEPLOY_ENV from Branch Name
