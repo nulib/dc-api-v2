@@ -104,7 +104,7 @@ jobs:
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'publish_mcp.yml',
+              workflow_id: 'publish-mcp.yml',
               ref: 'main',
             })
       - name: Dispatch New Production PR
