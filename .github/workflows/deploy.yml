@@ -50,7 +50,7 @@ jobs:
           path: ".tfvars"
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.12'
+          python-version: "3.12"
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - uses: aws-actions/setup-sam@v1
@@ -63,7 +63,7 @@ jobs:
         env:
           SAM_CLI_BETA_BUILD_PERFORMANCE: 1
           SAM_CLI_BETA_PACKAGE_PERFORMANCE: 1
-      - run: | 
+      - run: |
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
@@ -96,6 +96,17 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tags: true
           branch: main
+      - name: Dispatch MCP Publication Workflow
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'publish_mcp.yml',
+              ref: 'main',
+            })
       - name: Dispatch New Production PR
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: actions/github-script@v6

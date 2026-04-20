@@ -1,8 +1,5 @@
 name: Create and publish MCP package and container image
-on:
-  push:
-    tags:
-      - "v*"
+on: workflow_dispatch
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: nulib/dc-api-mcp

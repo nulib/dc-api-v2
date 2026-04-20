@@ -1,7 +1,6 @@
 ---
 name: Increment Version & Create Draft PR
-on:
-  workflow_dispatch
+on: workflow_dispatch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -11,7 +10,7 @@ permissions:
 jobs:
   increment:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       contents: write
       pull-requests: write
     steps:
