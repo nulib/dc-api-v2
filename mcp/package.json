@@ -1,7 +1,7 @@
 {
   "name": "@nulib/dc-api-mcp",
   "mcpName": "io.github.nulib/dc-api",
-  "version": "2.10.6",
+  "version": "2.10.7",
   "description": "Agent integration with the Northwestern University Libraries Digital Collections API",
   "repository": {
     "url": "https://github.com/nulib/dc-api-v2",
