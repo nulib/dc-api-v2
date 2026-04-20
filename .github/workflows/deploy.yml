@@ -44,7 +44,15 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.TFVARS_DEPLOY_KEY }}
+      - name: Generate dispatch-on-tag token
+        id: dispatch-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.DISPATCH_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DISPATCH_APP_KEY }}
       - uses: actions/checkout@v2
+        with:
+          token: ${{ steps.dispatch-token.outputs.token }}
       - uses: actions/checkout@v2
         with:
           repository: "nulib/tfvars"
@@ -93,30 +101,8 @@ jobs:
           git tag -a v${API_VERSION} -m "Release ${API_VERSION}"
       - name: Push changes
         if: ${{ github.ref == 'refs/heads/main' }}
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.dispatch-token.outputs.token }}
           tags: true
           branch: main
-      - name: Dispatch MCP Publication Workflow
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'publish-mcp.yml',
-              ref: 'main',
-            })
-      - name: Dispatch New Production PR
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'next_version.yml',
-              ref: 'deploy/staging',
-            })
