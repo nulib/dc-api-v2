@@ -5,8 +5,9 @@
   "title": "Northwestern University Libraries Digital Collections API",
   "description": "Agent integration with the Northwestern University Libraries Digital Collections API",
   "repository": {
+    "source": "github",
     "url": "https://github.com/nulib/dc-api-v2",
-    "source": "github"
+    "subfolder": "mcp"
   },
   "packages": [
     {
