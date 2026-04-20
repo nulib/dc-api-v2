@@ -54,7 +54,13 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+          labels: |
+            org.opencontainers.image.title=dc-api-mcp
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}/tree/main/mcp
+            org.opencontainers.image.url=${{ github.server_url }}/${{ github.repository }}/tree/main/mcp
+            org.opencontainers.image.licenses=MIT
       - name: Build and push the Docker image
+        id: build-push
         uses: docker/build-push-action@v7
         with:
           context: ./mcp
@@ -64,7 +70,7 @@ jobs:
         uses: actions/attest@v4
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          subject-digest: ${{ steps.meta.outputs.digest }}
+          subject-digest: ${{ steps.build-push.outputs.digest }}
           push-to-registry: true
   publish-registry:
     needs:
