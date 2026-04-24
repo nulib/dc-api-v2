@@ -584,6 +584,30 @@ Resources:
             ApiId: !Ref dcApi
             Path: /works/{id}/thumbnail
             Method: HEAD
+  getWorkSearchFunction:
+    Type: AWS::Serverless::Function
+    Condition: DeployAPI
+    Properties:
+      Handler: handlers/get-work-search.handler
+      Description: IIIF Search 2.0 for a Work's transcription annotations.
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Policies:
+        - !Ref SecretsPolicy
+        - !Ref readIndexPolicy
+      Events:
+        WorkApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/search
+            Method: GET
+        WorkApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /works/{id}/search
+            Method: HEAD
   getSimilarFunction:
     Type: AWS::Serverless::Function
     Condition: DeployAPI

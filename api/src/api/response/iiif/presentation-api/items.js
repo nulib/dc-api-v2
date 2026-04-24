@@ -157,8 +157,10 @@ module.exports = {
   buildImageService,
   buildSupplementingAnnotation,
   buildTranscriptionAnnotation,
+  getTranscriptionContent,
   isAltFormat,
   isAudioVideo,
   isImage,
   isPDF,
+  normalizeLanguages,
 };
