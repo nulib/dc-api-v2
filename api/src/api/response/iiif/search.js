@@ -31,13 +31,26 @@ function buildSearchAnnotationBody(annotation, snippet) {
   return body;
 }
 
-async function transform(workId, q, opts = {}) {
+async function transform(workSource, q, opts = {}) {
   const { allowPrivate = false, allowUnpublished = false } = opts;
+  const workId = workSource.id;
 
   const manifestId = `${dcApiEndpoint()}/works/${workId}?as=iiif`;
   const searchId = `${dcApiEndpoint()}/works/${workId}/search?as=iiif&q=${encodeURIComponent(
     q
   )}`;
+
+  // Build canvas index map from the work's file_sets array — same ordering as manifest.js
+  const groupIndexMap = {};
+  let groupIndex = 0;
+  (workSource.file_sets || [])
+    .filter((fs) => fs.role === "Access")
+    .forEach((fs) => {
+      const key = fs.group_with || fs.id;
+      if (!(key in groupIndexMap)) {
+        groupIndexMap[key] = groupIndex++;
+      }
+    });
 
   const response = await getWorkFileSets(workId, {
     allowPrivate,
@@ -45,7 +58,6 @@ async function transform(workId, q, opts = {}) {
     annotationsQuery: q,
     role: "Access",
     source: ["id", "annotations", "group_with"],
-    sortBy: "rank",
   });
 
   const fileSets =
@@ -53,7 +65,6 @@ async function transform(workId, q, opts = {}) {
       ? JSON.parse(response.body).hits.hits.map((h) => h._source)
       : [];
 
-  // Replicate manifest.js grouping: ungrouped file sets use their own id as key
   const fileSetGroups = {};
   fileSets.forEach((fs) => {
     const key = fs.group_with || fs.id;
@@ -63,8 +74,10 @@ async function transform(workId, q, opts = {}) {
 
   const items = [];
 
-  Object.entries(fileSetGroups).forEach(([groupKey, groupFileSets], index) => {
-    const canvasId = `${manifestId}/canvas/${index}`;
+  Object.entries(fileSetGroups).forEach(([groupKey, groupFileSets]) => {
+    const canvasIndex = groupIndexMap[groupKey];
+    if (canvasIndex === undefined) return;
+    const canvasId = `${manifestId}/canvas/${canvasIndex}`;
 
     // Primary file set is the one whose id matches the group key (same as manifest.js)
     const primary =
