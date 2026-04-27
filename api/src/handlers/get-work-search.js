@@ -25,7 +25,8 @@ exports.handler = wrap(async (event) => {
   const workResponse = await getWork(id, { allowPrivate, allowUnpublished });
   if (workResponse.statusCode !== 200) return workResponse;
 
-  return iiifSearchResponse.transform(id, q, {
+  const workSource = JSON.parse(workResponse.body)._source;
+  return iiifSearchResponse.transform(workSource, q, {
     allowPrivate,
     allowUnpublished,
   });

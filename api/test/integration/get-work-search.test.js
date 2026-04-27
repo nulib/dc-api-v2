@@ -6,13 +6,14 @@ chai.use(require("chai-http"));
 
 const ApiToken = requireSource("api/api-token");
 
+// Matches the first Access file set (canvas/0) in mocks/work-1234.json
 const annotatedFileSetsResponse = {
   hits: {
     total: { value: 1 },
     hits: [
       {
         _source: {
-          id: "36a47020-5410-4dda-a7ca-967fe3885bcd",
+          id: "076dcbd8-8c57-40e8-bdf7-dc9153c87a36",
           group_with: null,
           annotations: [
             {
@@ -30,18 +31,35 @@ const annotatedFileSetsResponse = {
   },
 };
 
-const emptyFileSetsResponse = {
+// Matches the second Access file set (canvas/1) in mocks/work-1234.json
+const annotatedSecondFileSetsResponse = {
   hits: {
     total: { value: 1 },
     hits: [
       {
         _source: {
-          id: "36a47020-5410-4dda-a7ca-967fe3885bcd",
+          id: "51862c1c-c024-45dc-ab26-694bd8ebc16c",
           group_with: null,
-          annotations: [],
+          annotations: [
+            {
+              id: "anno-uuid-2",
+              type: "transcription",
+              language: ["en"],
+              content:
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae nisl a leo faucibus consectetur.",
+              model: "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            },
+          ],
         },
       },
     ],
+  },
+};
+
+const emptyFileSetsResponse = {
+  hits: {
+    total: { value: 0 },
+    hits: [],
   },
 };
 
@@ -85,6 +103,29 @@ describe("IIIF Search 2.0 for a work", () => {
       expect(item.body.format).to.eq("text/plain");
       expect(item.body.language).to.eq("en");
       expect(item.target).to.include("/canvas/0");
+    });
+
+    it("uses the correct canvas index from the manifest ordering, not sequential search result order", async () => {
+      mock
+        .get("/dc-v2-work/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/work-1234.json"));
+      mock
+        .post("/dc-v2-file-set/_search", () => true)
+        .reply(200, annotatedSecondFileSetsResponse);
+
+      const event = helpers
+        .mockEvent("GET", "/works/{id}/search")
+        .pathParams({ id: "1234" })
+        .queryParams({ as: "iiif", q: "Lorem" })
+        .render();
+
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+
+      const body = JSON.parse(result.body);
+      expect(body.items).to.have.lengthOf(1);
+      // Second Access file set in work-1234.json must map to canvas/1, not canvas/0
+      expect(body.items[0].target).to.include("/canvas/1");
     });
 
     it("returns an empty items array when no annotations match", async () => {
