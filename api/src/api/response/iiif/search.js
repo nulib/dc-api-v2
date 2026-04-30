@@ -5,21 +5,10 @@ const {
   normalizeLanguages,
 } = require("./presentation-api/items");
 
-function extractSnippet(content, q, contextChars = 100) {
-  const idx = content.toLowerCase().indexOf(q.toLowerCase());
-  if (idx === -1) return null;
-  const start = Math.max(0, idx - contextChars);
-  const end = Math.min(content.length, idx + q.length + contextChars);
-  let snippet = content.slice(start, end).trim();
-  if (start > 0) snippet = "..." + snippet;
-  if (end < content.length) snippet = snippet + "...";
-  return snippet;
-}
-
-function buildSearchAnnotationBody(annotation, snippet) {
+function buildSearchAnnotationBody(annotation, content) {
   const body = {
     type: "TextualBody",
-    value: snippet,
+    value: content,
     format: "text/plain",
   };
   const languages = normalizeLanguages(annotation.language);
@@ -88,14 +77,13 @@ async function transform(workSource, q, opts = {}) {
       .filter((ann) => ann.type === "transcription")
       .forEach((ann) => {
         const content = getTranscriptionContent(ann);
-        const snippet = extractSnippet(content, q);
-        if (!snippet) return;
+        if (!content.toLowerCase().includes(q.toLowerCase())) return;
 
         items.push({
           id: `${canvasId}/annotation/${ann.id}`,
           type: "Annotation",
           motivation: "supplementing",
-          body: buildSearchAnnotationBody(ann, snippet),
+          body: buildSearchAnnotationBody(ann, content),
           target: canvasId,
         });
       });

@@ -54,7 +54,9 @@ async function getWorkFileSets(workId, opts = {}) {
     mustClauses.push({ term: { role: role } });
   }
   if (annotationsQuery) {
-    mustClauses.push({ match: { "annotations.content": annotationsQuery } });
+    mustClauses.push({
+      match_phrase: { "annotations.content": annotationsQuery },
+    });
   }
 
   const searchBody = {
