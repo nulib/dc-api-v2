@@ -368,6 +368,12 @@ async function transform(response, options = {}) {
       }
     }
 
+    jsonManifest.service = [
+      {
+        id: `${dcApiEndpoint()}/works/${source.id}/search?as=iiif`,
+        type: "SearchService2",
+      },
+    ];
     jsonManifest.provider = [provider];
     jsonManifest.logo = [nulLogo];
     const navPlace = buildNavPlace(source);

@@ -91,6 +91,10 @@ describe("Retrieve work by id", () => {
         "http://iiif.io/api/presentation/3/context.json"
       );
       expect(resultBody.label.none[0]).to.eq("Canary Record TEST 1");
+      expect(resultBody.service).to.deep.include({
+        id: `${process.env.DC_API_ENDPOINT}/works/1234/search?as=iiif`,
+        type: "SearchService2",
+      });
     });
 
     it("will retrieve a private, unpublished work document with an entitlement", async () => {

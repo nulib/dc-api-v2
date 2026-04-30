@@ -27,6 +27,7 @@ async function getWorkFileSets(workId, opts = {}) {
   const {
     allowPrivate = false,
     allowUnpublished = false,
+    annotationsQuery = null,
     role = null,
     source = null,
     sortBy = null,
@@ -51,6 +52,11 @@ async function getWorkFileSets(workId, opts = {}) {
   const mustClauses = [{ term: { work_id: workId } }];
   if (role) {
     mustClauses.push({ term: { role: role } });
+  }
+  if (annotationsQuery) {
+    mustClauses.push({
+      match_phrase: { "annotations.content": annotationsQuery },
+    });
   }
 
   const searchBody = {
