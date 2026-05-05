@@ -3,7 +3,7 @@ const axios = require("axios").default;
 const cookie = require("cookie");
 const opensearchResponse = require("../api/response/opensearch");
 const { apiTokenName } = require("../environment");
-const { getCollection, getWork } = require("../api/opensearch");
+const { getCollection, getWork, getFileSet } = require("../api/opensearch");
 const { wrap } = require("./middleware");
 
 function getAxiosResponse(url, config) {
@@ -30,6 +30,16 @@ function validateRequest(event) {
   return { id, aspect, size };
 }
 
+function isImageFileSet(doc) {
+  const source = doc._source;
+  return (
+    doc.found &&
+    source.mime_type != null &&
+    source.mime_type.split("/")[0] === "image" &&
+    ["Access", "Auxiliary"].includes(source.role)
+  );
+}
+
 const getThumbnail = async (id, aspect, size, event) => {
   const allowUnpublished =
     event.userToken.isSuperUser() || event.userToken.hasEntitlement(id);
@@ -47,6 +57,22 @@ const getThumbnail = async (id, aspect, size, event) => {
       return { error: await opensearchResponse.transform(esResponse) };
     body = JSON.parse(esResponse.body);
     iiif_base = body?._source?.representative_image?.url;
+  } else if (event.rawPath.match(/\/file-sets\//)) {
+    esResponse = await getFileSet(id, {
+      allowPrivate,
+      allowUnpublished,
+    });
+    if (esResponse.statusCode != 200)
+      return { error: await opensearchResponse.transform(esResponse) };
+    body = JSON.parse(esResponse.body);
+    if (!isImageFileSet(body)) {
+      return {
+        statusCode: 404,
+        headers: { "content-type": "text/plain" },
+        body: "Not Found",
+      };
+    }
+    iiif_base = body?._source?.representative_image_url;
   } else {
     esResponse = await getWork(id, {
       allowPrivate,

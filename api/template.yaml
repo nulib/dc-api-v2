@@ -584,6 +584,18 @@ Resources:
             ApiId: !Ref dcApi
             Path: /works/{id}/thumbnail
             Method: HEAD
+        FileSetApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/thumbnail
+            Method: GET
+        FileSetApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/thumbnail
+            Method: HEAD
   getWorkSearchFunction:
     Type: AWS::Serverless::Function
     Condition: DeployAPI
