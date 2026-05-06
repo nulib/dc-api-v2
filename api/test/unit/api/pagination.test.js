@@ -14,6 +14,10 @@ describe("Paginator", function () {
     sort: [{ create_date: "asc" }],
     _source: ["id", "title", "collection"],
     aggs: { collection: { terms: { field: "contributor.label", size: 10 } } },
+    collapse: {
+      field: "collection.id",
+      inner_hits: { name: "top_collection_hits", size: 1 },
+    },
   };
 
   let pager;
@@ -64,10 +68,17 @@ describe("Paginator", function () {
     const rehydrated = await decodeSearchToken(token);
 
     expect(rehydrated.models).to.include.members(["works"]);
-    for (const field of ["query", "size", "sort", "_source"]) {
+    for (const field of [
+      "aggs",
+      "collapse",
+      "query",
+      "size",
+      "sort",
+      "_source",
+    ]) {
       expect(rehydrated.body[field]).to.deep.equal(requestBody[field]);
     }
-    expect(rehydrated.body).not.to.include.keys(["aggs", "from"]);
+    expect(rehydrated.body).not.to.include.any.keys("from");
   });
 
   it("correctly sets the default size", async () => {

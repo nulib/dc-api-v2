@@ -104,8 +104,20 @@ module.exports = class RequestPipeline {
     return this;
   }
 
+  addCardinality() {
+    if (this.searchContext.collapse) {
+      this.searchContext.aggs ||= {};
+      this.searchContext.aggs.__pagination = {
+        cardinality: {
+          field: this.searchContext.collapse.field,
+        },
+      };
+    }
+    return this;
+  }
+
   toJson() {
-    this.addNeuralModelId();
+    this.addNeuralModelId().addCardinality();
     return JSON.stringify(sortJson(this.searchContext));
   }
 };

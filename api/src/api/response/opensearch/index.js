@@ -40,7 +40,7 @@ async function transformMany(responseBody, options) {
 }
 
 async function paginationInfo(responseBody, pager) {
-  let { ...pageInfo } = await pager.pageInfo(responseBody.hits.total.value);
+  let { ...pageInfo } = await pager.pageResponseInfo(responseBody);
 
   return pageInfo;
 }

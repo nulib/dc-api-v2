@@ -1,0 +1,376 @@
+{
+  "took": 7,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 7,
+      "relation": "eq"
+    },
+    "max_score": 4.4889727,
+    "hits": [
+      {
+        "_index": "mbk-dev-dc-v2-file-set-1778017290401",
+        "_id": "5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+        "_score": 4.4889727,
+        "_source": {
+          "id": "5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+          "label": "BFMF_B51_F04_007_p001.tif",
+          "description": null,
+          "streaming_url": null,
+          "mime_type": "image/tiff",
+          "accession_number": "BFMF_B51_F04_007_donut_01",
+          "role": "Access",
+          "rank": 0,
+          "published": true,
+          "visibility": "Public",
+          "work_id": "8373e219-0afc-4507-80e3-ae557c29e5a5",
+          "extracted_metadata": {
+            "exif": {
+              "tool": "exifr",
+              "tool_version": "6.1.1",
+              "value": {
+                "bitsPerSample": "8, 8, 8",
+                "compression": "Uncompressed",
+                "imageHeight": 970,
+                "imageWidth": 1540,
+                "make": "Phase One",
+                "model": "IQ180",
+                "orientation": "Horizontal (normal)",
+                "photometricInterpretation": "RGB",
+                "planarConfiguration": "Chunky",
+                "resolutionUnit": "inches",
+                "samplesPerPixel": 3,
+                "software": "Capture One 11 Macintosh",
+                "xResolution": 400,
+                "yResolution": 400
+              }
+            }
+          },
+          "group_with": null,
+          "poster_offset": null,
+          "annotations": [
+            {
+              "id": "9a0a0056-e859-4960-8028-0fefccc00562",
+              "type": "transcription",
+              "model": "us.anthropic.claude-sonnet-4-6",
+              "language": ["en"],
+              "content": "Farmer Brothers\nCOFFEE\n\nFARMER BROS. CO.\nRESTAURANT SERVICE\n\nBOB DOUGHERTY                    2142 JERROLD\nBRANCH SUPERVISOR          SAN FRANCISCO, CALIF.\n                                          PHONE 282-2100"
+            }
+          ],
+          "indexed_at": "2026-05-01T18:25:58.002003",
+          "alt_text": null,
+          "digests": {
+            "sha1": "5c624f9fb195ec0c684f2d5c9dc16ae715f36247",
+            "sha256": "70cbbcde0d28f9de8b3102bb3b231f5a6c48424b12572069268b7fb77087166f"
+          },
+          "image_caption": null,
+          "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+          "api_model": "FileSet",
+          "create_date": "2021-03-16T05:14:00.547263Z",
+          "modified_date": "2021-11-18T19:16:53.872768Z",
+          "download_url": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/5de1d0a1-adb8-4412-90a4-eb48f82383c7/download",
+          "representative_image_url": "https://iiif.stack.rdc-staging.library.northwestern.edu/iiif/3/5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+          "work_title": "Farmer Brothers Coffee"
+        },
+        "fields": {
+          "work_id": ["8373e219-0afc-4507-80e3-ae557c29e5a5"]
+        },
+        "inner_hits": {
+          "matching_filesets": {
+            "hits": {
+              "total": {
+                "value": 4,
+                "relation": "eq"
+              },
+              "max_score": 4.4889727,
+              "hits": [
+                {
+                  "_index": "mbk-dev-dc-v2-file-set-1778017290401",
+                  "_id": "5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+                  "_score": 4.4889727,
+                  "_source": {
+                    "id": "5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+                    "label": "BFMF_B51_F04_007_p001.tif",
+                    "description": null,
+                    "streaming_url": null,
+                    "mime_type": "image/tiff",
+                    "accession_number": "BFMF_B51_F04_007_donut_01",
+                    "role": "Access",
+                    "rank": 0,
+                    "published": true,
+                    "visibility": "Public",
+                    "work_id": "8373e219-0afc-4507-80e3-ae557c29e5a5",
+                    "extracted_metadata": {
+                      "exif": {
+                        "tool": "exifr",
+                        "tool_version": "6.1.1",
+                        "value": {
+                          "bitsPerSample": "8, 8, 8",
+                          "compression": "Uncompressed",
+                          "imageHeight": 970,
+                          "imageWidth": 1540,
+                          "make": "Phase One",
+                          "model": "IQ180",
+                          "orientation": "Horizontal (normal)",
+                          "photometricInterpretation": "RGB",
+                          "planarConfiguration": "Chunky",
+                          "resolutionUnit": "inches",
+                          "samplesPerPixel": 3,
+                          "software": "Capture One 11 Macintosh",
+                          "xResolution": 400,
+                          "yResolution": 400
+                        }
+                      }
+                    },
+                    "group_with": null,
+                    "poster_offset": null,
+                    "annotations": [
+                      {
+                        "id": "9a0a0056-e859-4960-8028-0fefccc00562",
+                        "type": "transcription",
+                        "model": "us.anthropic.claude-sonnet-4-6",
+                        "language": ["en"],
+                        "content": "Farmer Brothers\nCOFFEE\n\nFARMER BROS. CO.\nRESTAURANT SERVICE\n\nBOB DOUGHERTY                    2142 JERROLD\nBRANCH SUPERVISOR          SAN FRANCISCO, CALIF.\n                                          PHONE 282-2100"
+                      }
+                    ],
+                    "indexed_at": "2026-05-01T18:25:58.002003",
+                    "alt_text": null,
+                    "digests": {
+                      "sha1": "5c624f9fb195ec0c684f2d5c9dc16ae715f36247",
+                      "sha256": "70cbbcde0d28f9de8b3102bb3b231f5a6c48424b12572069268b7fb77087166f"
+                    },
+                    "image_caption": null,
+                    "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+                    "api_model": "FileSet",
+                    "create_date": "2021-03-16T05:14:00.547263Z",
+                    "modified_date": "2021-11-18T19:16:53.872768Z",
+                    "download_url": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/5de1d0a1-adb8-4412-90a4-eb48f82383c7/download",
+                    "representative_image_url": "https://iiif.stack.rdc-staging.library.northwestern.edu/iiif/3/5de1d0a1-adb8-4412-90a4-eb48f82383c7",
+                    "work_title": "Farmer Brothers Coffee"
+                  }
+                },
+                {
+                  "_index": "mbk-dev-dc-v2-file-set-1778017290401",
+                  "_id": "3fdcb82b-dc4d-492d-9159-b2a45a3aac6c",
+                  "_score": 4.2681394,
+                  "_source": {
+                    "id": "3fdcb82b-dc4d-492d-9159-b2a45a3aac6c",
+                    "label": "BFMF_B51_F04_007_p008.tif",
+                    "description": null,
+                    "streaming_url": null,
+                    "mime_type": "image/tiff",
+                    "accession_number": "BFMF_B51_F04_007_donut_08",
+                    "role": "Access",
+                    "rank": 2130706432,
+                    "published": true,
+                    "visibility": "Public",
+                    "work_id": "8373e219-0afc-4507-80e3-ae557c29e5a5",
+                    "extracted_metadata": {
+                      "exif": {
+                        "tool": "exifr",
+                        "tool_version": "6.1.1",
+                        "value": {
+                          "bitsPerSample": "8, 8, 8",
+                          "compression": "Uncompressed",
+                          "imageHeight": 4311,
+                          "imageWidth": 3427,
+                          "make": "Phase One",
+                          "model": "IQ180",
+                          "orientation": "Horizontal (normal)",
+                          "photometricInterpretation": "RGB",
+                          "planarConfiguration": "Chunky",
+                          "resolutionUnit": "inches",
+                          "samplesPerPixel": 3,
+                          "software": "Capture One 11 Macintosh",
+                          "xResolution": 400,
+                          "yResolution": 400
+                        }
+                      }
+                    },
+                    "group_with": null,
+                    "poster_offset": null,
+                    "annotations": [
+                      {
+                        "id": "ac5fd9e7-af4f-4a4e-9de0-7744d11307d6",
+                        "type": "transcription",
+                        "model": "us.anthropic.claude-sonnet-4-6",
+                        "language": ["en"],
+                        "content": "WASHINGTON\nSeattle\nTacoma    Spokane\nYakima\nPortland\nEugene\nOREGON\nMedford\nKlamath Falls\n\nEureka\n\nChico\nCALIFORNIA\nSanta Rosa    Sacramento\nSan Francisco    Oakland\nSan Jose    Stockton\nWatsonville    Bishop\nFresno\nSan Luis Obispo\nBakersfield\nLancaster\nVentura    Riverside\nPalm Springs\nSan Fernando Valley\nHollywood\nSanta Monica\nLos Angeles    San\nLong Beach    Diego\nSan Gabriel\nTorrance\n\nGreat Falls\nMissoula    MONTANA\nButte\nBillings\n\nIDAHO\nBoise\n\nElko\n\nNEVADA\nReno\n\nSalt Lake City\nUTAH\n\nLas Vegas\n\nFlagstaff\nARIZONA\nPhoenix\n\nTucson\n\nWYOMING\nCasper\n\nCOLORADO\nDenver\n\nAlbuquerque\nNEW MEXICO\n\nRoswell\n\nEl Paso\n\nEl Centro    Santa Ana\n\nNORTH DAKOTA\nBismarck\n\nSOUTH DAKOTA\n\nNEBRASKA\n\nTulsa\nOklahoma City\nOKLAHOMA\nAmarillo\nWichita Falls\nLubbock    Fort Worth    Dallas\nTEXAS\nOdessa\n\nAustin\nHouston\nSan Antonio\nCorpus\nChristi\n\nFarmer Brothers\nCOFFEE\n\nFarmer Bros. Co. was founded during the year 1912 and from its early inception has grown and expanded with an ever increasing demand for fine quality coffee, allied products and service. From strategically established branches the Company sells in the eighteen western states. An enthusiastic sales force is eager to extend good service, and provide customers with coffee \"Consistently Good.\"\n\nour pledge\n\nFarmer Brothers\nCOFFEE\n\nIn appreciation to the thousands of loyal customers that we have been privileged to serve, \"we pledge the brand name of Farmer Bros. Co. will always be synonymous with quality and our reputation for good business ethics shall always prevail.\"\n\nBFME_BSL_F04_007"
+                      }
+                    ],
+                    "indexed_at": "2026-05-01T18:19:21.422546",
+                    "alt_text": null,
+                    "digests": {
+                      "sha1": "6330add117040ec51aa87c86d4021f4ad4928509",
+                      "sha256": "4e266fac3db3451692ff0aab92b85c1e2c2368dc0bc4ebbbd92a26f325f7dc36"
+                    },
+                    "image_caption": null,
+                    "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/3fdcb82b-dc4d-492d-9159-b2a45a3aac6c",
+                    "api_model": "FileSet",
+                    "create_date": "2021-03-16T05:14:00.887189Z",
+                    "modified_date": "2021-11-18T19:16:05.520021Z",
+                    "download_url": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/3fdcb82b-dc4d-492d-9159-b2a45a3aac6c/download",
+                    "representative_image_url": "https://iiif.stack.rdc-staging.library.northwestern.edu/iiif/3/3fdcb82b-dc4d-492d-9159-b2a45a3aac6c",
+                    "work_title": "Farmer Brothers Coffee"
+                  }
+                },
+                {
+                  "_index": "mbk-dev-dc-v2-file-set-1778017290401",
+                  "_id": "529f1276-d4a0-4540-846e-05635d0c4443",
+                  "_score": 4.0512323,
+                  "_source": {
+                    "id": "529f1276-d4a0-4540-846e-05635d0c4443",
+                    "label": "BFMF_B51_F04_007_p003.tif",
+                    "description": null,
+                    "streaming_url": null,
+                    "mime_type": "image/tiff",
+                    "accession_number": "BFMF_B51_F04_007_donut_03",
+                    "role": "Access",
+                    "rank": 1610612736,
+                    "published": true,
+                    "visibility": "Public",
+                    "work_id": "8373e219-0afc-4507-80e3-ae557c29e5a5",
+                    "extracted_metadata": {
+                      "exif": {
+                        "tool": "exifr",
+                        "tool_version": "6.1.1",
+                        "value": {
+                          "bitsPerSample": "8, 8, 8",
+                          "compression": "Uncompressed",
+                          "imageHeight": 2628,
+                          "imageWidth": 1846,
+                          "make": "Phase One",
+                          "model": "IQ180",
+                          "orientation": "Horizontal (normal)",
+                          "photometricInterpretation": "RGB",
+                          "planarConfiguration": "Chunky",
+                          "resolutionUnit": "inches",
+                          "samplesPerPixel": 3,
+                          "software": "Capture One 11 Macintosh",
+                          "xResolution": 400,
+                          "yResolution": 400
+                        }
+                      }
+                    },
+                    "group_with": null,
+                    "poster_offset": null,
+                    "annotations": [
+                      {
+                        "id": "e7a7ff82-c41c-4e15-970b-0bf1fd4ab71e",
+                        "type": "transcription",
+                        "model": "us.anthropic.claude-sonnet-4-6",
+                        "language": ["en"],
+                        "content": "7/6\n\nFarmers Bros.\n\n10 LBS — $8.80\n1000 Filters - 3.40\n\nCoffee is Farmers"
+                      }
+                    ],
+                    "indexed_at": "2026-05-01T18:07:04.846275",
+                    "alt_text": null,
+                    "digests": {
+                      "sha1": "0d9095c24ba269dfced07f4229d8285505e16c96",
+                      "sha256": "39c1b34dfc5a53be237a02136fd62412955607f65d8f65159588f41a7dcd646b"
+                    },
+                    "image_caption": null,
+                    "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/529f1276-d4a0-4540-846e-05635d0c4443",
+                    "api_model": "FileSet",
+                    "create_date": "2021-03-16T05:14:00.650676Z",
+                    "modified_date": "2021-11-18T19:16:18.952281Z",
+                    "download_url": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/529f1276-d4a0-4540-846e-05635d0c4443/download",
+                    "representative_image_url": "https://iiif.stack.rdc-staging.library.northwestern.edu/iiif/3/529f1276-d4a0-4540-846e-05635d0c4443",
+                    "work_title": "Farmer Brothers Coffee"
+                  }
+                },
+                {
+                  "_index": "mbk-dev-dc-v2-file-set-1778017290401",
+                  "_id": "81a1ee14-0f93-4885-aa12-571d674801cd",
+                  "_score": 2.3322124,
+                  "_source": {
+                    "id": "81a1ee14-0f93-4885-aa12-571d674801cd",
+                    "label": "BFMF_B51_F04_007_p007.tif",
+                    "description": null,
+                    "streaming_url": null,
+                    "mime_type": "image/tiff",
+                    "accession_number": "BFMF_B51_F04_007_donut_07",
+                    "role": "Access",
+                    "rank": 2113929216,
+                    "published": true,
+                    "visibility": "Public",
+                    "work_id": "8373e219-0afc-4507-80e3-ae557c29e5a5",
+                    "extracted_metadata": {
+                      "exif": {
+                        "tool": "exifr",
+                        "tool_version": "6.1.1",
+                        "value": {
+                          "bitsPerSample": "8, 8, 8",
+                          "compression": "Uncompressed",
+                          "imageHeight": 4328,
+                          "imageWidth": 3378,
+                          "make": "Phase One",
+                          "model": "IQ180",
+                          "orientation": "Horizontal (normal)",
+                          "photometricInterpretation": "RGB",
+                          "planarConfiguration": "Chunky",
+                          "resolutionUnit": "inches",
+                          "samplesPerPixel": 3,
+                          "software": "Adobe Photoshop CS6 (Windows)",
+                          "subfileType": "Full-resolution image",
+                          "xResolution": 400,
+                          "yResolution": 400
+                        }
+                      }
+                    },
+                    "group_with": null,
+                    "poster_offset": null,
+                    "annotations": [
+                      {
+                        "id": "2f77d5e3-4ad0-4d0b-8947-51086fcb2961",
+                        "type": "transcription",
+                        "model": "us.anthropic.claude-sonnet-4-6",
+                        "language": ["en"],
+                        "content": "SPICE\n\n                        No.1    No.5    25 Lb.  100 Lb.     Misc.\nAllspice, Ground          X               X\nAllspice, Whole           X               X\nBar B. Q. Spice, Plain    X               X\nBasil, Sweet, Whole       X               X\nBay Leaves, Whole         X               X\nCaraway Seed, Whole       X               X\nCelery Salt               X       X       X\nCelery Seed, Whole        X               X\nChili, Jap, Crushed       X               X\nChili, Jap, Whole         X               X\nChili Pequines, Whole     X               X\nChili Pepper, Albuquerque X       X       X\nChili Pepper              X               X\nChili Pods, Calif., Whole                 X\nChili Powder, Gateway     X       X       X\nChili Powder, Regular     X       X       X\nCinnamon, Ground          X       X       X\nCinnamon, Whole           X               X\nClove, Ground             X               X\nClove, Whole              X               X\nCream of Tartar           X               X\nCuminos Seed, Ground      X       X       X\nCuminos Seed, Whole       X               X\nCurry Powder              X               X\nFennel Seed, Whole        X                               X\nGarlic, Granulated        X       X                           30 Lb.\nGarlic, Pure              X       X                           30 Lb.\nGarlic Salt               X       X       X\nGinger, Ground            X               X\nItalian Seasoning, Whole  X               X\nM.S.G.                    X       X       X       X\nMace, Ground              X               X\nMeringue Powder           X       X       X\nMustard, Regular          X       X       X\nMustard, Hot              X       X       X\nNutmeg, Ground            X               X\nOnion, Chopped                                              2½ & 15 Lbs.\nOnion, Granulated         X               X\nOnion, Pure               X               X\nOnion Salt                X       X       X\nOregano, Ground           X               X\nOregano, Whole, Greek     X               X\nOregano, Whole, Mexican   X               X\nPaprika                   X       X       X\nPaprika, Hungarian        X       X       X\nPaprika, Spanish          X       X       X\nParsley Flakes            X                                   15 Lb.\nPepper, Black, Coarse     X       X       X       X\nPepper, Black, Cracked    X       X       X\nPepper, Black, Ground     X       X       X       X\nPepper, Steel Cut         X       X       X\nPepper, Black, Whole      X       X       X\nPepper, Cayenne           X               X\nPepper, White, Ground     X       X       X\nPickling Spice, Whole     X       X       X\nPoppy Seed, Whole         X               X\nPoultry Seasoning         X               X\nPumpkin Pie Spice         X               X\nRosemary Leaves           X               X\nSage, Dalmation, Rubbed   X               X\nSage, Dalmation, Ground   X               X\nSeasonall                 X       X       X\nSeasoning Salt            X       X       X\n\n\nSPICE, Continued\n\n                        No.1    No.5    25 Lb.  100 Lb      Misc.\nSesame Seed, Whole        X               X\nStaWhite                  X       X       X\nTarragon, Whole           X               X\nThyme, Ground             X               X\nThyme, Whole              X               X\nTaco Mixes                                X       X\n\n\nPAPER PRODUCTS\n\n                        Qty.    Size\nButterchips,\nSquare                  Per M\nStyro Cups               25     6 Oz.    8 Oz.\nStyro Lids              100     6 Oz.    8 Oz.\nNapkins                 500\nSandwich Tissue         Per M   12 x 12\nSouffle Cup             250     2½ Oz.   1 Oz.   ¾ Oz.   ½ Oz.\nWaiter Checks           Ea.      65\nWaiter Checks           Ea.      66\nWaiter Checks           Ea.      67\nCoffee Coasters          2 M\nWax Paper\nDividers, Dry            1 M    6 x 6\nDividers, Wet            1 M    6 x 6\nWraps, Dry               1 M    9x12\nWraps, Wet               1 M    12x12\nSandwich Bags           500's\n\n\nGLASSWARE\n\n                        Size\nLIBBY\nJuice                   5 Oz.\nMilk                    8 Oz.\nWater                   9½ Oz.\nCollins                 10 Oz.\nIce Tea                 12 Oz.\n\n\nCANDLES\n\n                                        Pink    Red\nDecorlites\nTear Drops              Amber           Pink    Red\nSparkle-Lites           Amber   Blue            Red\nPink Lady Candles\nWarmer Candles\nWarmer Glasses\nLighting Tapers\n\n\nMISCELLANEOUS CAFE SUPPLIES\n\nHottles\nHottle Caps, Pap.\nGrill Bricks\nGrill Masters\nGrill Screens\nSponges, S/Metal\n\n\nSILVERWARE\n\n                        Parade  Plain\nIce Tea Spoons            X       X\nTeaspoons                 X       X\nDessert Spoons            X       X\nBouillon Spoons           X\nDessert Forks             X       X\nSalad Forks               X\nOyster Forks              X\nDinner Knives             X\nSerrated Knives           X       X"
+                      }
+                    ],
+                    "indexed_at": "2026-05-01T18:40:39.008014",
+                    "alt_text": null,
+                    "digests": {
+                      "sha1": "f9a88664ebf474ce640faf27936e5f9a56ff05fc",
+                      "sha256": "ac044fa38d7c4d794a96106a98adfc077bcae0987df32c101b2ebafbd14f25dd"
+                    },
+                    "image_caption": null,
+                    "api_link": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/81a1ee14-0f93-4885-aa12-571d674801cd",
+                    "api_model": "FileSet",
+                    "create_date": "2021-03-16T05:14:00.841729Z",
+                    "modified_date": "2021-11-18T19:18:31.126118Z",
+                    "download_url": "https://dcapi.rdc-staging.library.northwestern.edu/api/v2/file-sets/81a1ee14-0f93-4885-aa12-571d674801cd/download",
+                    "representative_image_url": "https://iiif.stack.rdc-staging.library.northwestern.edu/iiif/3/81a1ee14-0f93-4885-aa12-571d674801cd",
+                    "work_title": "Farmer Brothers Coffee"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "aggregations": {
+    "visibility": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "Public",
+          "doc_count": 7
+        }
+      ]
+    },
+    "__pagination": {
+      "value": 4
+    }
+  }
+}
