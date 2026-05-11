@@ -114,7 +114,10 @@ class Paginator {
       format: this.format,
     };
     if (this.body.collapse) {
-      result.collapsed_by = this.body.collapse.field;
+      result.collapsed_by = {
+        field: this.body.collapse.field,
+        total_hits: aggregatedCount,
+      };
     }
     if (opts.includeOptions) {
       result.options = this.options;
