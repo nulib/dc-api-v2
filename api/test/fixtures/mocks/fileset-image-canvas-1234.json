@@ -1,0 +1,24 @@
+{
+  "_index": "dev-dc-v2-file-set",
+  "_type": "_doc",
+  "_id": "1234",
+  "_version": 1,
+  "found": true,
+  "_source": {
+    "id": "1234",
+    "api_model": "FileSet",
+    "api_link": "https://thisisafakeapiurl/file-sets/1234",
+    "visibility": "Public",
+    "published": true,
+    "role": "Access",
+    "label": "recto",
+    "description": "Map of British Isles showing political boundaries.",
+    "mime_type": "image/tiff",
+    "height": 8582,
+    "width": 6262,
+    "representative_image_url": "https://index.test.library.northwestern.edu/iiif/3/1234",
+    "download_url": "https://thisisafakeapiurl/file-sets/1234/download",
+    "work_id": "20f1cd93-7851-4646-af07-0b544661569f",
+    "work_title": "L'Isole Britanniche (1811)"
+  }
+}

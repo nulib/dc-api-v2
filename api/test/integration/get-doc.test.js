@@ -154,6 +154,44 @@ describe("Doc retrieval routes", () => {
       expect(resultBody.data.id).to.eq("1234");
     });
 
+    it("returns a single file-set as a IIIF Canvas", async () => {
+      process.env.AWS_ACCESS_KEY_ID = "test";
+      process.env.AWS_SECRET_ACCESS_KEY = "test";
+
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-image-canvas-1234.json")
+        );
+
+      const event = helpers
+        .mockEvent("GET", "/file-sets/{id}")
+        .pathParams({ id: 1234 })
+        .queryParams({ as: "iiif" })
+        .render();
+      const result = await handler(event);
+      expect(result.statusCode).to.eq(200);
+      expect(result).to.have.header(
+        "content-type",
+        /application\/json;.*charset=UTF-8/
+      );
+
+      const resultBody = JSON.parse(result.body);
+      expect(resultBody.type).to.eq("Canvas");
+      expect(resultBody["@context"]).to.eq(
+        "http://iiif.io/api/presentation/3/context.json"
+      );
+      expect(resultBody.id).to.eq(
+        `${process.env.DC_API_ENDPOINT}/file-sets/1234?as=iiif`
+      );
+      expect(resultBody.partOf[0]).to.deep.eq({
+        id: `${process.env.DC_API_ENDPOINT}/works/20f1cd93-7851-4646-af07-0b544661569f?as=iiif`,
+        type: "Manifest",
+        label: { en: ["L'Isole Britanniche (1811)"] },
+      });
+    });
+
     it("403s a private file-set", async () => {
       const event = helpers
         .mockEvent("GET", "/file-sets/{id}")
