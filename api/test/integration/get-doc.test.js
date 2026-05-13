@@ -155,9 +155,6 @@ describe("Doc retrieval routes", () => {
     });
 
     it("returns a single file-set as a IIIF Canvas", async () => {
-      process.env.AWS_ACCESS_KEY_ID = "test";
-      process.env.AWS_SECRET_ACCESS_KEY = "test";
-
       mock
         .get("/dc-v2-file-set/_doc/1234")
         .reply(

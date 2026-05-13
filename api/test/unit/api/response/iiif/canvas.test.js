@@ -23,11 +23,6 @@ describe("FileSet as IIIF Canvas response transformer", () => {
   helpers.saveEnvironment();
   const mock = helpers.mockIndex();
 
-  beforeEach(() => {
-    process.env.AWS_ACCESS_KEY_ID = "test";
-    process.env.AWS_SECRET_ACCESS_KEY = "test";
-  });
-
   it("transforms an image file set response to a Canvas", async () => {
     const { source, canvas } = await setup();
 
