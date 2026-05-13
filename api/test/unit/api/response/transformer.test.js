@@ -56,7 +56,10 @@ describe("Response transformer", () => {
       expect(body.data.length).to.eq(4);
       expect(body.info).to.include.key("version");
       expect(body).to.include.key("pagination");
-      expect(body.pagination.collapsed_by).to.eq("work_id");
+      expect(body.pagination.collapsed_by).to.deep.eq({
+        field: "work_id",
+        total_hits: 4,
+      });
       expect(body.pagination.total_hits).to.eq(7);
       expect(body.pagination.total_pages).to.eq(4);
     });

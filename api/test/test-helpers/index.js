@@ -10,6 +10,8 @@ process.env.__SKIP_SECRETS__ = "true";
 const TestEnvironment = {
   API_TOKEN_SECRET: "abc123",
   API_TOKEN_NAME: "dcapiTEST",
+  AWS_ACCESS_KEY_ID: "test",
+  AWS_SECRET_ACCESS_KEY: "test",
   DC_URL: "https://thisisafakedcurl",
   DC_API_ENDPOINT: "https://thisisafakeapiurl",
   DEV_TEAM_NET_IDS: "abc123,def456",
