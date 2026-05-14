@@ -1,16 +1,11 @@
 const { dcApiEndpoint } = require("../../../environment");
-const { getWorkFileSets } = require("../../opensearch");
 
-async function transform(response, options = {}) {
+async function transform(response) {
   const body = JSON.parse(response.body);
   const fileSet = body._source;
   const annotations = fileSet?.annotations ?? [];
 
-  const workId = fileSet.work_id;
-  const fileSetId = body._id;
-  const fileSetIndex = await getFileSetIndex(workId, fileSetId, options);
-
-  const canvasId = `${dcApiEndpoint()}/works/${workId}?as=iiif/canvas/${fileSetIndex}`;
+  const canvasId = `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
   const annotationPageId = `${dcApiEndpoint()}/file-sets/${
     fileSet.id
   }/annotations?as=iiif`;
@@ -51,19 +46,4 @@ async function transform(response, options = {}) {
   };
 }
 
-async function getFileSetIndex(workId, fileSetId, options) {
-  const fileSetsResponse = await getWorkFileSets(workId, {
-    allowPrivate: options.allowPrivate,
-    allowUnpublished: options.allowUnpublished,
-    role: "Access",
-    sortBy: "rank",
-  });
-
-  const fileSetBody = JSON.parse(fileSetsResponse.body);
-  const hits = fileSetBody?.hits?.hits || [];
-
-  const index = hits.findIndex((hit) => hit._source.id === fileSetId);
-
-  return index;
-}
 module.exports = { transform };

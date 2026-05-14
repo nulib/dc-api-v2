@@ -26,6 +26,12 @@ async function transform(response, options = {}) {
     height,
     label: { none: [label(fileSet)] },
     items: [annotationPage(canvasId, fileSet, { width, height })],
+    service: [
+      {
+        id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/search?as=iiif`,
+        type: "SearchService2",
+      },
+    ],
   };
 
   if (fileSet.description) {

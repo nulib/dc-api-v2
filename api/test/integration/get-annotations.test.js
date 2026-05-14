@@ -51,6 +51,9 @@ describe("Annotation routes", () => {
       expect(body.items[0].type).to.eq("Annotation");
       expect(body.items[0].motivation).to.eq("commenting");
       expect(body.items[0].body.value).to.exist;
+      expect(body.items[0].target).to.eq(
+        `${process.env.DC_API_ENDPOINT}/file-sets/1234?as=iiif`
+      );
     });
 
     it("returns IIIF annotation page with empty items when no annotations", async () => {

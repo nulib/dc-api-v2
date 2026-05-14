@@ -1,45 +1,37 @@
 const { dcApiEndpoint } = require("../../../environment");
 const { getWorkFileSets } = require("../../opensearch");
 const {
-  getTranscriptionContent,
-  normalizeLanguages,
-} = require("./presentation-api/items");
-
-function buildSearchAnnotationBody(annotation, content) {
-  const body = {
-    type: "TextualBody",
-    value: content,
-    format: "text/plain",
-  };
-  const languages = normalizeLanguages(annotation.language);
-  if (languages.length === 1) {
-    body.language = languages[0];
-  } else if (languages.length > 1) {
-    body.language = languages;
-  }
-  return body;
-}
+  buildSearchAnnotationBody,
+  transcriptionAnnotationsMatching,
+} = require("./search-helpers");
 
 async function transform(workSource, q, opts = {}) {
   const { allowPrivate = false, allowUnpublished = false } = opts;
   const workId = workSource.id;
 
-  const manifestId = `${dcApiEndpoint()}/works/${workId}?as=iiif`;
   const searchId = `${dcApiEndpoint()}/works/${workId}/search?as=iiif&q=${encodeURIComponent(
     q
   )}`;
 
-  // Build canvas index map from the work's file_sets array — same ordering as manifest.js
-  const groupIndexMap = {};
-  let groupIndex = 0;
+  // Build canvas ID map from the work's file_sets array using the same grouping
+  // and primary-file-set selection as manifest.js.
+  const groupFileSetMap = {};
   (workSource.file_sets || [])
     .filter((fs) => fs.role === "Access")
     .forEach((fs) => {
       const key = fs.group_with || fs.id;
-      if (!(key in groupIndexMap)) {
-        groupIndexMap[key] = groupIndex++;
+      if (!groupFileSetMap[key]) {
+        groupFileSetMap[key] = [];
       }
+      groupFileSetMap[key].push(fs);
     });
+  const groupCanvasIdMap = Object.fromEntries(
+    Object.entries(groupFileSetMap).map(([key, groupFileSets]) => {
+      const primary =
+        groupFileSets.find((fs) => fs.id === key) || groupFileSets[0];
+      return [key, `${dcApiEndpoint()}/file-sets/${primary.id}?as=iiif`];
+    })
+  );
 
   const response = await getWorkFileSets(workId, {
     allowPrivate,
@@ -64,29 +56,23 @@ async function transform(workSource, q, opts = {}) {
   const items = [];
 
   Object.entries(fileSetGroups).forEach(([groupKey, groupFileSets]) => {
-    const canvasIndex = groupIndexMap[groupKey];
-    if (canvasIndex === undefined) return;
-    const canvasId = `${manifestId}/canvas/${canvasIndex}`;
+    const canvasId = groupCanvasIdMap[groupKey];
+    if (canvasId === undefined) return;
 
     // Primary file set is the one whose id matches the group key (same as manifest.js)
     const primary =
       groupFileSets.find((fs) => fs.id === groupKey) || groupFileSets[0];
     if (!primary?.annotations) return;
 
-    primary.annotations
-      .filter((ann) => ann.type === "transcription")
-      .forEach((ann) => {
-        const content = getTranscriptionContent(ann);
-        if (!content.toLowerCase().includes(q.toLowerCase())) return;
-
-        items.push({
-          id: `${canvasId}/annotation/${ann.id}`,
-          type: "Annotation",
-          motivation: "supplementing",
-          body: buildSearchAnnotationBody(ann, content),
-          target: canvasId,
-        });
+    transcriptionAnnotationsMatching(primary.annotations, q).forEach((ann) => {
+      items.push({
+        id: `${canvasId}/annotation/${ann.id}`,
+        type: "Annotation",
+        motivation: "supplementing",
+        body: buildSearchAnnotationBody(ann),
+        target: canvasId,
       });
+    });
   });
 
   return {

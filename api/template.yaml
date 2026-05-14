@@ -359,6 +359,30 @@ Resources:
             ApiId: !Ref dcApi
             Path: /file-sets/{id}/annotations
             Method: HEAD
+  getFileSetSearchFunction:
+    Type: AWS::Serverless::Function
+    Condition: DeployAPI
+    Properties:
+      Handler: handlers/get-file-set-search.handler
+      Description: IIIF Search 2.0 for a FileSet's transcription annotations.
+      #* Layers:
+      #*   - !Ref apiDependencies
+      Policies:
+        - !Ref SecretsPolicy
+        - !Ref readIndexPolicy
+      Events:
+        ApiGet:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/search
+            Method: GET
+        ApiHead:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref dcApi
+            Path: /file-sets/{id}/search
+            Method: HEAD
   getAnnotationByIdFunction:
     Type: AWS::Serverless::Function
     Condition: DeployAPI
