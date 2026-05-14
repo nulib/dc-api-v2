@@ -30,7 +30,7 @@ components:
           type: string
           format: uri
           nullable: true
-          desciption: IIIF collection url
+          desciption: IIIF collection url 
         indexed_at:
           type: string
           format: date-time
@@ -338,14 +338,7 @@ components:
         - Venue/Event Date
     PaginationInfo:
       type: object
-      description: |
-        Pagination info for the current response. NOTE: If results are
-        collapsed, the length of the `data` array may be longer than the
-        requested `limit`. The `total_hits` value represents the number of 
-        collapsed groups, not the total number of hits across all groups.
-        Collapsing will also have an effect on the `offset` value, which
-        represents the starting index of the first collapsed group on the
-        current page.
+      description: Pagination info for the current response.
       properties:
         next_url:
           type: string
@@ -358,17 +351,8 @@ components:
           description: Base URL to repeat this query for a given page
         search_token:
           type: string
+          required: false
           description: Tokenized query to use in subsequent GET requests
-        collapsed_by:
-          type: object
-          description: Result grouping info, if applicable.
-          properties:
-            field:
-              type: string
-              description: The name of the field by which results are grouped.
-            total_hits:
-              type: integer
-              description: The total number of unique collapsed field groups.
         current_page:
           type: integer
           description: Index of current page of results
@@ -384,12 +368,6 @@ components:
         total_pages:
           type: integer
           description: Total number of result pages
-      required:
-        - current_page
-        - limit
-        - offset
-        - total_hits
-        - total_pages
     PreservationLevel:
       nullable: true
       description: The preservation workflow applied to the resource
@@ -489,6 +467,7 @@ components:
             type: string
         accession_number:
           type: string
+          required: true
           description: Accession number for the work. Serves as basis for the filename.
         alternate_title:
           type: array
@@ -516,16 +495,12 @@ components:
           nullable: true
         box_name:
           type: array
-          description:
-            Physical box name. Sometimes used with Distinctive Collections
-            materials.
+          description: Physical box name. Sometimes used with Distinctive Collections materials.
           items:
             type: string
         box_number:
           type: array
-          description:
-            Physical box number. Sometimes used with Distinctive Collections
-            materials.
+          description: Physical box number. Sometimes used with Distinctive Collections materials.
           items:
             type: string
         caption:
@@ -582,9 +557,7 @@ components:
             type: string
         date_created:
           type: array
-          description:
-            A point or a period of time associatied with an event in the
-            lifecycle of the resource.
+          description: A point or a period of time associatied with an event in the lifecycle of the resource.
           items:
             type: string
         description:
@@ -594,15 +567,12 @@ components:
             type: string
         embedding:
           type: array
-          description: Vector representation of the resource's location in the
-            repository's semantic space.
+          description: Vector representation of the resource's location in the repository's semantic space.
           items:
             type: number
         embedding_model:
           type: string
-          description:
-            The name of the inference model used to generate the `embedding`
-            from the resource's content.
+          description: The name of the inference model used to generate the `embedding` from the resource's content.
         embedding_text_length:
           type: string
           description: The length of the embedding text in bytes.
@@ -629,6 +599,7 @@ components:
         id:
           type: string
           format: uuid
+          required: true
           description: UUID for the work record in the repository.
         identifier:
           type: array
@@ -639,12 +610,12 @@ components:
           type: string
           format: uri
           nullable: true
-          description: IIIF url manifest for the work
+          desciption: IIIF url manifest for the work
         indexed_at:
           type: string
           format: date-time
           nullable: true
-          description: Date/time of last index
+          desciption: Date/time of last index
         ingest_project:
           type: object
           nullable: true
@@ -758,10 +729,7 @@ components:
             - task_number
         provenance:
           type: array
-          description:
-            Location of Physical Object // will also include messy dates.
-            Information about the provenance, such as origin, ownership and
-            custodial history (chain of custody), of a resource.
+          description: Location of Physical Object // will also include messy dates. Information about the provenance, such as origin, ownership and custodial history (chain of custody), of a resource.
           items:
             type: string
         published:
@@ -803,48 +771,34 @@ components:
             type: string
         series:
           type: array
-          description:
-            Sometimes used with Distincitive Collections materials. Used for
-            archival series and subseries information.
+          description: Sometimes used with Distincitive Collections materials. Used for archival series and subseries information.
           items:
             type: string
         source:
           type: array
-          description:
-            A related resource from which the described resource is derived.
-            Source of digital object - book, journal, etc. Follow Chicago Manual
-            of Style for citation.
+          description: A related resource from which the described resource is derived. Source of digital object - book, journal, etc. Follow Chicago Manual of Style for citation.
           items:
             type: string
         status:
           $ref: "#/components/schemas/Status"
         style_period:
           type: array
-          description:
-            A defined style, historical period, group, school, dynasty,
-            movement, etc. whose characteristics are represented in the work.
+          description: A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work.
           items:
             $ref: "#/components/schemas/ControlledTerm"
         subject:
           type: array
-          description:
-            A defined style, historical period, group, school, dynasty,
-            movement, etc. whose characteristics are represented in the work.
+          description: A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work.
           items:
             $ref: "#/components/schemas/ControlledTermWithRole"
         table_of_contents:
           type: array
-          description:
-            Used to provide the titles of separate works or parts of a
-            resource. Information provided may also contain statements of
-            responsibility or other sequential designations.
+          description: Used to provide the titles of separate works or parts of a resource. Information provided may also contain statements of responsibility or other sequential designations.
           items:
             type: string
         technique:
           type: array
-          description:
-            A defined style, historical period, group, school, dynasty,
-            movement, etc. whose characteristics are represented in the work.
+          description: A defined style, historical period, group, school, dynasty, movement, etc. whose characteristics are represented in the work.
           items:
             $ref: "#/components/schemas/ControlledTerm"
         terms_of_use:

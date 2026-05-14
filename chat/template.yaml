@@ -189,20 +189,20 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ChatFunction
       Principal: apigateway.amazonaws.com
-  #* ChatDependencies:
-  #*   Type: AWS::Serverless::LayerVersion
-  #*   Properties:
-  #*     LayerName:
-  #*       Fn::Sub: "${AWS::StackName}-dependencies"
-  #*     Description: Dependencies for streaming chat function
-  #*     ContentUri: ./dependencies
-  #*     CompatibleArchitectures:
-  #*       - x86_64
-  #*     CompatibleRuntimes:
-  #*       - python3.12
-  #*     LicenseInfo: "MIT"
-  #*   Metadata:
-  #*     BuildMethod: python3.12
+  ChatDependencies:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: "${AWS::StackName}-dependencies"
+      Description: Dependencies for streaming chat function
+      ContentUri: ./dependencies
+      CompatibleArchitectures:
+        - x86_64
+      CompatibleRuntimes:
+        - python3.12
+      LicenseInfo: "MIT"
+    Metadata:
+      BuildMethod: python3.12
   ChatFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -210,8 +210,8 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
+      Layers:
+        - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers.chat
       Timeout: 300
@@ -274,8 +274,8 @@ Resources:
                 - dynamodb:UpdateItem
                 - dynamodb:DeleteItem
               Resource: !GetAtt RateLimitTable.Arn
-    #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    Metadata:
+      BuildMethod: nodejs20.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -283,8 +283,8 @@ Resources:
       Runtime: python3.12
       Architectures:
         - x86_64
-      #* Layers:
-      #*   - !Ref ChatDependencies
+      Layers:
+        - !Ref ChatDependencies
       MemorySize: 1024
       Handler: handlers.chat_sync
       Timeout: 300
@@ -343,8 +343,8 @@ Resources:
                 - dynamodb:UpdateItem
                 - dynamodb:DeleteItem
               Resource: !GetAtt RateLimitTable.Arn
-    #* Metadata:
-    #*   BuildMethod: nodejs20.x
+    Metadata:
+      BuildMethod: nodejs20.x
   RateLimitTable:
     Type: AWS::DynamoDB::Table
     Properties:
