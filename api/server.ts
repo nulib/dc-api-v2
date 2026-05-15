@@ -41,10 +41,16 @@ const tls = process.env["SSL_CERT"]
 const SCHEME = tls ? "https" : "http";
 const hostname = process.env["HOST"] ?? "localhost";
 
+// idleTimeout: 0 disables the timeout entirely — useful when paused at a breakpoint
+const idleTimeout = process.env["TIMEOUT"]
+  ? Number(process.env["TIMEOUT"])
+  : undefined;
+
 const server = Bun.serve({
   hostname,
   port,
   tls,
+  idleTimeout,
   async fetch(req: Request) {
     const url = new URL(req.url);
     const response = await mount.fetch(req);

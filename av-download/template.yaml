@@ -379,6 +379,8 @@ Resources:
       Environment:
         Variables:
           MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
+    Metadata:
+      BuildMethod: makefile
   startTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -405,6 +407,8 @@ Resources:
               Action:
                 - mediaconvert:CreateJob
               Resource: "*"
+    Metadata:
+      BuildMethod: makefile
   transcodeStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -424,6 +428,8 @@ Resources:
                 - mediaconvert:GetJob
                 - mediaconvert:ListJobs
               Resource: "*"
+    Metadata:
+      BuildMethod: makefile
   getDownloadLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -443,6 +449,8 @@ Resources:
                 - s3:PutObjectAcl
                 - s3:PutObject
               Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
+    Metadata:
+      BuildMethod: makefile
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -458,3 +466,5 @@ Resources:
               Action:
                 - ses:SendTemplatedEmail
               Resource: "*"
+    Metadata:
+      BuildMethod: makefile

@@ -36,9 +36,9 @@ help:
 
 ./chat/dependencies/requirements.txt: ./chat/pyproject.toml
 	cd chat && uv export --format requirements-txt --no-hashes > dependencies/requirements.txt
-api: ./api/template.yaml ./api/bun.lockb $(wildcard ./api/src/**/*.ts)
+api: ./api/template.yaml ./api/bun.lock $(wildcard ./api/src/**/*.ts)
 chat: ./chat/template.yaml ./chat/dependencies/requirements.txt $(wildcard ./chat/src/**/*.py)
-av-download: ./av-download/template.yaml ./av-download/lambdas/package-lock.json $(wildcard ./av-download/lambdas/**/*.js)
+av-download: ./av-download/template.yaml ./av-download/lambdas/bun.lock $(wildcard ./av-download/lambdas/**/*.js)
 .aws-sam/build.toml: ./template.yaml api chat av-download
 	@sed -Ei.orig 's/^(\s+)#\*\s/\1/' chat/template.yaml; \
 	sam build --cached --parallel
@@ -50,8 +50,7 @@ av-download/layers/ffmpeg/bin/ffmpeg:
 deps-api:
 	bun install --cwd api
 deps-av-download:
-	cd av-download/lambdas ;\
-	npm list >/dev/null 2>&1 || npm ci
+	bun install --cwd av-download/lambdas
 deps-mcp: 
 	cd mcp ;\
 	npm list >/dev/null 2>&1 ;\
@@ -141,7 +140,7 @@ serve-docs:
 BUMP ?= ""
 version:
 	@if [[ -n "$(BUMP)" ]]; then \
-		for pkg in api api/dependencies api/src av-download/lambdas mcp mcp/apps/mcp; do \
+		for pkg in api av-download/lambdas mcp mcp/apps/mcp; do \
 			echo -n "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && npm version $(BUMP)) >&2; \
 		done; \
@@ -149,7 +148,7 @@ version:
 			echo "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && uv version --bump $(BUMP)) >&2; \
 		done; \
-		VERSION=$$(node -p "require('./api/src/package.json').version") ;\
+		VERSION=$$(node -p "require('./api/package.json').version") ;\
 		(cd mcp && \
 			jq --arg v "$$VERSION" '(.. | objects | select(has("version")) | .version) |= $$v' server.json > server.tmp.json && \
 			mv server.tmp.json server.json && \
