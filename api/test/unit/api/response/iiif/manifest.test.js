@@ -171,6 +171,12 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     manifest.items.forEach((canvas) => {
       expect(canvas.type).to.eq("Canvas");
     });
+    expect(manifest.items[0].id).to.eq(
+      `${dcApiEndpoint()}/file-sets/${source.file_sets[0].id}?as=iiif`
+    );
+    expect(manifest.items[0].items[0].id).to.eq(
+      `${manifest.items[0].id}/annotation-page`
+    );
     expect(manifest.items[0].width).to.eq(source.file_sets[0].width);
     expect(manifest.items[0].height).to.eq(source.file_sets[0].height);
     expect(manifest.items[0].label.none[0]).to.eq(source.file_sets[0].label);

@@ -40,6 +40,10 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     expect(canvas.thumbnail[0].id).to.eq(
       `${source.representative_image_url}/full/!300,300/0/default.jpg`
     );
+    expect(canvas.service).to.deep.include({
+      id: `${dcApiEndpoint()}/file-sets/${source.id}/search?as=iiif`,
+      type: "SearchService2",
+    });
   });
 
   it("builds a painting annotation for image file sets", async () => {

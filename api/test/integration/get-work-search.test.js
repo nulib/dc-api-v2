@@ -102,10 +102,12 @@ describe("IIIF Search 2.0 for a work", () => {
       expect(item.body.value).to.include("Lorem");
       expect(item.body.format).to.eq("text/plain");
       expect(item.body.language).to.eq("en");
-      expect(item.target).to.include("/canvas/0");
+      expect(item.target).to.eq(
+        `${process.env.DC_API_ENDPOINT}/file-sets/076dcbd8-8c57-40e8-bdf7-dc9153c87a36?as=iiif`
+      );
     });
 
-    it("uses the correct canvas index from the manifest ordering, not sequential search result order", async () => {
+    it("targets the correct file-set canvas from the manifest ordering, not sequential search result order", async () => {
       mock
         .get("/dc-v2-work/_doc/1234")
         .reply(200, helpers.testFixture("mocks/work-1234.json"));
@@ -124,8 +126,10 @@ describe("IIIF Search 2.0 for a work", () => {
 
       const body = JSON.parse(result.body);
       expect(body.items).to.have.lengthOf(1);
-      // Second Access file set in work-1234.json must map to canvas/1, not canvas/0
-      expect(body.items[0].target).to.include("/canvas/1");
+      // Second Access file set in work-1234.json must map to its standalone Canvas URI
+      expect(body.items[0].target).to.eq(
+        `${process.env.DC_API_ENDPOINT}/file-sets/51862c1c-c024-45dc-ab26-694bd8ebc16c?as=iiif`
+      );
     });
 
     it("returns an empty items array when no annotations match", async () => {
