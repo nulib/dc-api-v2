@@ -34,15 +34,28 @@ describe("IIIF Search 2.0 for a file set", () => {
       expect(body.items).to.have.lengthOf(1);
 
       const item = body.items[0];
+      expect(item.id).to.eq(
+        `${process.env.DC_API_ENDPOINT}/annotations/36a47020-5410-4dda-a7ca-967fe3885bcd?as=iiif`
+      );
       expect(item.type).to.eq("Annotation");
-      expect(item.motivation).to.eq("supplementing");
+      expect(item.motivation).to.eq("commenting");
       expect(item.body.type).to.eq("TextualBody");
       expect(item.body.value).to.include("Lorem");
       expect(item.body.format).to.eq("text/plain");
       expect(item.body.language).to.deep.eq(["lg", "en"]);
-      expect(item.target).to.eq(
-        `${process.env.DC_API_ENDPOINT}/file-sets/1234?as=iiif`
-      );
+      expect(item.target).to.deep.eq({
+        type: "SpecificResource",
+        source: {
+          id: `${process.env.DC_API_ENDPOINT}/file-sets/1234?as=iiif`,
+          type: "Canvas",
+          partOf: [
+            {
+              id: `${process.env.DC_API_ENDPOINT}/works/work-1234?as=iiif`,
+              type: "Manifest",
+            },
+          ],
+        },
+      });
     });
 
     it("returns an empty items array when no annotations match", async () => {

@@ -210,6 +210,81 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     });
   });
 
+  it("adds annotations reference for Image Access file sets with transcriptions", async () => {
+    const responseBody = JSON.parse(
+      helpers.testFixture("mocks/fileset-image-canvas-1234.json")
+    );
+    responseBody._source.annotations = [
+      { type: "transcription", content: "some text" },
+    ];
+
+    const result = await transformer.transform({
+      statusCode: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = JSON.parse(result.body);
+
+    expect(canvas.annotations).to.deep.eq([
+      {
+        id: `${dcApiEndpoint()}/file-sets/${
+          responseBody._source.id
+        }/annotations?as=iiif`,
+        type: "AnnotationPage",
+      },
+    ]);
+  });
+
+  it("does not add annotations reference when mime_type is not image/", async () => {
+    const responseBody = JSON.parse(
+      helpers.testFixture("mocks/fileset-image-canvas-1234.json")
+    );
+    responseBody._source.mime_type = "video/mp4";
+    responseBody._source.annotations = [
+      { type: "transcription", content: "some text" },
+    ];
+
+    const result = await transformer.transform({
+      statusCode: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = JSON.parse(result.body);
+
+    expect(canvas.annotations).to.be.undefined;
+  });
+
+  it("does not add annotations reference when role is not Access", async () => {
+    const responseBody = JSON.parse(
+      helpers.testFixture("mocks/fileset-image-canvas-1234.json")
+    );
+    responseBody._source.role = "Auxiliary";
+    responseBody._source.annotations = [
+      { type: "transcription", content: "some text" },
+    ];
+
+    const result = await transformer.transform({
+      statusCode: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = JSON.parse(result.body);
+
+    expect(canvas.annotations).to.be.undefined;
+  });
+
+  it("does not add annotations reference when there are no transcription annotations", async () => {
+    const responseBody = JSON.parse(
+      helpers.testFixture("mocks/fileset-image-canvas-1234.json")
+    );
+    responseBody._source.annotations = [{ type: "other", content: "nope" }];
+
+    const result = await transformer.transform({
+      statusCode: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = JSON.parse(result.body);
+
+    expect(canvas.annotations).to.be.undefined;
+  });
+
   it("passes non-200 responses through error transformation", async () => {
     const result = await transformer.transform({ statusCode: 404 });
     const body = JSON.parse(result.body);

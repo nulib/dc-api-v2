@@ -2,6 +2,7 @@ const { wrap } = require("./middleware");
 const { search, getFileSet } = require("../api/opensearch");
 const { prefix, appInfo } = require("../environment");
 const { transformError } = require("../api/response/error");
+const iiifAnnotationsResponse = require("../api/response/iiif/annotations");
 
 /**
  * Retrieves a single annotation by id
@@ -58,13 +59,25 @@ exports.handler = wrap(async (event) => {
 
   if (!annotation) return transformError({ statusCode: 404 });
 
+  const as = event.queryStringParameters?.as;
+  if (as === "iiif") {
+    return iiifAnnotationsResponse.transform(
+      annotation,
+      fileSetPayload._source
+    );
+  }
+
   return {
     statusCode: 200,
     headers: {
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      data: annotation,
+      data: {
+        ...annotation,
+        file_set_id: fileSetPayload._source.id,
+        work_id: fileSetPayload._source.work_id,
+      },
       info: appInfo(),
     }),
   };
