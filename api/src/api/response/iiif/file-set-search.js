@@ -1,5 +1,6 @@
 const { dcApiEndpoint } = require("../../../environment");
 const {
+  buildAnnotationTarget,
   buildSearchAnnotationBody,
   transcriptionAnnotationsMatching,
 } = require("./search-helpers");
@@ -12,11 +13,11 @@ async function transform(fileSet, q) {
 
   const items = transcriptionAnnotationsMatching(fileSet.annotations, q).map(
     (ann) => ({
-      id: `${canvasId}/annotation/${ann.id}`,
+      id: `${dcApiEndpoint()}/annotations/${ann.id}?as=iiif`,
       type: "Annotation",
-      motivation: "supplementing",
+      motivation: "commenting",
       body: buildSearchAnnotationBody(ann),
-      target: canvasId,
+      target: buildAnnotationTarget(canvasId, fileSet.work_id),
     })
   );
 

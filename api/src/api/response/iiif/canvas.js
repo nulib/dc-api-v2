@@ -67,6 +67,22 @@ async function transform(response, options = {}) {
     canvas.partOf = [partOf];
   }
 
+  const transcriptions = (fileSet.annotations || []).filter(
+    (a) => a.type === "transcription"
+  );
+  if (
+    /^image\//i.test(fileSet.mime_type) &&
+    fileSet.role === "Access" &&
+    transcriptions.length
+  ) {
+    canvas.annotations = [
+      {
+        id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`,
+        type: "AnnotationPage",
+      },
+    ];
+  }
+
   return {
     statusCode: 200,
     headers: {

@@ -7,6 +7,7 @@
   "_source": {
     "id": "1234",
     "api_model": "FileSet",
+    "work_id": "work-1234",
     "visibility": "Public",
     "published": true,
     "mime_type": "image/tiff",

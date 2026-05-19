@@ -97,14 +97,24 @@ describe("IIIF Search 2.0 for a work", () => {
 
       const item = body.items[0];
       expect(item.type).to.eq("Annotation");
-      expect(item.motivation).to.eq("supplementing");
+      expect(item.motivation).to.eq("commenting");
       expect(item.body.type).to.eq("TextualBody");
       expect(item.body.value).to.include("Lorem");
       expect(item.body.format).to.eq("text/plain");
       expect(item.body.language).to.eq("en");
-      expect(item.target).to.eq(
-        `${process.env.DC_API_ENDPOINT}/file-sets/076dcbd8-8c57-40e8-bdf7-dc9153c87a36?as=iiif`
-      );
+      expect(item.target).to.deep.eq({
+        type: "SpecificResource",
+        source: {
+          id: `${process.env.DC_API_ENDPOINT}/file-sets/076dcbd8-8c57-40e8-bdf7-dc9153c87a36?as=iiif`,
+          type: "Canvas",
+          partOf: [
+            {
+              id: `${process.env.DC_API_ENDPOINT}/works/1234?as=iiif`,
+              type: "Manifest",
+            },
+          ],
+        },
+      });
     });
 
     it("targets the correct file-set canvas from the manifest ordering, not sequential search result order", async () => {
@@ -127,9 +137,19 @@ describe("IIIF Search 2.0 for a work", () => {
       const body = JSON.parse(result.body);
       expect(body.items).to.have.lengthOf(1);
       // Second Access file set in work-1234.json must map to its standalone Canvas URI
-      expect(body.items[0].target).to.eq(
-        `${process.env.DC_API_ENDPOINT}/file-sets/51862c1c-c024-45dc-ab26-694bd8ebc16c?as=iiif`
-      );
+      expect(body.items[0].target).to.deep.eq({
+        type: "SpecificResource",
+        source: {
+          id: `${process.env.DC_API_ENDPOINT}/file-sets/51862c1c-c024-45dc-ab26-694bd8ebc16c?as=iiif`,
+          type: "Canvas",
+          partOf: [
+            {
+              id: `${process.env.DC_API_ENDPOINT}/works/1234?as=iiif`,
+              type: "Manifest",
+            },
+          ],
+        },
+      });
     });
 
     it("returns an empty items array when no annotations match", async () => {

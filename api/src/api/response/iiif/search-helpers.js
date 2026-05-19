@@ -1,3 +1,4 @@
+const { dcApiEndpoint } = require("../../../environment");
 const {
   getTranscriptionContent,
   normalizeLanguages,
@@ -30,7 +31,21 @@ function transcriptionAnnotationsMatching(annotations = [], q) {
     .filter((annotation) => annotationMatches(annotation, q));
 }
 
+function buildAnnotationTarget(canvasId, workId) {
+  const source = { id: canvasId, type: "Canvas" };
+  if (workId) {
+    source.partOf = [
+      {
+        id: `${dcApiEndpoint()}/works/${workId}?as=iiif`,
+        type: "Manifest",
+      },
+    ];
+  }
+  return { type: "SpecificResource", source };
+}
+
 module.exports = {
+  buildAnnotationTarget,
   buildSearchAnnotationBody,
   transcriptionAnnotationsMatching,
 };

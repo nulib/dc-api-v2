@@ -1,6 +1,7 @@
 const { dcApiEndpoint } = require("../../../environment");
 const { getWorkFileSets } = require("../../opensearch");
 const {
+  buildAnnotationTarget,
   buildSearchAnnotationBody,
   transcriptionAnnotationsMatching,
 } = require("./search-helpers");
@@ -66,11 +67,11 @@ async function transform(workSource, q, opts = {}) {
 
     transcriptionAnnotationsMatching(primary.annotations, q).forEach((ann) => {
       items.push({
-        id: `${canvasId}/annotation/${ann.id}`,
+        id: `${dcApiEndpoint()}/annotations/${ann.id}?as=iiif`,
         type: "Annotation",
-        motivation: "supplementing",
+        motivation: "commenting",
         body: buildSearchAnnotationBody(ann),
-        target: canvasId,
+        target: buildAnnotationTarget(canvasId, workId),
       });
     });
   });
