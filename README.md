@@ -51,6 +51,22 @@ View and edit information about a specific Work in the Index.
 3. View JSON response at `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/works/[WORK_ID]`
 4. View IIIF Manifest JSON response at `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/works/[WORK_ID]?as=iiif`
 
+### IIIF content search
+
+IIIF Presentation responses expose [IIIF Content Search 2.0](https://iiif.io/api/search/2.0/) services for transcription annotations:
+
+- Work manifests include a `SearchService2` entry for `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/works/[WORK_ID]/search?as=iiif`
+- File set canvases include a `SearchService2` entry for `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/file-sets/[FILE_SET_ID]/search?as=iiif`
+
+To search transcription text, include a non-empty `q` parameter:
+
+```shell
+curl "https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/works/[WORK_ID]/search?as=iiif&q=[QUERY]"
+curl "https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/file-sets/[FILE_SET_ID]/search?as=iiif&q=[QUERY]"
+```
+
+Both endpoints return a IIIF `AnnotationPage` whose `items` target the matching work canvas or file set canvas. Requests without `as=iiif` or a non-empty `q` return `400`.
+
 For help debugging/inspecting, JavaScript `console` messages are written to: `dc-api-v2/dc-api.log`
 
 ### DC

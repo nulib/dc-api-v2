@@ -4,7 +4,15 @@ const {
 } = require("lz-string");
 const { defaultSearchSize } = require("../environment");
 
-const encodeFields = ["query", "size", "sort", "fields", "_source"];
+const encodeFields = [
+  "query",
+  "size",
+  "sort",
+  "fields",
+  "collapse",
+  "aggs",
+  "_source",
+];
 
 async function decodeSearchToken(token) {
   return JSON.parse(await decompress(token));
@@ -17,6 +25,7 @@ async function encodeSearchToken(models, body, format, options) {
       token.body[field] = body[field];
     }
   }
+  if (token.body.aggs?._pagination) delete token.body.aggs._pagination;
   return await compress(JSON.stringify(token));
 }
 
@@ -55,6 +64,13 @@ class Paginator {
     this.options = options;
   }
 
+  async pageResponseInfo(responseBody, opts = {}) {
+    return this.pageInfo(responseBody.hits.total.value, {
+      aggregatedCount: responseBody.hits.collapsed?.value,
+      ...opts,
+    });
+  }
+
   async pageInfo(count, opts = {}) {
     let url = new URL(this.route, this.baseUrl);
     let searchToken;
@@ -74,15 +90,18 @@ class Paginator {
     }
 
     const queryStringParameters =
-      this.options?.parameterOverrides || this.options?.queryStringParameters;
+      this.options?.parameterOverrides ||
+      this.options?.queryStringParameters ||
+      {};
     if (typeof queryStringParameters === "object") {
       for (const param in queryStringParameters) {
         url.searchParams.set(param, queryStringParameters[param]);
       }
     }
 
-    const prev = prevPage(this.body, count);
-    const next = nextPage(this.body, count);
+    const aggregatedCount = opts?.aggregatedCount || count;
+    const prev = prevPage(this.body, aggregatedCount);
+    const next = nextPage(this.body, aggregatedCount);
     url.searchParams.delete("from");
 
     let result = {
@@ -91,9 +110,15 @@ class Paginator {
       limit: size(this.body),
       offset: from(this.body),
       total_hits: count,
-      total_pages: maxPage(this.body, count),
+      total_pages: maxPage(this.body, aggregatedCount),
       format: this.format,
     };
+    if (this.body.collapse) {
+      result.collapsed_by = {
+        field: this.body.collapse.field,
+        total_hits: aggregatedCount,
+      };
+    }
     if (opts.includeOptions) {
       result.options = this.options;
     }

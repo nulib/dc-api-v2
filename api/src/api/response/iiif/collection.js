@@ -5,7 +5,7 @@ const { provider, nulLogo } = require("./presentation-api/provider");
 async function transform(response, pager) {
   if (response.statusCode === 200) {
     const responseBody = JSON.parse(response.body);
-    const pageInfo = await pager.pageInfo(responseBody.hits.total.value, {
+    const pageInfo = await pager.pageResponseInfo(responseBody, {
       includeOptions: true,
     });
 

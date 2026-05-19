@@ -198,6 +198,183 @@ describe("Thumbnail routes", () => {
     });
   });
 
+  describe("FileSet", () => {
+    const event = helpers
+      .mockEvent("GET", "/file-sets/{id}/thumbnail")
+      .headers({ origin: "https://test.example.edu/" })
+      .pathParams({ id: 1234 });
+
+    it("retrieves a thumbnail for an Access image file set", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-image-access-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(200);
+      expect(result.headers["content-type"]).to.eq("image/jpeg");
+      expectCorsHeaders(result);
+    });
+
+    it("retrieves a thumbnail for an Auxiliary image file set", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-image-auxiliary-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(200);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 404 for a non-image (audio) file set", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/fileset-audio-1234.json"));
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 404 for a non-image (video) file set", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/fileset-video-1234.json"));
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(404);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 404 if the file set doc can't be found", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(200, helpers.testFixture("mocks/missing-fileset-1234.json"));
+
+      const result = await handler(event.render());
+      expect(result.error.statusCode).to.eq(404);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 403 if the file set is private", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-private-image-1234.json")
+        );
+
+      const result = await handler(event.render());
+      expect(result.error.statusCode).to.eq(403);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 200 if the file set is private and the user is in the reading room", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-private-image-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const renderedEvent = event.render();
+      process.env.READING_ROOM_IPS = renderedEvent.requestContext.http.sourceIp;
+      const result = await handler(renderedEvent);
+      expect(result.statusCode).to.eq(200);
+    });
+
+    it("returns 200 for an institution file set", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-institution-image-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(200);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 404 if the file set is unpublished", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-unpublished-image-1234.json")
+        );
+
+      const result = await handler(event.render());
+      expect(result.error.statusCode).to.eq(404);
+      expectCorsHeaders(result);
+    });
+
+    it("returns 200 for an unpublished file set if the user is a superuser", async () => {
+      const token = new ApiToken().superUser().sign();
+      const superEvent = helpers
+        .mockEvent("GET", "/file-sets/{id}/thumbnail")
+        .headers({ authorization: `Bearer ${token}` })
+        .pathParams({ id: 1234 });
+
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-unpublished-image-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg")
+        .reply(200, helpers.testFixture("mocks/thumbnail_full.jpg"), {
+          "Content-Type": "image/jpeg",
+        });
+
+      const result = await handler(superEvent.render());
+      expect(result.statusCode).to.eq(200);
+    });
+
+    it("returns an error from the IIIF server", async () => {
+      mock
+        .get("/dc-v2-file-set/_doc/1234")
+        .reply(
+          200,
+          helpers.testFixture("mocks/fileset-image-access-1234.json")
+        );
+      mock
+        .get("/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg")
+        .reply(403, "Forbidden", { "Content-Type": "text/plain" });
+
+      const result = await handler(event.render());
+      expect(result.statusCode).to.eq(403);
+      expect(result.body).to.eq("Forbidden");
+      expectCorsHeaders(result);
+    });
+  });
+
   describe("Superuser", () => {
     let event;
 

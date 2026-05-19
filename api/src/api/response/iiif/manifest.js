@@ -45,7 +45,7 @@ async function transform(response, options = {}) {
          * @param {boolean} isAuxiliary
          */
         function buildCanvasFromFileSet(fileSet, index, isAuxiliary) {
-          const canvasId = `${manifestId}/canvas/${fileSet.role.toLowerCase()}/${index}`;
+          const canvasId = fileSetCanvasId(fileSet);
           manifest.createCanvas(canvasId, (canvas) => {
             if (isAudioVideo(source.work_type))
               canvas.duration = fileSet.duration || 1;
@@ -241,81 +241,76 @@ async function transform(response, options = {}) {
           });
 
         /** Process grouped file sets */
-        Object.entries(fileSetGroups).forEach(
-          ([currentGroupKey, fileSets], index) => {
-            const canvasId = `${manifestId}/canvas/${index}`;
-            manifest.createCanvas(canvasId, (canvas) => {
-              // Find the file set with ID matching the currentGroupKey and make it primary
-              let matchingFileSetIndex = -1;
-              for (let i = 0; i < fileSets.length; i++) {
-                if (fileSets[i].id === currentGroupKey) {
-                  matchingFileSetIndex = i;
-                  break;
-                }
-              }
-              if (matchingFileSetIndex > -1) {
-                // Remove the matching fileSet and place it at the beginning
-                const matchingFileSet = fileSets.splice(
-                  matchingFileSetIndex,
-                  1
-                )[0];
-                fileSets.unshift(matchingFileSet);
-              }
-              const primaryFileSet = fileSets[0];
-
-              if (isAudioVideo(source.work_type)) {
-                canvas.duration = primaryFileSet.duration || 1;
-              }
-              canvas.height = primaryFileSet.height || 100;
-              canvas.width = primaryFileSet.width || 100;
-              canvas.addLabel(primaryFileSet.label, "none");
-              addThumbnailToCanvas(canvas, primaryFileSet);
-
-              /** Build "Choice" annotation if there are alternates */
-              const annotationId = `${canvasId}/annotation/0`;
-              const choiceBody =
-                fileSets.length > 1
-                  ? {
-                      type: "Choice",
-                      items: fileSets.map((fileSet) =>
-                        buildAnnotationBody(fileSet, source.work_type)
-                      ),
-                    }
-                  : buildAnnotationBody(primaryFileSet, source.work_type);
-
-              canvas.createAnnotation(annotationId, {
-                id: annotationId,
-                type: "Annotation",
-                motivation: "painting",
-                body: choiceBody,
-              });
-
-              /** Add "supplementing" annotation */
-              if (primaryFileSet.webvtt) {
-                addSupplementingAnnotationToCanvas(
-                  canvas,
-                  canvasId,
-                  primaryFileSet
-                );
-              }
-
-              /** Add transcription annotations */
-              const transcriptions = transcriptionMap[primaryFileSet.id];
-              if (
-                source.work_type === "Image" &&
-                primaryFileSet.role === "Access" &&
-                transcriptions?.length
-              ) {
-                canvasAnnotations[canvasId] = {
-                  id: `${dcApiEndpoint()}/file-sets/${
-                    primaryFileSet.id
-                  }/annotations?as=iiif`,
-                  type: "AnnotationPage",
-                };
-              }
-            });
+        Object.entries(fileSetGroups).forEach(([currentGroupKey, fileSets]) => {
+          // Find the file set with ID matching the currentGroupKey and make it primary
+          let matchingFileSetIndex = -1;
+          for (let i = 0; i < fileSets.length; i++) {
+            if (fileSets[i].id === currentGroupKey) {
+              matchingFileSetIndex = i;
+              break;
+            }
           }
-        );
+          if (matchingFileSetIndex > -1) {
+            // Remove the matching fileSet and place it at the beginning
+            const matchingFileSet = fileSets.splice(matchingFileSetIndex, 1)[0];
+            fileSets.unshift(matchingFileSet);
+          }
+          const primaryFileSet = fileSets[0];
+          const canvasId = fileSetCanvasId(primaryFileSet);
+
+          manifest.createCanvas(canvasId, (canvas) => {
+            if (isAudioVideo(source.work_type)) {
+              canvas.duration = primaryFileSet.duration || 1;
+            }
+            canvas.height = primaryFileSet.height || 100;
+            canvas.width = primaryFileSet.width || 100;
+            canvas.addLabel(primaryFileSet.label, "none");
+            addThumbnailToCanvas(canvas, primaryFileSet);
+
+            /** Build "Choice" annotation if there are alternates */
+            const annotationId = `${canvasId}/annotation/0`;
+            const choiceBody =
+              fileSets.length > 1
+                ? {
+                    type: "Choice",
+                    items: fileSets.map((fileSet) =>
+                      buildAnnotationBody(fileSet, source.work_type)
+                    ),
+                  }
+                : buildAnnotationBody(primaryFileSet, source.work_type);
+
+            canvas.createAnnotation(annotationId, {
+              id: annotationId,
+              type: "Annotation",
+              motivation: "painting",
+              body: choiceBody,
+            });
+
+            /** Add "supplementing" annotation */
+            if (primaryFileSet.webvtt) {
+              addSupplementingAnnotationToCanvas(
+                canvas,
+                canvasId,
+                primaryFileSet
+              );
+            }
+
+            /** Add transcription annotations */
+            const transcriptions = transcriptionMap[primaryFileSet.id];
+            if (
+              source.work_type === "Image" &&
+              primaryFileSet.role === "Access" &&
+              transcriptions?.length
+            ) {
+              canvasAnnotations[canvasId] = {
+                id: `${dcApiEndpoint()}/file-sets/${
+                  primaryFileSet.id
+                }/annotations?as=iiif`,
+                type: "AnnotationPage",
+              };
+            }
+          });
+        });
 
         source.file_sets
           .filter((fileSet) => fileSet.role === "Auxiliary")
@@ -368,6 +363,12 @@ async function transform(response, options = {}) {
       }
     }
 
+    jsonManifest.service = [
+      {
+        id: `${dcApiEndpoint()}/works/${source.id}/search?as=iiif`,
+        type: "SearchService2",
+      },
+    ];
     jsonManifest.provider = [provider];
     jsonManifest.logo = [nulLogo];
     const navPlace = buildNavPlace(source);
@@ -386,6 +387,10 @@ async function transform(response, options = {}) {
     };
   }
   return transformError(response);
+}
+
+function fileSetCanvasId(fileSet) {
+  return `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
 }
 
 async function fetchFileSetTranscriptions(source, options) {
