@@ -43,7 +43,6 @@
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
-    "@nulib/dc-api-mcp": "file:../mcp",
     "@smithy/types": "^4.14.1",
     "@types/cookie": "^0.5",
     "@types/md5": "^2",

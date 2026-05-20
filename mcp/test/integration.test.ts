@@ -6,10 +6,10 @@
  * Digital Collections API.
  *
  * To record new fixtures:
- *   npm run test:record
+ *   bun run test:record
  *
  * To replay from fixtures (default):
- *   npm test
+ *   bun test
  */
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 

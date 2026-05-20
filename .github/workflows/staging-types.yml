@@ -30,21 +30,12 @@ jobs:
         with:
           path: "${{ env.TMP_SRCDIR }}"
           fetch-depth: 1
-      - uses: actions/setup-node@v4
-        with:
-          cache-dependency-path: "${{ env.TMP_SRCDIR }}/api/package-lock.json"
-          node-version: 20.x
-          cache: "npm"
-      - name: get-npm-version
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@main
-        with:
-          path: "${{ env.TMP_SRCDIR }}/api"
+      - uses: oven-sh/setup-bun@v2
       - name: Generate Typescript file
         working-directory: "${{ env.TMP_SRCDIR }}/api"
         run: |
-          npm ci
-          npx openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
+          bun install
+          bun x openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
       - name: Checkout dcapi-types
         uses: actions/checkout@v3
         with:

@@ -84,7 +84,7 @@ sgport open all 3003
 
 ```
 export NEXT_PUBLIC_DCAPI_ENDPOINT=https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002
-npm run dev
+bun run dev
 ```
 
 Access the app in a browser at: https://USER_PREFIX.dev.rdc.library.northwestern.edu:3003/
@@ -176,7 +176,7 @@ For an in-depth look, or to learn how to define things for which there aren't go
 `openapi.html` renders the Swagger UI directly from the unmodified `openapi.yaml`. In addition, the build process generates a JSON copy of the spec using the [OpenAPI Generator CLI](https://openapi-generator.tech). In order to make sure the spec is valid before checking it in, run:
 
 ```shell
-npm run validate-spec
+bun run validate-spec
 ```
 
 This check is also part of the CI test workflow, so an invalid spec file will cause the branch to fail CI.

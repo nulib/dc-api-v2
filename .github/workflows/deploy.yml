@@ -58,6 +58,7 @@ jobs:
           repository: "nulib/tfvars"
           ref: main
           path: ".tfvars"
+      - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-python@v2
         with:
           python-version: "3.12"
