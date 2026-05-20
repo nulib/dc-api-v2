@@ -26,6 +26,7 @@
     "@aws-sdk/credential-provider-node": "^3.563.0",
     "@aws-sdk/s3-request-presigner": "^3.563.0",
     "@honeybadger-io/js": "^4.9.3",
+    "@hono/mcp": "^0.3.0",
     "@smithy/protocol-http": "^3.3.0",
     "@smithy/signature-v4": "^2.3.0",
     "cookie": "^0.5.0",
@@ -42,6 +43,7 @@
     "xml-js": "^1.6.11"
   },
   "devDependencies": {
+    "@nulib/dc-api-mcp": "file:../mcp",
     "@smithy/types": "^4.14.1",
     "@types/cookie": "^0.5",
     "@types/md5": "^2",

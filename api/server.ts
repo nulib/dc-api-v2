@@ -24,11 +24,23 @@ try {
 
 // ── App ──────────────────────────────────────────────────────────────────────
 import { Hono } from "hono";
+import { StreamableHTTPTransport } from "@hono/mcp";
 import app from "./src/app.ts";
+import { createServer } from "../mcp/apps/mcp/server.ts";
 
 // ── Server ───────────────────────────────────────────────────────────────────
 
+const mcpServer = createServer();
+const mcpTransport = new StreamableHTTPTransport();
 const mount = new Hono();
+app.all("/mcp", async (c) => {
+  if (!mcpServer.isConnected()) {
+    // Connect the mcp with the transport
+    await mcpServer.connect(mcpTransport);
+  }
+
+  return mcpTransport.handleRequest(c);
+});
 mount.route("/api/v2", app);
 
 const port = Number(process.env["PORT"] ?? 3000);

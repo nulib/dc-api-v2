@@ -52,10 +52,7 @@ deps-api:
 deps-av-download:
 	bun install --cwd av-download/lambdas
 deps-mcp: 
-	cd mcp ;\
-	npm list >/dev/null 2>&1 ;\
-	deps=$$? ;\
-	test $$deps -eq 0 || npm ci
+	bun install --cwd mcp
 test-mcp: deps-mcp
 	cd mcp && npm test
 deps-node: deps-api deps-av-download deps-mcp
