@@ -54,14 +54,14 @@ deps-av-download:
 deps-mcp: 
 	bun install --cwd mcp
 test-mcp: deps-mcp
-	cd mcp && npm test
+	cd mcp && bun test
 deps-node: deps-api deps-av-download deps-mcp
 cover-node: deps-node
-	cd api && npm run test:coverage
+	cd api && bun run test:coverage
 style-node: deps-node
-	cd api && npm run prettier
+	cd api && bun run prettier
 test-node: deps-node
-	cd api && npm run test
+	cd api && bun run test
 deps-python:
 	cd chat && uv sync --group dev
 cover-python: deps-python
@@ -105,7 +105,7 @@ state-machine:
 	aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://$$TEMPLATE_DIR/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole --no-cli-pager
 deps: deps-node deps-python
 style: style-node style-python
-test: test-node test-python
+test: test-node test-mcp test-python
 cover: cover-node cover-python
 env.json:
 	./bin/make_env.sh
