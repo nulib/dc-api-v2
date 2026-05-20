@@ -4,7 +4,7 @@
  * These tests don't require HTTP mocking or MCP client/server setup.
  * They test isolated business logic directly.
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, spyOn } from "bun:test";
 import {
   summarizeResults,
   buildIIIFSearchUrl,
@@ -13,7 +13,7 @@ import {
 import { buildQuery } from "../apps/mcp/common/works.js";
 import { isEnum } from "../apps/mcp/common/schemas.js";
 import * as z from "zod/v4";
-import { McpError } from "@modelcontextprotocol/sdk/types";
+import { McpError } from "@modelcontextprotocol/sdk/types.js";
 
 describe("Pure Function Unit Tests", () => {
   describe("summarizeResults", () => {
@@ -242,12 +242,14 @@ describe("Pure Function Unit Tests", () => {
   });
 
   describe("handleToolError", () => {
+    let errorSpy: { mockRestore(): void; mock: { calls: unknown[][] } };
+
     beforeEach(() => {
-      vi.spyOn(console, "error").mockImplementation(() => {});
+      errorSpy = spyOn(console, "error").mockImplementation(() => {});
     });
 
     afterEach(() => {
-      vi.restoreAllMocks();
+      errorSpy.mockRestore();
     });
 
     it("should throw McpError with InvalidParams for ZodError", () => {
@@ -262,8 +264,8 @@ describe("Pure Function Unit Tests", () => {
           handleToolError(error);
         }
       }).toThrow(McpError);
-      expect(console.error).toHaveBeenCalledOnce();
-      expect(console.error).toHaveBeenCalledWith(
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining(
             "Invalid input: expected number, received string"
@@ -281,8 +283,8 @@ describe("Pure Function Unit Tests", () => {
         }
       }).toThrow(McpError);
 
-      expect(console.error).toHaveBeenCalledOnce();
-      expect(console.error).toHaveBeenCalledWith(
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining("Generic Error")
         })

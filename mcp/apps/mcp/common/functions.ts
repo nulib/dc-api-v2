@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types";
+import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import { DC_API_BASE } from "../config.js";
 import { sharedResultSchema } from "./schemas.js";
 import * as lz from "lz-string";

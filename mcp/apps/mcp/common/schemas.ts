@@ -198,7 +198,9 @@ export const collectionResultSchema = z.object({
   title: z.string().describe("The title of the search result item"),
   description: z
     .string()
-    .describe("A brief description of the search result item"),
+    .describe("A brief description of the search result item")
+    .optional()
+    .nullable(),
   thumbnail: z
     .url()
     .describe("A URL to a thumbnail image representing the search result item"),

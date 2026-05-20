@@ -11,7 +11,7 @@
  * To replay from fixtures (default):
  *   npm test
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 
 import { createServer } from "../apps/mcp/server.js";
 import {
