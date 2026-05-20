@@ -1,8 +1,8 @@
 import { dcApiEndpoint } from "../../../environment.ts";
 import {
-  buildAnnotationTarget,
-  buildSearchAnnotationBody,
-} from "./search-helpers.ts";
+  buildFileSetAnnotation,
+  supportedAnnotations,
+} from "./annotation-helpers.ts";
 import type { FileSetAnnotation, FileSetSource } from "./types.ts";
 
 export async function transform(response: {
@@ -13,21 +13,11 @@ export async function transform(response: {
   const fileSet = body._source;
   const annotations: FileSetAnnotation[] = fileSet?.annotations ?? [];
 
-  const canvasId = `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
   const annotationPageId = `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`;
 
-  const items = annotations
-    .filter((annotation) => annotation.type === "transcription")
-    .map((annotation) => {
-      const annotationId = `${dcApiEndpoint()}/annotations/${annotation.id}?as=iiif`;
-      return {
-        id: annotationId,
-        type: "Annotation",
-        motivation: "commenting",
-        body: buildSearchAnnotationBody(annotation),
-        target: buildAnnotationTarget(canvasId, fileSet.work_id),
-      };
-    });
+  const items = supportedAnnotations(annotations).map((annotation) =>
+    buildFileSetAnnotation(annotation, fileSet),
+  );
 
   return new Response(
     JSON.stringify({

@@ -18,8 +18,17 @@ import {
 import { buildPlaceholderCanvas } from "./presentation-api/placeholder-canvas.ts";
 import { metadataLabelFields } from "./presentation-api/metadata.ts";
 import { nulLogo, provider } from "./presentation-api/provider.ts";
+import {
+  navPlaceFromAnnotations,
+  supportedAnnotations,
+} from "./annotation-helpers.ts";
 import type { Paginator } from "../../pagination.ts";
-import type { WorkSource, FileSetSource, NavPlace } from "./types.ts";
+import type {
+  WorkSource,
+  FileSetSource,
+  NavPlace,
+  FileSetAnnotation,
+} from "./types.ts";
 
 // deno-lint-ignore no-unused-vars
 type _PaginatorUnused = Paginator;
@@ -35,8 +44,9 @@ export async function transform(
 
     const manifestId = `${dcApiEndpoint()}/works/${source.id}?as=iiif`;
 
-    const transcriptionMap = await fetchFileSetTranscriptions(source, options);
+    const fileSetAnnotationMap = await fetchFileSetAnnotations(source, options);
     const canvasAnnotations: Record<string, { id: string; type: string }> = {};
+    const canvasNavPlaces: Record<string, Record<string, unknown>> = {};
 
     const manifestNormalized = builder.createManifest(
       manifestId,
@@ -71,11 +81,11 @@ export async function transform(
               addSupplementingAnnotationToCanvas(canvas, canvasId, fileSet);
             }
 
-            const transcriptions = transcriptionMap[fileSet.id];
+            const annotations = fileSetAnnotationMap[fileSet.id] || [];
             if (
               source.work_type === "Image" &&
               fileSet.role === "Access" &&
-              transcriptions?.length
+              annotations.length
             ) {
               canvasAnnotations[canvasId] = {
                 id: `${dcApiEndpoint()}/file-sets/${
@@ -84,6 +94,8 @@ export async function transform(
                 type: "AnnotationPage",
               };
             }
+            const navPlace = navPlaceFromAnnotations(annotations);
+            if (navPlace) canvasNavPlaces[canvasId] = navPlace;
           });
         }
 
@@ -238,11 +250,11 @@ export async function transform(
               );
             }
 
-            const transcriptions = transcriptionMap[primaryFileSet.id];
+            const annotations = fileSetAnnotationMap[primaryFileSet.id] || [];
             if (
               source.work_type === "Image" &&
               primaryFileSet.role === "Access" &&
-              transcriptions?.length
+              annotations.length
             ) {
               canvasAnnotations[canvasId] = {
                 id: `${dcApiEndpoint()}/file-sets/${
@@ -251,6 +263,8 @@ export async function transform(
                 type: "AnnotationPage",
               };
             }
+            const navPlace = navPlaceFromAnnotations(annotations);
+            if (navPlace) canvasNavPlaces[canvasId] = navPlace;
           });
         });
 
@@ -308,6 +322,11 @@ export async function transform(
           canvasAnnotations[(canvas as { id: string }).id],
         ];
       }
+
+      if (canvasNavPlaces[(canvas as { id: string }).id]) {
+        (canvas as Record<string, unknown>).navPlace =
+          canvasNavPlaces[(canvas as { id: string }).id];
+      }
     }
 
     (jsonManifest as Record<string, unknown>).service = [
@@ -333,7 +352,7 @@ function fileSetCanvasId(fileSet: FileSetSource): string {
   return `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
 }
 
-async function fetchFileSetTranscriptions(
+async function fetchFileSetAnnotations(
   source: WorkSource,
   options: { allowPrivate?: boolean; allowUnpublished?: boolean },
 ): Promise<Record<string, Record<string, unknown>[]>> {
@@ -354,10 +373,9 @@ async function fetchFileSetTranscriptions(
 
   return hits.reduce((acc: Record<string, Record<string, unknown>[]>, hit) => {
     const fileSetId = (hit._source as { id?: string })?.id;
-    const annotations = (
-      (hit._source as { annotations?: Record<string, unknown>[] })
-        ?.annotations ?? []
-    ).filter((annotation) => annotation.type === "transcription");
+    const annotations = supportedAnnotations(
+      (hit._source as { annotations?: FileSetAnnotation[] })?.annotations ?? [],
+    ) as unknown as Record<string, unknown>[];
     if (fileSetId && annotations.length > 0) {
       acc[fileSetId] = annotations;
     }

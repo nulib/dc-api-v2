@@ -6,6 +6,10 @@ import {
   buildImageService,
 } from "./presentation-api/items.ts";
 import { buildPlaceholderCanvas } from "./presentation-api/placeholder-canvas.ts";
+import {
+  navPlaceFromAnnotations,
+  supportedAnnotations,
+} from "./annotation-helpers.ts";
 import type { FileSetSource } from "./types.ts";
 
 export async function transform(
@@ -72,13 +76,11 @@ export async function transform(
     canvas.partOf = [partOf];
   }
 
-  const transcriptions = (fileSet.annotations || []).filter(
-    (a) => a.type === "transcription",
-  );
+  const annotations = supportedAnnotations(fileSet.annotations || []);
   if (
     /^image\//i.test(fileSet.mime_type as string) &&
     fileSet.role === "Access" &&
-    transcriptions.length
+    annotations.length
   ) {
     canvas.annotations = [
       {
@@ -86,6 +88,11 @@ export async function transform(
         type: "AnnotationPage",
       },
     ];
+  }
+
+  const navPlace = navPlaceFromAnnotations(annotations);
+  if (navPlace) {
+    canvas.navPlace = navPlace;
   }
 
   return new Response(JSON.stringify(canvas), {
