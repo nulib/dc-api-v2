@@ -129,7 +129,6 @@ components:
                 oneOf:
                   - $ref: "#/components/schemas/IndexDocument"
                   - $ref: "#/components/schemas/IiifPresentationManifest"
-                  - $ref: "#/components/schemas/IiifPresentationCanvas"
               info:
                 type: object
     AnnotationsResponse:
@@ -169,9 +168,6 @@ components:
     IiifPresentationManifest:
       type: object
       description: A [IIIF Presentation v3.x](https://iiif.io/api/presentation/3.0/) Manifest
-    IiifPresentationCanvas:
-      type: object
-      description: A [IIIF Presentation v3.x](https://iiif.io/api/presentation/3.0/) Canvas
     IndexDocument:
       description: A single index document
       oneOf:

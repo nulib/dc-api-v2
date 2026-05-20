@@ -2,11 +2,10 @@ clean:
 	rm -rf node_modules
 
 node_modules:
-	npm ci
-
+	bun install
 
 dist/apps/mcp/lambda.js: node_modules
-	npm run build
+	bun run build
 	cp apps/mcp/package.json dist/apps/mcp/
 
 build: dist/apps/mcp/lambda.js

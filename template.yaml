@@ -1,9 +1,4 @@
 # Build and Deploy Template for DC API
-#
-# Note: Any comment starting with `#*` will be removed
-# at build time. This allows us to run without the
-# dependency layer in development without removing the
-# layer from the build.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Transform:
@@ -36,14 +31,6 @@ Parameters:
   DcUrl:
     Type: String
     Description: URL of Digital Collections website
-  DeployAPI:
-    Type: String
-    Description: Set to true to deploy API
-    Default: "true"
-  DeployAVDownload:
-    Type: String
-    Description: Set to true to deploy AVDownload
-    Default: "true"
   DeployChat:
     Type: String
     Description: Set to true to deploy Chat
@@ -114,10 +101,6 @@ Parameters:
 Conditions:
   CustomConfigSecret:
     Fn::Not: [!Equals [!Ref ApiConfigPrefix, ""]]
-  DeployAPI:
-    Fn::Equals: [!Ref DeployAPI, "true"]
-  DeployAVDownload:
-    Fn::Equals: [!Ref DeployAVDownload, "true"]
   DeployChat:
     Fn::Equals: [!Ref DeployChat, "true"]
   DeployDocs:
@@ -133,12 +116,12 @@ Resources:
             Effect: Allow
             Action:
               - secretsmanager:GetSecretValue
-            Resource: 
+            Resource:
               - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${SecretsPath}/*"
               - Fn::If:
-                - CustomConfigSecret
-                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ApiConfigPrefix}/*"
-                - !Ref AWS::NoValue
+                  - CustomConfigSecret
+                  - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:${ApiConfigPrefix}/*"
+                  - !Ref AWS::NoValue
           - Sid: BatchGetSecrets
             Effect: Allow
             Action:
@@ -153,14 +136,13 @@ Resources:
         ApiConfigPrefix: !Ref ApiConfigPrefix
         ApiTokenName: !Ref ApiTokenName
         ApiTokenSecret: !Ref ApiTokenSecret
-        ChatWebSocketURI: !If [DeployChat, !GetAtt [chatWebsocket, Outputs.WebSocketURI], ""]
+        ChatWebSocketURI:
+          !If [DeployChat, !GetAtt [chatWebsocket, Outputs.WebSocketURI], ""]
         CustomDomainCertificateArn: !Ref CustomDomainCertificateArn
         CustomDomainZone: !Ref CustomDomainZone
         CustomDomainHost: !Ref CustomDomainHost
         DcApiEndpoint: !Ref DcApiEndpoint
         DcUrl: !Ref DcUrl
-        DeployAPI: !Ref DeployAPI
-        DeployAVDownload: !Ref DeployAVDownload
         DeployChat: !Ref DeployChat
         DevTeamNetIds: !Ref DevTeamNetIds
         EnvironmentPrefix: !Ref EnvironmentPrefix
@@ -176,7 +158,6 @@ Resources:
         WriteConfigSecret: !Ref WriteConfigSecret
   avDownload:
     Type: AWS::Serverless::Application
-    Condition: DeployAVDownload
     Properties:
       Location: ./av-download/template.yaml
       Parameters:

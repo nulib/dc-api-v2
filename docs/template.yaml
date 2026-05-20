@@ -1,9 +1,4 @@
 # Build and Deploy Template for DC API
-#
-# Note: Any comment starting with `#*` will be removed
-# at build time. This allows us to run without the
-# dependency layer in development without removing the
-# layer from the build.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Transform:

@@ -23,14 +23,14 @@
   "scripts": {
     "http": "tsx watch apps/mcp/handlers/main.ts",
     "stdio": "tsx apps/mcp/handlers/main.ts --stdio",
-    "build": "vite build --config apps/mcp/vite.config.ts",
+    "build": "bun run ./build.ts",
     "clean": "rm -rf dist",
-    "prepare": "rm -rf dist && PUBLISHING=true npm run build",
-    "test": "MSW_MODE=${MSW_MODE:-replay} vitest run",
+    "prepare": "rm -rf dist && PUBLISHING=true bun run ./build.ts",
+    "test": "MSW_MODE=${MSW_MODE:-replay} bun test",
     "test:clear": "rm -rf test/fixtures/*.har",
-    "test:record": "concurrently --kill-others -n 'RECORD,TEST' 'mitmdump --set hardump=test/fixtures/interactions.har -s test/support/redact.py' 'MSW_MODE=record vitest run'",
-    "test:watch": "MSW_MODE=${MSW_MODE:-replay} vitest",
-    "test:coverage": "MSW_MODE=${MSW_MODE:-replay} vitest run --coverage"
+    "test:record": "concurrently --kill-others -n 'RECORD,TEST' 'mitmdump --set hardump=test/fixtures/interactions.har -s test/support/redact.py' 'sleep 2 && MSW_MODE=record HTTP_PROXY=http://localhost:8080 HTTPS_PROXY=http://localhost:8080 NODE_EXTRA_CA_CERTS=$HOME/.mitmproxy/mitmproxy-ca-cert.pem bun test'",
+    "test:watch": "MSW_MODE=${MSW_MODE:-replay} bun test --watch",
+    "test:coverage": "MSW_MODE=${MSW_MODE:-replay} bun test --coverage"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.563.0",
@@ -55,8 +55,7 @@
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
-    "@vitejs/plugin-react": "^4.0.0",
-    "@vitest/coverage-v8": "^3.0.0",
+    "@types/bun": "latest",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "eslint": "^10.0.2",
@@ -66,10 +65,7 @@
     "react-dom": "^19.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "undici": "^7.24.4",
-    "vite": "^7.3.1",
-    "vite-plugin-singlefile": "^2.3.0",
-    "vitest": "^3.0.0"
+    "wait-on": "^9.0.10",
   },
   "author": "nulib",
   "license": "MIT"
