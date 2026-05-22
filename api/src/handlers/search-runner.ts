@@ -7,6 +7,7 @@ import {
 import { search } from "../api/opensearch.ts";
 import { transformSearchResult } from "../api/response/transformer.ts";
 import { decodeSearchToken, Paginator } from "../api/pagination.ts";
+import type { OpenSearchSearchResponse } from "../api/opensearch-types.ts";
 import RequestPipeline from "../api/request/pipeline.ts";
 import { defaultSearchSize } from "../environment.ts";
 import type { Context } from "hono";
@@ -119,7 +120,79 @@ export const doSearch = async (
     filteredSearchContext,
     searchQuery,
   );
+  if (pager.format === "kml" && esResponse.status === 200) {
+    const fileSetResponse = await drillDownFileSets(esResponse);
+    return transformSearchResult(fileSetResponse, pager);
+  }
   return transformSearchResult(esResponse, pager);
+};
+
+const getFileSetIdsFromCollection = async ({
+  id,
+}: Record<string, unknown>): Promise<string[]> => {
+  const query = {
+    query: {
+      term: {
+        "collection.id": id,
+      },
+    },
+    _source: ["id", "api_model", "file_sets.id"],
+    size: 10000,
+  };
+  const response = await search(
+    modelsToTargets(["works"]),
+    JSON.stringify(query),
+  );
+  const responseBody = JSON.parse(
+    (response as unknown as { status: number; body: string }).body,
+  ) as OpenSearchSearchResponse<unknown>;
+  if (!responseBody.hits?.hits) return [];
+  return responseBody.hits.hits.flatMap((hit) => {
+    const hitSource = hit._source as Record<string, unknown>;
+    return getFileSetIdsFromWork(hitSource);
+  });
+};
+
+const getFileSetIdsFromWork = (work: Record<string, unknown>): string[] => {
+  if (!Array.isArray(work.file_sets)) return [];
+  return work.file_sets.map(({ id }) => id);
+};
+
+const drillDownFileSets = async (response: {
+  status: number;
+  body: string;
+}): Promise<{ status: number; body: string }> => {
+  const responseBody = JSON.parse(
+    response.body,
+  ) as OpenSearchSearchResponse<unknown>;
+  if (!responseBody.hits?.hits) return response;
+  const fileSetIds = (
+    await Promise.all(
+      responseBody.hits.hits.flatMap(async (hit) => {
+        const hitSource = hit._source as Record<string, unknown>;
+        switch (hitSource.api_model) {
+          case "FileSet":
+            return [hitSource.id];
+          case "Work":
+            return getFileSetIdsFromWork(hitSource);
+          case "Collection":
+            return await getFileSetIdsFromCollection(hitSource);
+          default:
+            return [];
+        }
+      }),
+    )
+  ).flat();
+
+  const query = {
+    query: {
+      terms: {
+        id: fileSetIds,
+      },
+    },
+    size: fileSetIds.length,
+  };
+  return search(modelsToTargets(["file-sets"]), JSON.stringify(query));
 };
 
 const constructSearchContext = async (

@@ -1,5 +1,6 @@
 import { transformError } from "./error.ts";
 import { transform as iiifCollectionResponse } from "./iiif/collection.ts";
+import { transform as kmlResponse } from "./kml/index.ts";
 import { transform as opensearchResponse } from "./opensearch/index.ts";
 import type { Paginator } from "../pagination.ts";
 import type { OpenSearchSearchResponse } from "../opensearch-types.ts";
@@ -49,11 +50,14 @@ export async function transformSearchResult(
     ) as OpenSearchSearchResponse<unknown>;
     const pageInfo = await pager.pageResponseInfo(responseBody);
 
-    if (pageInfo.format === "iiif") {
-      return await iiifCollectionResponse(response, pager);
+    switch (pageInfo.format) {
+      case "iiif":
+        return await iiifCollectionResponse(response, pager);
+      case "kml":
+        return kmlResponse(responseBody);
+      default:
+        return await opensearchResponse(response, { pager: pager });
     }
-
-    return await opensearchResponse(response, { pager: pager });
   }
   return transformError(response);
 }

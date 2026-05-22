@@ -24,7 +24,7 @@ const getCollectionById = async (
   return await opensearchResponse(esResponse);
 };
 
-const getIiifCollectionById = async (
+const getCollectionWorksById = async (
   c: Context<AppEnv>,
   id: string,
 ): Promise<Response> => {
@@ -63,7 +63,12 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
     });
   }
 
-  return new URL(c.req.url).searchParams.get("as") === "iiif"
-    ? getIiifCollectionById(c, id)
-    : getCollectionById(c, id);
+  switch (new URL(c.req.url).searchParams.get("as")) {
+    case "iiif":
+      return getCollectionWorksById(c, id);
+    case "kml":
+      return getCollectionWorksById(c, id);
+    default:
+      return getCollectionById(c, id);
+  }
 };
