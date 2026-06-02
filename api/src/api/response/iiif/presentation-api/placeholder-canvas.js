@@ -27,8 +27,8 @@ function buildPlaceholderCanvas(id, fileSet, size = 640) {
               height: placeholderHeight,
               service: [
                 {
-                  ["@id"]: representative_image_url,
-                  ["@type"]: "ImageService3",
+                  id]: representative_image_url,
+                  type: "ImageService3",
                   profile: "http://iiif.io/api/image/3/level2.json",
                 },
               ],
