@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# .github/scripts/generate_release_notes.sh
+#
+# Generates human-readable release notes for a DC API production release.
+# Finds PRs merged into deploy/staging since the last production tag, filters
+# noise, calls Claude via Bedrock to summarize, then creates a GitHub Release.
+#
+# Required env vars:
+#   GITHUB_TOKEN      - GitHub token with contents:write and pull-requests:read
+#   AWS_REGION        - AWS region for Bedrock (e.g. "us-east-1")
+#   CURRENT_TAG       - Tag being released (e.g. "v1.2.3")
+#
+# Optional env vars:
+#   PREVIOUS_TAG      - Previous release tag; auto-detected from git if not set
+#   DRAFT_RELEASE     - Set to "true" to create a draft GitHub Release
+#   GITHUB_REPOSITORY - Set automatically by GitHub Actions (owner/repo)
+#   DRY_RUN           - Set to "true" to skip release creation and print output only
+#
+# Local testing (dry run):
+#   export GITHUB_TOKEN=<your-pat>
+#   export CURRENT_TAG=v1.2.3
+#   export PREVIOUS_TAG=v1.1.0
+#   export AWS_REGION=us-east-1
+#   export GITHUB_REPOSITORY=nulib/dc-api-v2
+#   export DRY_RUN=true
+#   bash .github/scripts/generate_release_notes.sh
+
+set -euo pipefail
+
+REPO="${GITHUB_REPOSITORY}"
+CURRENT_TAG="${CURRENT_TAG:?CURRENT_TAG must be set}"
+PREVIOUS_TAG="${PREVIOUS_TAG:-}"
+MODEL_ID="us.anthropic.claude-sonnet-4-6"
+DRAFT_RELEASE="${DRAFT_RELEASE:-false}"
+DRY_RUN="${DRY_RUN:-false}"
+
+FILTERED_COUNT=0
+PR_DETAIL_LIST=""
+SUMMARY=""
+
+if [[ "$DRY_RUN" == "true" ]]; then
+  echo "==> DRY RUN MODE — no GitHub Release will be created"
+fi
+
+TEST_PR_LIST="${TEST_PR_LIST:-}"
+
+echo "==> Generating release notes for ${CURRENT_TAG}"
+
+if [[ -n "$TEST_PR_LIST" ]]; then
+  echo "==> TEST MODE — using provided TEST_PR_LIST, skipping GitHub API"
+  FILTERED_COUNT=$(echo "$TEST_PR_LIST" | grep -c "^-" || true)
+  PR_DETAIL_LIST="$TEST_PR_LIST"
+
+else
+  # ---------------------------------------------------------------------------
+  # 1. Find the previous production tag
+  # ---------------------------------------------------------------------------
+  if [[ -z "$PREVIOUS_TAG" ]]; then
+    echo "==> Finding previous tag..."
+
+    PREVIOUS_TAG=$(git tag \
+      --sort=-creatordate \
+      --list "v*" \
+      | grep -v "^${CURRENT_TAG}$" \
+      | head -1 || true)
+
+    if [[ -z "$PREVIOUS_TAG" ]]; then
+      echo "No previous tag found. Skipping release notes generation."
+      exit 0
+    fi
+  else
+    echo "==> Using provided previous tag: ${PREVIOUS_TAG}"
+  fi
+
+  echo "    Previous tag: ${PREVIOUS_TAG}"
+  echo "    Current tag:  ${CURRENT_TAG}"
+
+  # ---------------------------------------------------------------------------
+  # 2. Fetch merged PRs between the two tags via GitHub API
+  # ---------------------------------------------------------------------------
+  echo "==> Fetching merged PRs between ${PREVIOUS_TAG} and ${CURRENT_TAG}..."
+
+  PREVIOUS_TAG_DATE=$(git log -1 --format="%cI" "${PREVIOUS_TAG}")
+  echo "    Previous tag date: ${PREVIOUS_TAG_DATE}"
+
+  PR_RESPONSE=$(curl -s \
+    -H "Authorization: token ${GITHUB_TOKEN}" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "https://api.github.com/repos/${REPO}/pulls?state=closed&base=deploy/staging&sort=updated&direction=desc&per_page=100&since=${PREVIOUS_TAG_DATE}")
+
+  PR_LIST=$(echo "$PR_RESPONSE" | jq -r --arg since "$PREVIOUS_TAG_DATE" '
+    [
+      .[] |
+      select(
+        .merged_at != null and
+        .merged_at > $since
+      ) |
+      {
+        number: .number,
+        title: .title,
+        labels: [.labels[].name],
+        merged_at: .merged_at
+      }
+    ] | sort_by(.merged_at)
+  ')
+
+  PR_COUNT=$(echo "$PR_LIST" | jq 'length')
+  echo "    Found ${PR_COUNT} merged PRs"
+
+  if [[ "$PR_COUNT" -eq 0 ]]; then
+    echo "No PRs found for this release. Creating release with minimal notes."
+    SUMMARY="No pull requests were found for this release."
+    PR_DETAIL_LIST=""
+  else
+    # -------------------------------------------------------------------------
+    # 3. Filter out noise PRs
+    # -------------------------------------------------------------------------
+    echo "==> Filtering noise PRs..."
+
+    FILTERED_PRS=$(echo "$PR_LIST" | jq -r '
+      [
+        .[] |
+        select(
+          (.title | ascii_downcase | test("^(dependabot|chore:|ci:|ignore:|build:|bump version|increment version|deploy v|dependency rollup|auto-release)") | not) and
+          ((.labels | map(ascii_downcase) | any(. == "dependencies" or . == "chore" or . == "ci" or . == "ignore")) | not)
+        )
+      ]
+    ')
+
+    FILTERED_COUNT=$(echo "$FILTERED_PRS" | jq 'length')
+    EXCLUDED_COUNT=$(( PR_COUNT - FILTERED_COUNT ))
+    echo "    Kept ${FILTERED_COUNT} PRs, excluded ${EXCLUDED_COUNT} noise PRs"
+
+    if [[ "$FILTERED_COUNT" -eq 0 ]]; then
+      echo "All PRs were infrastructure/dependency updates. Creating release with minimal notes."
+      SUMMARY="This release contains dependency updates and infrastructure improvements only."
+      PR_DETAIL_LIST=""
+    else
+      PR_DETAIL_LIST=$(echo "$FILTERED_PRS" | jq -r '
+        .[] | "- #\(.number): \(.title)"
+      ')
+    fi
+  fi
+
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Call Claude via Bedrock to generate plain-language release notes
+# ---------------------------------------------------------------------------
+
+if [[ -n "$PR_DETAIL_LIST" ]]; then
+  echo "==> Calling Claude via Bedrock..."
+  echo "    PRs to summarize:"
+  echo "$PR_DETAIL_LIST" | sed 's/^/      /'
+
+  PROMPT="You are writing release notes for DC API (dc-api-v2), the digital collections API service that powers Northwestern University Libraries' digital asset discovery and delivery platform.
+
+Given the following list of pull request titles merged into this release, write concise, plain-language release notes suitable for both technical staff and library stakeholders. Focus on what changed from the user's perspective — new features, bug fixes, or improvements. Group related changes if it makes sense. Do not mention PR numbers, branch names, version numbers, or technical implementation details. Do not invent a title or header. Use plain prose or a short bullet list. Keep it under 200 words.
+
+Pull requests in this release:
+${PR_DETAIL_LIST}
+
+Write only the release notes text, nothing else."
+
+  REQUEST_PAYLOAD=$(jq -n \
+    --arg prompt "$PROMPT" \
+    '{
+      anthropic_version: "bedrock-2023-05-31",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: $prompt
+        }
+      ]
+    }')
+
+  PAYLOAD_FILE=$(mktemp)
+  echo "$REQUEST_PAYLOAD" > "$PAYLOAD_FILE"
+  RESPONSE_FILE=$(mktemp)
+
+  aws bedrock-runtime invoke-model \
+    --region "${AWS_REGION}" \
+    --model-id "${MODEL_ID}" \
+    --content-type "application/json" \
+    --accept "application/json" \
+    --body "fileb://${PAYLOAD_FILE}" \
+    "$RESPONSE_FILE"
+
+  SUMMARY=$(jq -r '.content[0].text' "$RESPONSE_FILE")
+  rm -f "$PAYLOAD_FILE" "$RESPONSE_FILE"
+
+  echo "    Summary generated (${#SUMMARY} chars)"
+fi
+
+RELEASE_BODY="${SUMMARY}"
+
+# ---------------------------------------------------------------------------
+# 5. Create the GitHub Release (or print in dry run mode)
+# ---------------------------------------------------------------------------
+
+if [[ "$DRY_RUN" == "true" ]]; then
+  echo ""
+  echo "==> DRY RUN: Would create GitHub Release with the following:"
+  echo ""
+  echo "    Tag:  ${CURRENT_TAG}"
+  echo "    Name: DC API ${CURRENT_TAG}"
+  echo ""
+  echo "--- RELEASE BODY ---"
+  echo "${RELEASE_BODY}"
+  echo "--- END RELEASE BODY ---"
+  echo ""
+  echo "==> DRY RUN complete. No release was created."
+
+  if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    {
+      echo "current_tag=${CURRENT_TAG}"
+      echo "release_url=DRY_RUN"
+      echo "release_body<<__RELEASE_BODY__"
+      echo "${RELEASE_BODY}"
+      echo "__RELEASE_BODY__"
+    } >> "$GITHUB_OUTPUT"
+  fi
+  exit 0
+fi
+
+echo "==> Creating GitHub Release for ${CURRENT_TAG}..."
+
+RELEASE_PAYLOAD=$(jq -n \
+  --arg tag "$CURRENT_TAG" \
+  --arg name "DC API ${CURRENT_TAG}" \
+  --arg body "$RELEASE_BODY" \
+  --argjson draft "$([[ "$DRAFT_RELEASE" == "true" ]] && echo "true" || echo "false")" \
+  '{
+    tag_name: $tag,
+    name: $name,
+    body: $body,
+    draft: $draft,
+    prerelease: false
+  }')
+
+RELEASE_RESPONSE=$(curl -s \
+  -X POST \
+  -H "Authorization: token ${GITHUB_TOKEN}" \
+  -H "Accept: application/vnd.github.v3+json" \
+  "https://api.github.com/repos/${REPO}/releases" \
+  -d "$RELEASE_PAYLOAD")
+
+RELEASE_URL=$(echo "$RELEASE_RESPONSE" | jq -r '.html_url')
+
+if [[ "$RELEASE_URL" == "null" || -z "$RELEASE_URL" ]]; then
+  echo "ERROR: Failed to create release. Response:"
+  echo "$RELEASE_RESPONSE" | jq .
+  exit 1
+fi
+
+echo "==> Release created successfully: ${RELEASE_URL}"
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  {
+    echo "current_tag=${CURRENT_TAG}"
+    echo "release_url=${RELEASE_URL}"
+    echo "release_body<<__RELEASE_BODY__"
+    echo "${RELEASE_BODY}"
+    echo "__RELEASE_BODY__"
+  } >> "$GITHUB_OUTPUT"
+fi
