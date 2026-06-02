@@ -58,6 +58,34 @@ describe("IIIF response presentation API items helpers", () => {
     ).toEqual(
       `${accessImage.representative_image_url}/full/1000,1000/0/default.jpg`,
     );
+    expect(
+      items.buildImageResourceId(
+        `${accessImage.representative_image_url}/info.json`,
+        "!300,300",
+        "square",
+      ),
+    ).toEqual(
+      `${accessImage.representative_image_url}/square/!300,300/0/default.jpg`,
+    );
+    expect(
+      items.buildImageResourceId(
+        `${accessImage.representative_image_url}/`,
+        "!300,300",
+      ),
+    ).toEqual(
+      `${accessImage.representative_image_url}/full/!300,300/0/default.jpg`,
+    );
+  });
+
+  it("normalizeImageServiceId(uri)", () => {
+    expect(
+      items.normalizeImageServiceId(
+        `${accessImage.representative_image_url}/info.json`,
+      ),
+    ).toEqual(accessImage.representative_image_url);
+    expect(
+      items.normalizeImageServiceId(`${accessImage.representative_image_url}/`),
+    ).toEqual(accessImage.representative_image_url);
   });
 
   it("buildImageService(representativeImageUrl)", () => {

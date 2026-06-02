@@ -173,6 +173,36 @@ describe("Thumbnail routes", () => {
       expectCorsHeaders(result);
     });
 
+    it("retrieves a thumbnail from an ImageService3 base URL", async () => {
+      const work = JSON.parse(testFixture("mocks/work-1234.json"));
+      work._source.representative_file_set.url =
+        "https://index.test.library.northwestern.edu/iiif/3/5678";
+
+      server.use(
+        http.get(
+          "https://index.test.library.northwestern.edu/dc-v2-work/_doc/1234",
+          () => HttpResponse.json(work),
+        ),
+        http.get(
+          "https://index.test.library.northwestern.edu/iiif/3/5678/full/!300,300/0/default.jpg",
+          () =>
+            new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
+              status: 200,
+              headers: { "content-type": "image/jpeg" },
+            }),
+        ),
+      );
+
+      const req = buildRequest("GET", "/works/{id}/thumbnail", {
+        pathParams: { id: 1234 },
+        headers: { origin: "https://test.example.edu/" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(result.headers.get("content-type")).toEqual("image/jpeg");
+      expectCorsHeaders(result);
+    });
+
     it("returns an error from the IIIF server", async () => {
       server.use(
         http.get(

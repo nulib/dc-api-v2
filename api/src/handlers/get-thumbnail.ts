@@ -12,6 +12,7 @@ import type {
   WorkSource,
 } from "../api/response/iiif/types.ts";
 import type { OpenSearchGetResponse } from "../api/opensearch-types.ts";
+import { buildImageResourceId } from "../api/response/iiif/presentation-api/items.ts";
 
 function isImageFileSet(doc: OpenSearchGetResponse<FileSetSource>): boolean {
   return (
@@ -92,7 +93,7 @@ const getThumbnail = async (
     });
   }
 
-  const thumbnail = `${iiif_base}/${aspect}/!${size},${size}/0/default.jpg`;
+  const thumbnail = buildImageResourceId(iiif_base, `!${size},${size}`, aspect);
   const tokenValue = await new ApiToken().superUser().sign();
   const cookieHeader = cookie.serialize(apiTokenName(), tokenValue, {
     domain: "library.northwestern.edu",
