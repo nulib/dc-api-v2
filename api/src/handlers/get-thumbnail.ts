@@ -12,7 +12,18 @@ import type {
   WorkSource,
 } from "../api/response/iiif/types.ts";
 import type { OpenSearchGetResponse } from "../api/opensearch-types.ts";
-import { buildImageResourceId } from "../api/response/iiif/presentation-api/items.ts";
+
+export function buildImageResourceId(
+  uri: string,
+  size = "!300,300",
+  region = "full",
+): string {
+  return `${normalizeImageServiceId(uri)}/${region}/${size}/0/default.jpg`;
+}
+
+export function normalizeImageServiceId(uri: string): string {
+  return uri.replace(/\/info\.json$/i, "").replace(/\/+$/, "");
+}
 
 function isImageFileSet(doc: OpenSearchGetResponse<FileSetSource>): boolean {
   return (
@@ -111,7 +122,7 @@ const getThumbnail = async (
     });
   }
 
-  return new Response(btoa(String.fromCharCode(...new Uint8Array(buf))), {
+  return new Response(buf, {
     status: resp.status,
     headers: {
       "content-type": resp.headers.get("content-type") ?? "image/jpeg",
