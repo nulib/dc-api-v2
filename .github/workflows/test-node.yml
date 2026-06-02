@@ -16,18 +16,14 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ci
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 24.x
-          cache: "npm"
-          cache-dependency-path: "api/package-lock.json"
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
       - name: Check code style
-        run: npm run lint && npm run prettier
+        run: bun run lint && bun run prettier
       - name: Run tests
-        run: npm run test:coverage
+        run: bun run test:coverage
       - name: Validate OpenAPI spec
-        run: npm run validate-spec
+        run: bun run validate-spec
   test-mcp:
     runs-on: ubuntu-latest
     defaults:
@@ -35,11 +31,8 @@ jobs:
         working-directory: ./mcp
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 24.x
-          cache: "npm"
-          cache-dependency-path: "mcp/package-lock.json"
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun install
       - name: Run tests
-        run: npm run test:coverage
+        run: bun run test:coverage

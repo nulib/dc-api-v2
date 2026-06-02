@@ -58,6 +58,7 @@ jobs:
           repository: "nulib/tfvars"
           ref: main
           path: ".tfvars"
+      - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-python@v2
         with:
           python-version: "3.12"
@@ -106,3 +107,20 @@ jobs:
           github_token: ${{ steps.dispatch-token.outputs.token }}
           tags: true
           branch: main
+      - name: Generate Release Notes
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release_notes.yml',
+              ref: 'main',
+              inputs: {
+                current_tag: `v${process.env.API_VERSION}`,
+                previous_tag: '',
+                draft: 'false',
+                notify_teams: 'true',
+              },
+            })

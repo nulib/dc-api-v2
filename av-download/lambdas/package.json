@@ -1,6 +1,6 @@
 {
   "name": "lambdas",
-  "version": "2.11.0",
+  "version": "2.11.1",
   "description": "Non-API handler lambdas",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,6 +10,7 @@
   "devDependencies": {
     "@aws-sdk/client-mediaconvert": "^3.410.0",
     "@aws-sdk/client-s3": "^3.410.0",
+    "@aws-sdk/client-ses": "^3.410.0",
     "@aws-sdk/lib-storage": "^3.410.0",
     "@aws-sdk/s3-request-presigner": "^3.410.0",
     "@aws-sdk/signature-v4": "^3.130.0",

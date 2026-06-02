@@ -6,12 +6,12 @@
  * Digital Collections API.
  *
  * To record new fixtures:
- *   npm run test:record
+ *   bun run test:record
  *
  * To replay from fixtures (default):
- *   npm test
+ *   bun test
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 
 import { createServer } from "../apps/mcp/server.js";
 import {

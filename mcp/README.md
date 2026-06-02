@@ -79,7 +79,7 @@ The server reads the following environment variables:
 #### stdio (for Claude Desktop / Claude Code)
 
 ```bash
-npm run stdio
+bun run stdio
 ```
 
 Or via the wrapper script (activates the correct Node.js version via mise):
@@ -91,7 +91,7 @@ bin/run.sh
 #### HTTP (Streamable HTTP transport, port 3000)
 
 ```bash
-npm run http
+bun run http
 ```
 
 ### Configuring Claude Desktop (local build)
@@ -112,10 +112,10 @@ Replace `/path/to/dc-api-v2/mcp` with the absolute path to this directory. Resta
 
 | Command             | Result                                                       |
 | ------------------- | ------------------------------------------------------------ |
-| `npm run test`      | Run the test suite                                           |
-| `npm test:watch`    | Run the test suite, watching for changes                     |
-| `npm test:coverage` | Run the test suite and calculate coverage                    |
-| `npm test:record`   | Run the test suite against live data and record new fixtures |
+| `bun run test`      | Run the test suite                                           |
+| `bun test:watch`    | Run the test suite, watching for changes                     |
+| `bun test:coverage` | Run the test suite and calculate coverage                    |
+| `bun test:record`   | Run the test suite against live data and record new fixtures |
 
 - By default, the test suite uses pre-recorded HTTP fixtures. Set `MSW_MODE=live` to run against live data.
-- `npm test:record` records new fixtures (requires `mitmproxy`: `pip install mitmproxy`).
+- `bun test:record` records new fixtures (requires `mitmproxy`: `pip install mitmproxy`).

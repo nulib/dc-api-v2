@@ -1,9 +1,4 @@
 # Build and Deploy Template for DC API
-#
-# Note: Any comment starting with `#*` will be removed
-# at build time. This allows us to run without the
-# dependency layer in development without removing the
-# layer from the build.
 
 AWSTemplateFormatVersion: "2010-09-09"
 Transform:
@@ -71,9 +66,9 @@ Resources:
           audioOrVideo:
             Type: Choice
             Choices:
-            - Variable: "$.transcodeInput.type"
-              StringEquals: audio
-              Next: startAudioTranscode
+              - Variable: "$.transcodeInput.type"
+                StringEquals: audio
+                Next: startAudioTranscode
             Default: startTranscode
           startAudioTranscode:
             Type: Task
@@ -105,15 +100,15 @@ Resources:
           transcodeCompleted?:
             Type: Choice
             Choices:
-            - Variable: "$.transcodeOutput.Payload.status"
-              StringEquals: COMPLETE
-              Next: getDownloadLink
-            - Variable: "$.transcodeOutput.Payload.status"
-              StringEquals: ERROR
-              Next: failWorkflow
-            - Variable: "$.transcodeOutput.Payload.status"
-              StringEquals: CANCELED
-              Next: failWorkflow
+              - Variable: "$.transcodeOutput.Payload.status"
+                StringEquals: COMPLETE
+                Next: getDownloadLink
+              - Variable: "$.transcodeOutput.Payload.status"
+                StringEquals: ERROR
+                Next: failWorkflow
+              - Variable: "$.transcodeOutput.Payload.status"
+                StringEquals: CANCELED
+                Next: failWorkflow
             Default: Wait 10 seconds
           Wait 10 seconds:
             Type: Wait
@@ -384,6 +379,8 @@ Resources:
       Environment:
         Variables:
           MEDIA_CONVERT_DESTINATION_BUCKET: !Ref MediaConvertDestinationBucket
+    Metadata:
+      BuildMethod: makefile
   startTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -410,6 +407,8 @@ Resources:
               Action:
                 - mediaconvert:CreateJob
               Resource: "*"
+    Metadata:
+      BuildMethod: makefile
   transcodeStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -429,6 +428,8 @@ Resources:
                 - mediaconvert:GetJob
                 - mediaconvert:ListJobs
               Resource: "*"
+    Metadata:
+      BuildMethod: makefile
   getDownloadLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -448,6 +449,8 @@ Resources:
                 - s3:PutObjectAcl
                 - s3:PutObject
               Resource: !Sub "arn:aws:s3:::${MediaConvertDestinationBucket}/*"
+    Metadata:
+      BuildMethod: makefile
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -463,3 +466,5 @@ Resources:
               Action:
                 - ses:SendTemplatedEmail
               Resource: "*"
+    Metadata:
+      BuildMethod: makefile

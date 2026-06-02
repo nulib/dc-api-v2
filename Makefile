@@ -36,53 +36,32 @@ help:
 
 ./chat/dependencies/requirements.txt: ./chat/pyproject.toml
 	cd chat && uv export --format requirements-txt --no-hashes > dependencies/requirements.txt
-api: ./api/template.yaml ./api/src/package-lock.json $(wildcard ./api/src/**/*.js)
+api: ./api/template.yaml ./api/bun.lock $(wildcard ./api/src/**/*.ts)
 chat: ./chat/template.yaml ./chat/dependencies/requirements.txt $(wildcard ./chat/src/**/*.py)
-av-download: ./av-download/template.yaml ./av-download/lambdas/package-lock.json $(wildcard ./av-download/lambdas/**/*.js)
+av-download: ./av-download/template.yaml ./av-download/lambdas/bun.lock $(wildcard ./av-download/lambdas/**/*.js)
 .aws-sam/build.toml: ./template.yaml api chat av-download
-	sed -Ei.orig 's/"dependencies"/"devDependencies"/' api/src/package.json
-	cp api/src/package-lock.json api/src/package-lock.json.orig
-	cd api/src && npm i --package-lock-only && cd -
-	for d in . api av-download chat docs ; do \
-		sed -Ei.orig 's/^(\s+)#\*\s/\1/' $$d/template.yaml; \
-	done
-
-	-sam build --cached --parallel
-
-	for d in . api av-download chat docs ; do \
-		mv $$d/template.yaml.orig $$d/template.yaml; \
-	done
-	mv api/src/package.json.orig api/src/package.json
-	mv api/src/package-lock.json.orig api/src/package-lock.json
+	@sed -Ei.orig 's/^(\s+)#\*\s/\1/' chat/template.yaml; \
+	sam build --cached --parallel
+	@mv chat/template.yaml.orig chat/template.yaml
 av-download/layers/ffmpeg/bin/ffmpeg:
 	mkdir -p av-download/layers/ffmpeg/bin ;\
 	curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
 	tar -C av-download/layers/ffmpeg/bin -xJ --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
 deps-api:
-	cd api/src ;\
-	npm list >/dev/null 2>&1 ;\
-	src_deps=$$? ;\
-	cd .. ;\
-	npm list >/dev/null 2>&1 ;\
-	dev_deps=$$? ;\
-	test $$src_deps -eq 0 -a $$dev_deps -eq 0 || npm ci
+	bun install --cwd api
 deps-av-download:
-	cd av-download/lambdas ;\
-	npm list >/dev/null 2>&1 || npm ci
+	bun install --cwd av-download/lambdas
 deps-mcp: 
-	cd mcp ;\
-	npm list >/dev/null 2>&1 ;\
-	deps=$$? ;\
-	test $$deps -eq 0 || npm ci
+	bun install --cwd mcp
 test-mcp: deps-mcp
-	cd mcp && npm test
+	cd mcp && bun test
 deps-node: deps-api deps-av-download deps-mcp
 cover-node: deps-node
-	cd api && npm run test:coverage
+	cd api && bun run test:coverage
 style-node: deps-node
-	cd api && npm run prettier
+	cd api && bun run prettier
 test-node: deps-node
-	cd api && npm run test
+	cd api && bun run test
 deps-python:
 	cd chat && uv sync --group dev
 cover-python: deps-python
@@ -102,10 +81,9 @@ validate:
 	cfn-lint template.yaml **/template.yaml --ignore-checks E3510 W1028 W8001
 serve-http: deps-node
 	@printf '\033[0;31mWARNING: Serving only the local HTTP API. The chat websocket API is not available in local mode.\033[0m\n'
-	rm -rf .aws-sam
-	sam local start-api -t api/template.yaml --env-vars $$PWD/env.json --host 0.0.0.0 --log-file dc-api.log ${SERVE_PARAMS}
-serve-https: SERVE_PARAMS = --port 3002 --ssl-cert-file $$HOME/.dev_cert/dev.rdc.cert.pem --ssl-key-file $$HOME/.dev_cert/dev.rdc.key.pem
-serve-https: serve-http
+	bun run --cwd api -i dev
+serve-https:
+	PORT=3002 HOST=0.0.0.0 SSL_CERT=$$HOME/.dev_cert/dev.rdc.cert.pem SSL_KEY=$$HOME/.dev_cert/dev.rdc.key.pem make serve-http
 serve: serve-https
 start-with-step: deps-node env.json
 	export AWS_DEFAULT_REGION=us-east-1 ;\
@@ -127,7 +105,7 @@ state-machine:
 	aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://$$TEMPLATE_DIR/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole --no-cli-pager
 deps: deps-node deps-python
 style: style-node style-python
-test: test-node test-python
+test: test-node test-mcp test-python
 cover: cover-node cover-python
 env.json:
 	./bin/make_env.sh
@@ -159,7 +137,7 @@ serve-docs:
 BUMP ?= ""
 version:
 	@if [[ -n "$(BUMP)" ]]; then \
-		for pkg in api api/dependencies api/src av-download/lambdas mcp mcp/apps/mcp; do \
+		for pkg in api av-download/lambdas mcp mcp/apps/mcp; do \
 			echo -n "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && npm version $(BUMP)) >&2; \
 		done; \
@@ -167,7 +145,7 @@ version:
 			echo "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && uv version --bump $(BUMP)) >&2; \
 		done; \
-		VERSION=$$(node -p "require('./api/src/package.json').version") ;\
+		VERSION=$$(node -p "require('./api/package.json').version") ;\
 		(cd mcp && \
 			jq --arg v "$$VERSION" '(.. | objects | select(has("version")) | .version) |= $$v' server.json > server.tmp.json && \
 			mv server.tmp.json server.json && \
