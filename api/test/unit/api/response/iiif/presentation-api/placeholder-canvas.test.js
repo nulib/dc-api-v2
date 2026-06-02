@@ -44,8 +44,14 @@ describe("IIIF response presentation API placeholderCanvas helpers", () => {
     expect(placeholder.items[0].items[0].body.format).to.eq(fileSet.mime_type);
     expect(placeholder.items[0].items[0].body.width).to.eq(640);
     expect(placeholder.items[0].items[0].body.height).to.eq(480);
-    expect(placeholder.items[0].items[0].body.service[0]["@id"]).to.eq(
+    expect(placeholder.items[0].items[0].body.service[0].id).to.eq(
       fileSet.representative_image_url
+    );
+    expect(placeholder.items[0].items[0].body.service[0].type).to.eq(
+      "ImageService3"
+    );
+    expect(placeholder.items[0].items[0].body.service[0].profile).to.eq(
+      "http://iiif.io/api/image/3/level2.json"
     );
   });
 
