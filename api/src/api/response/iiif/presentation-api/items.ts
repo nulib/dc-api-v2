@@ -55,7 +55,7 @@ export function buildAnnotationBody(
     label: { en: [fileSet.label ?? `Alternate ${workType}`] },
   };
 
-  if (isImage(workType))
+  if (isImage(workType) && fileSet.representative_image_url)
     body.service = buildImageService(fileSet.representative_image_url!);
   if (isAudioVideo(workType)) body.duration = fileSet.duration;
   return body;
@@ -65,13 +65,23 @@ export function buildAnnotationBodyId(
   fileSet: FileSetSource,
   workType: string,
 ): string {
-  return isAudioVideo(workType)
-    ? fileSet.streaming_url!
-    : buildImageResourceId(fileSet.representative_image_url!, "600,");
+  if (isAudioVideo(workType)) return fileSet.streaming_url!;
+  if (fileSet.representative_image_url) {
+    return buildImageResourceId(fileSet.representative_image_url, "600,");
+  }
+  return fileSet.api_link || `${dcApiEndpoint()}/file-sets/${fileSet.id}`;
 }
 
-export function buildImageResourceId(uri: string, size = "!300,300"): string {
-  return `${uri}/full/${size}/0/default.jpg`;
+export function buildImageResourceId(
+  uri: string,
+  size = "!300,300",
+  region = "full",
+): string {
+  return `${normalizeImageServiceId(uri)}/${region}/${size}/0/default.jpg`;
+}
+
+export function normalizeImageServiceId(uri: string): string {
+  return uri.replace(/\/info\.json$/i, "").replace(/\/+$/, "");
 }
 
 export function buildImageService(
