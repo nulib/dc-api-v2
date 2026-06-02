@@ -257,8 +257,12 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     expect(annotation.body.type).toEqual("Image");
     expect(annotation.body.width).toEqual(source.file_sets[0].width);
     expect(annotation.body.height).toEqual(source.file_sets[0].height);
-    expect(annotation.body.service[0]["@id"]).toEqual(
+    expect(annotation.body.service[0].id).toEqual(
       source.file_sets[0].representative_image_url,
+    );
+    expect(annotation.body.service[0].type).toEqual("ImageService3");
+    expect(annotation.body.service[0].profile).toEqual(
+      "http://iiif.io/api/image/3/level2.json",
     );
   });
 

@@ -90,8 +90,8 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     });
     expect(annotation.body.service[0]).toEqual({
       id: source.representative_image_url,
-      type: "ImageService2",
-      profile: "http://iiif.io/api/image/2/level2.json",
+      type: "ImageService3",
+      profile: "http://iiif.io/api/image/3/level2.json",
     });
   });
 

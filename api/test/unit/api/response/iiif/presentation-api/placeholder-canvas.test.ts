@@ -84,7 +84,7 @@ describe("IIIF response presentation API placeholderCanvas helpers", () => {
     expect(body.format).toEqual(fileSet.mime_type);
     expect(body.width).toEqual(640);
     expect(body.height).toEqual(480);
-    expect((body.service as Array<Record<string, unknown>>)[0]["@id"]).toEqual(
+    expect((body.service as Array<Record<string, unknown>>)[0].id).toEqual(
       fileSet.representative_image_url,
     );
   });
