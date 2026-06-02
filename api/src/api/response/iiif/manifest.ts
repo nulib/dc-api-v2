@@ -289,7 +289,7 @@ export async function transform(
           const placeholderFileSet = source.file_sets.find(
             (fs) =>
               fs.representative_image_url ===
-              (thumbnail[0].service as Record<string, string>[])[0]["@id"],
+              (thumbnail[0].service as Record<string, string>[])[0]["id"],
           );
 
           if (
