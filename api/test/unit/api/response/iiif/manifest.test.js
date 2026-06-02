@@ -206,7 +206,7 @@ describe("Image Work as IIIF Manifest response transformer", () => {
     expect(annotation.body.type).to.eq("Image");
     expect(annotation.body.width).to.eq(source.file_sets[0].width);
     expect(annotation.body.height).to.eq(source.file_sets[0].height);
-    expect(annotation.body.service[0]["@id"]).to.eq(
+    expect(annotation.body.service[0].id).to.eq(
       source.file_sets[0].representative_image_url
     );
   });
