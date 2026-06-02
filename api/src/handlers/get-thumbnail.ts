@@ -13,6 +13,18 @@ import type {
 } from "../api/response/iiif/types.ts";
 import type { OpenSearchGetResponse } from "../api/opensearch-types.ts";
 
+export function buildImageResourceId(
+  uri: string,
+  size = "!300,300",
+  region = "full",
+): string {
+  return `${normalizeImageServiceId(uri)}/${region}/${size}/0/default.jpg`;
+}
+
+export function normalizeImageServiceId(uri: string): string {
+  return uri.replace(/\/info\.json$/i, "").replace(/\/+$/, "");
+}
+
 function isImageFileSet(doc: OpenSearchGetResponse<FileSetSource>): boolean {
   return (
     doc.found === true &&
@@ -92,7 +104,7 @@ const getThumbnail = async (
     });
   }
 
-  const thumbnail = `${iiif_base}/${aspect}/!${size},${size}/0/default.jpg`;
+  const thumbnail = buildImageResourceId(iiif_base, `!${size},${size}`, aspect);
   const tokenValue = await new ApiToken().superUser().sign();
   const cookieHeader = cookie.serialize(apiTokenName(), tokenValue, {
     domain: "library.northwestern.edu",
@@ -110,7 +122,7 @@ const getThumbnail = async (
     });
   }
 
-  return new Response(btoa(String.fromCharCode(...new Uint8Array(buf))), {
+  return new Response(buf, {
     status: resp.status,
     headers: {
       "content-type": resp.headers.get("content-type") ?? "image/jpeg",
