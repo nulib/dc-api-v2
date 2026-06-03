@@ -29,7 +29,7 @@ const normalize = createMiddleware(async (c, next) => {
 const environment = createMiddleware(async (c, next) => {
   if (!process.env["__SKIP_SECRETS__"]) {
     const SECRETS_PATH = process.env["SECRETS_PATH"];
-    const API_CONFIG_PREFIX = process.env["API_CONFIG_PREFIX"] ?? SECRETS_PATH;
+    const API_CONFIG_PREFIX = process.env["API_CONFIG_PREFIX"] || SECRETS_PATH;
     const SecretPaths = [
       `${API_CONFIG_PREFIX}/config/dcapi`,
       `${SECRETS_PATH}/infrastructure/index`,
