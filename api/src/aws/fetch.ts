@@ -1,8 +1,13 @@
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
+import { formatUrl } from "@aws-sdk/util-format-url";
 import { SignatureV4 } from "@smithy/signature-v4";
 import { HttpRequest } from "@smithy/protocol-http";
 import { Sha256 } from "@aws-crypto/sha256-browser";
 import { region } from "../environment.ts";
+import type { HttpRequest as SmithyHttpRequest } from "@smithy/types";
+
+export const requestUrl = (request: SmithyHttpRequest): string =>
+  formatUrl(request);
 
 export async function awsFetch(
   request: HttpRequest,
@@ -15,7 +20,7 @@ export async function awsFetch(
   });
 
   const signed = await signer.sign(request);
-  const url = `https://${signed.hostname}${signed.path}`;
+  const url = requestUrl(signed);
 
   const resp = await fetch(url, {
     method: signed.method,
