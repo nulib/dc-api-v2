@@ -25,6 +25,7 @@
     "@aws-sdk/client-sns": "^3.563.0",
     "@aws-sdk/credential-provider-node": "^3.563.0",
     "@aws-sdk/s3-request-presigner": "^3.563.0",
+    "@aws-sdk/util-format-url": "^3.667.0",
     "@honeybadger-io/js": "^4.9.3",
     "@hono/mcp": "^0.3.0",
     "@smithy/protocol-http": "^3.3.0",

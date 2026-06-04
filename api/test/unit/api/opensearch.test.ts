@@ -229,4 +229,32 @@ describe("search()", () => {
     expect(body.hits.hits.length).toEqual(10);
     expect(body.hits.total.value).toEqual(4331);
   });
+
+  it("passes search query options to OpenSearch", async () => {
+    const received: { searchPipeline: string | null } = {
+      searchPipeline: null,
+    };
+    server.use(
+      http.post(
+        "https://index.test.library.northwestern.edu/dc-v2-work/_search",
+        ({ request }) => {
+          received.searchPipeline = new URL(request.url).searchParams.get(
+            "search_pipeline",
+          );
+          return HttpResponse.json(
+            JSON.parse(testFixture("mocks/search.json")),
+          );
+        },
+      ),
+    );
+
+    const result = await opensearch.search(
+      "dc-v2-work",
+      "{ query: { match_all: {} } }",
+      { search_pipeline: "dc-v2-work-pipeline" },
+    );
+
+    expect(result.status).toEqual(200);
+    expect(received.searchPipeline).toEqual("dc-v2-work-pipeline");
+  });
 });
