@@ -171,6 +171,7 @@ Resources:
           READING_ROOM_IPS: !Ref ReadingRoomIPs
           REPOSITORY_EMAIL: !Ref RepositoryEmail
           SECRETS_PATH: !Ref SecretsPath
+          WEBSOCKET_URI: !Ref ChatWebSocketURI
       Policies:
         - !Ref SecretsPolicy
         - !Ref readIndexPolicy
