@@ -18,7 +18,7 @@
       },
       "devDependencies": {
         "@msw/source": "^0.6.1",
-        "@nulib/clover-mcp": "^0.1.0",
+        "@nulib/clover-mcp": "^0.1.3",
         "@types/aws-lambda": "^8.10.161",
         "@types/bun": "latest",
         "@types/cors": "^2.8.19",
@@ -201,7 +201,7 @@
 
     "@mswjs/interceptors": ["@mswjs/interceptors@0.40.0", "", { "dependencies": { "@open-draft/deferred-promise": "^2.2.0", "@open-draft/logger": "^0.3.0", "@open-draft/until": "^2.0.0", "is-node-process": "^1.2.0", "outvariant": "^1.4.3", "strict-event-emitter": "^0.5.1" } }, "sha512-EFd6cVbHsgLa6wa4RljGj6Wk75qoHxUSyc5asLyyPSyuhIcdS2Q3Phw6ImS1q+CkALthJRShiYfKANcQMuMqsQ=="],
 
-    "@nulib/clover-mcp": ["@nulib/clover-mcp@0.1.2", "", { "dependencies": { "@modelcontextprotocol/ext-apps": "^1.2.0", "@modelcontextprotocol/sdk": "^1.27.1" } }, "sha512-QCF/mosXgzqe7AIdQ2XNk/SarJDUiYiUI9qCI+HRHhRnF4Gw+o6+jeVEyzxldk16SAXY+KJBygXgF6TdI1NWYA=="],
+    "@nulib/clover-mcp": ["@nulib/clover-mcp@0.1.3", "", { "dependencies": { "@modelcontextprotocol/ext-apps": "^1.2.0", "@modelcontextprotocol/sdk": "^1.27.1" } }, "sha512-rm8ffCrxGUfWRArPbDp8dgklNqu7PDIXgLvtF0emGCFf0m4h5T7ZrKzVi6Ni0UlTonOWIs6goKU3gwGl2jdBiQ=="],
 
     "@nulib/dcapi-types": ["@nulib/dcapi-types@2.9.1", "", {}, "sha512-XBM+a24rdi1D2jVZS/8c99dilfS4am620zq2CWDMYoqftPvCf/+tsw47gTF/XjgRz44ZGihSz6rC73HB0SYFug=="],
 
