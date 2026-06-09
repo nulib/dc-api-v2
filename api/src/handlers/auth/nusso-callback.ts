@@ -1,7 +1,7 @@
 import { serialize as cookieSerialize } from "cookie";
 import { dcApiEndpoint } from "../../environment.ts";
 import { ApiToken } from "../../api/api-token.ts";
-import Honeybadger from "@honeybadger-io/js";
+import { handleError } from "../error-handler.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../../types.ts";
 import { getCookie } from "hono/cookie";
@@ -102,9 +102,7 @@ async function redeemSsoToken(
       ) {
         return transform(fillInBlanks({ uid: netid }));
       }
-      await Honeybadger.notifyAsync(err as Error, {
-        tags: ["auth", "upstream"],
-      });
+      await handleError(err as Error);
       console.error(errWithData.response?.data);
       return null;
     }

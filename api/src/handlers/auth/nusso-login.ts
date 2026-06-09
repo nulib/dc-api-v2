@@ -1,6 +1,6 @@
 import { baseUrl } from "../../helpers.ts";
 import { serialize as cookieSerialize } from "cookie";
-import Honeybadger from "@honeybadger-io/js";
+import { handleError } from "../error-handler.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../../types.ts";
 
@@ -37,9 +37,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
       },
     });
   } catch (error) {
-    await Honeybadger.notifyAsync(error as Error, {
-      tags: ["auth", "upstream"],
-    });
+    await handleError(error as Error);
     console.error("NUSSO request error", error);
     return new Response(null, { status: 401 });
   }
