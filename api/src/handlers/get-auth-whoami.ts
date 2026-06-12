@@ -1,4 +1,4 @@
-import Honeybadger from "@honeybadger-io/js";
+import { handleError } from "./error-handler.ts";
 import type { Context } from "hono";
 import { errorMessage } from "../helpers.ts";
 import type { AppEnv } from "../types.ts";
@@ -10,7 +10,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
       headers: { "content-type": "application/json" },
     });
   } catch (error) {
-    await Honeybadger.notifyAsync(error as Error);
+    await handleError(error as Error);
     return new Response("Error verifying API token: " + errorMessage(error), {
       status: 401,
     });

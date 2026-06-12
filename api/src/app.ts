@@ -28,7 +28,9 @@ import middleware from "./handlers/middleware.ts";
 import status from "http-status-codes";
 import Honeybadger from "@honeybadger-io/js";
 import setupHoneybadger from "./honeybadger-setup.ts";
+import { handleError } from "./handlers/error-handler.ts";
 import type { AppEnv } from "./types.ts";
+import "source-map-support/register";
 
 type ErrorWithResponse = Error & {
   response?: {
@@ -48,9 +50,7 @@ app.use("*", async (c, next) => {
 
 app.onError(async (err: ErrorWithResponse, _c) => {
   setupHoneybadger(Honeybadger);
-  if (Honeybadger.config?.enableUncaught) {
-    await Honeybadger.notifyAsync(err);
-  }
+  await handleError(err);
 
   if (err.response?.status) {
     return new Response(err.response.body ?? null, {

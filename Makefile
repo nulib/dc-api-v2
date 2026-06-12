@@ -44,9 +44,13 @@ av-download: ./av-download/template.yaml ./av-download/lambdas/bun.lock $(wildca
 	sam build --cached --parallel
 	@mv chat/template.yaml.orig chat/template.yaml
 av-download/layers/ffmpeg/bin/ffmpeg:
-	mkdir -p av-download/layers/ffmpeg/bin ;\
-	curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | \
-	tar -C av-download/layers/ffmpeg/bin -xJ --strip-components=1 --wildcards '*/ffmpeg' '*/ffprobe'
+	mkdir -p av-download/layers/ffmpeg/bin && \
+	curl -L --fail --retry 3 --retry-delay 2 \
+	  -o /tmp/ffmpeg.tar.xz \
+	  https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+	tar -C av-download/layers/ffmpeg/bin -xJ --strip-components=1 \
+	  --wildcards '*/ffmpeg' '*/ffprobe' -f /tmp/ffmpeg.tar.xz && \
+	rm /tmp/ffmpeg.tar.xz
 deps-api:
 	bun install --cwd api
 deps-av-download:

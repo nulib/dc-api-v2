@@ -89,6 +89,10 @@ Conditions:
           - ""
   DeployChat:
     Fn::Equals: [!Ref DeployChat, "true"]
+  HoneybadgerDisabled:
+    Fn::Equals:
+      - !Ref HoneybadgerApiKey
+      - ""
   WriteSecret:
     Fn::Equals:
       - !Ref WriteConfigSecret
@@ -163,9 +167,22 @@ Resources:
           DEFAULT_SEARCH_SIZE: "100"
           DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
           ENV_PREFIX: !Ref EnvironmentPrefix
-          HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
-          HONEYBADGER_ENV: !Ref HoneybadgerEnv
-          HONEYBADGER_REVISION: !Ref HoneybadgerRevision
+          HONEYBADGER_DISABLED: !If [HoneybadgerDisabled, "true", "false"]
+          HONEYBADGER_API_KEY:
+            Fn::If:
+              - HoneybadgerDisabled
+              - AWS::NoValue
+              - !Ref HoneybadgerApiKey
+          HONEYBADGER_ENV:
+            Fn::If:
+              - HoneybadgerDisabled
+              - AWS::NoValue
+              - !Ref HoneybadgerEnv
+          HONEYBADGER_REVISION:
+            Fn::If:
+              - HoneybadgerDisabled
+              - AWS::NoValue
+              - !Ref HoneybadgerRevision
           MAGIC_LINK_EMAIL_TEMPLATE: !Ref magicLinkEmailTemplate
           PROVIDER_CAPABILITIES: !Ref ProviderCapabilities
           READING_ROOM_IPS: !Ref ReadingRoomIPs
