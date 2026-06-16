@@ -58,9 +58,9 @@ jobs:
           IS_DRAFT: ${{ inputs.draft }}
         run: |
           if [[ "$IS_DRAFT" == "true" ]]; then
-            TITLE="DC API ${CURRENT_TAG} (Draft Release)"
+            TITLE="🚀 DC API ${CURRENT_TAG} (Draft Release)"
           else
-            TITLE="DC API ${CURRENT_TAG} Released"
+            TITLE="🚀 DC API ${CURRENT_TAG} Released"
           fi
 
           PAYLOAD=$(jq -n \
