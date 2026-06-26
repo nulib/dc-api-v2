@@ -25,6 +25,7 @@ import { handler as chatFeedback } from "./handlers/post-chat-feedback.ts";
 import { handler as optionsRequest } from "./handlers/options-request.ts";
 import { handler as workSearch } from "./handlers/get-work-search.ts";
 import middleware from "./handlers/middleware.ts";
+import chaosMiddleware from "./handlers/chaos-middleware.ts";
 import status from "http-status-codes";
 import Honeybadger from "@honeybadger-io/js";
 import setupHoneybadger from "./honeybadger-setup.ts";
@@ -42,6 +43,7 @@ type ErrorWithResponse = Error & {
 
 const app = new Hono<AppEnv>();
 
+if (chaosMiddleware) app.use("*", chaosMiddleware);
 app.use("*", middleware);
 app.use("*", async (c, next) => {
   await next();
