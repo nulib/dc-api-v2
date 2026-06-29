@@ -40,6 +40,35 @@ The API will be available at:
 
 [View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documentation](https://api.dc.library.northwestern.edu/)
 
+### Chaos middleware
+
+The API supports simulated network effects (errors and delays) for local testing via the `CHAOS_CONFIG` environment variable. If the variable is absent the middleware is disabled entirely.
+
+Set it to an inline JSON array:
+
+```shell
+export CHAOS_CONFIG='[
+  { "pattern": "/works/:id", "effect": "error", "status": 500, "chance": 0.3 },
+  { "pattern": "/auth/whoami", "effect": "delay", "ms": 500 },
+  { "pattern": "/file-sets/*", "effect": "delay", "ms": [100, 800] }
+]'
+```
+
+Or set it to the path of a JSON file containing the same array:
+
+```shell
+export CHAOS_CONFIG=/path/to/chaos.json
+```
+
+Each rule has a `pattern` (matched against the request path) and an `effect`:
+
+| Effect | Fields | Behavior |
+|--------|--------|----------|
+| `error` | `status` (HTTP status code), `chance` (0–1) | Returns `{"error":"chaos"}` with the given status; fires `chance * 100`% of the time |
+| `delay` | `ms` (number or `[min, max]`) | Pauses for the given number of milliseconds (random within range if a tuple) |
+
+All matching rules are evaluated in order. Delay rules accumulate; an error rule short-circuits the request only when it fires — otherwise evaluation continues to the next rule.
+
 ## Example workflows
 
 ### Meadow
