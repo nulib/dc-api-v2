@@ -80,7 +80,12 @@ else
   # ---------------------------------------------------------------------------
   echo "==> Fetching merged PRs between ${PREVIOUS_TAG} and ${CURRENT_TAG}..."
 
-  PREVIOUS_TAG_DATE=$(git log -1 --format="%cI" "${PREVIOUS_TAG}")
+  # Get the date of the previous tag so we can filter PRs by merge date.
+  # Normalize to UTC so the jq string comparison works correctly against
+  # GitHub's Z-suffixed timestamps (a non-UTC offset like -07:00 would
+  # make "T15:...Z" > "T10:...-07:00" true even when the UTC time is later).
+  PREVIOUS_TAG_UNIX=$(git log -1 --format="%ct" "${PREVIOUS_TAG}")
+  PREVIOUS_TAG_DATE=$(date -u -d "@${PREVIOUS_TAG_UNIX}" "+%Y-%m-%dT%H:%M:%SZ")
   echo "    Previous tag date: ${PREVIOUS_TAG_DATE}"
 
   PR_RESPONSE=$(curl -s \
@@ -98,6 +103,7 @@ else
       {
         number: .number,
         title: .title,
+        body: (.body // ""),
         labels: [.labels[].name],
         merged_at: .merged_at
       }
@@ -136,9 +142,33 @@ else
       SUMMARY="This release contains dependency updates and infrastructure improvements only."
       PR_DETAIL_LIST=""
     else
-      PR_DETAIL_LIST=$(echo "$FILTERED_PRS" | jq -r '
-        .[] | "- #\(.number): \(.title)"
-      ')
+      PR_DETAIL_LIST=""
+      while IFS= read -r pr_json; do
+        number=$(echo "$pr_json" | jq -r '.number')
+        title=$(echo "$pr_json" | jq -r '.title')
+        body=$(echo "$pr_json" | jq -r '.body // ""')
+
+        # Extract text under the ## Summary header, stopping at the next ## section.
+        # Strip HTML comments and image markdown; collapse to a single line.
+        summary=$(echo "$body" | awk '
+          /^##+ Summary/{ found=1; next }
+          found && /^##/ { exit }
+          found { print }
+        ' | sed '/^<!--/,/-->/d; s/!\[[^]]*\]([^)]*)//g; s/<img[^>]*>//g; /^[[:space:]]*$/d' \
+          | head -5 | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+        # Fall back to the first few lines of the body if no Summary section found
+        if [[ -z "$summary" ]]; then
+          summary=$(echo "$body" | sed '/^<!--/,/-->/d; s/!\[[^]]*\]([^)]*)//g; s/<img[^>]*>//g; /^[[:space:]]*$/d; /^#/d' \
+            | head -3 | tr '\n' ' ' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        fi
+
+        if [[ -n "$summary" ]]; then
+          PR_DETAIL_LIST+="- #${number}: ${title}"$'\n'"  ${summary}"$'\n'
+        else
+          PR_DETAIL_LIST+="- #${number}: ${title}"$'\n'
+        fi
+      done < <(echo "$FILTERED_PRS" | jq -c '.[]')
     fi
   fi
 
