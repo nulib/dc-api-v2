@@ -210,6 +210,13 @@ Resources:
               Action:
                 - es:ESHttp*
               Resource: "*"
+            - Sid: SendMagicLinkEmail
+              Effect: Allow
+              Action:
+                - ses:SendTemplatedEmail
+              Resource:
+                - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${RepositoryEmail}"
+                - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:template/${AWS::StackName}-magic-link-template"
       Events:
         ApiEvent:
           Type: HttpApi
