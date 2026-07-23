@@ -54,7 +54,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -83,7 +83,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse("Forbidden", {
               status: 403,
@@ -154,7 +154,7 @@ describe("Thumbnail routes", () => {
             HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -184,7 +184,7 @@ describe("Thumbnail routes", () => {
           () => HttpResponse.json(work),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/3/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/3/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -211,7 +211,7 @@ describe("Thumbnail routes", () => {
             HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse("Forbidden", {
               status: 403,
@@ -302,7 +302,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -351,7 +351,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -380,7 +380,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -411,7 +411,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -522,7 +522,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -551,7 +551,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -605,7 +605,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -632,7 +632,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/1234/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse("Forbidden", {
               status: 403,
@@ -665,7 +665,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -697,7 +697,7 @@ describe("Thumbnail routes", () => {
             ),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -727,7 +727,7 @@ describe("Thumbnail routes", () => {
             HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!200,200/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!200,200/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -771,7 +771,7 @@ describe("Thumbnail routes", () => {
             HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/full/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_full.jpg"), {
               status: 200,
@@ -779,7 +779,7 @@ describe("Thumbnail routes", () => {
             }),
         ),
         http.get(
-          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/square/!300,300/0/default.jpg",
+          "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/square/%5E!300,300/0/default.jpg",
           () =>
             new HttpResponse(testFixtureBytes("mocks/thumbnail_square.jpg"), {
               status: 200,

@@ -18,7 +18,7 @@ export function buildImageResourceId(
   size = "!300,300",
   region = "full",
 ): string {
-  return `${normalizeImageServiceId(uri)}/${region}/${size}/0/default.jpg`;
+  return `${normalizeImageServiceId(uri)}/${region}/^${size}/0/default.jpg`;
 }
 
 export function normalizeImageServiceId(uri: string): string {
