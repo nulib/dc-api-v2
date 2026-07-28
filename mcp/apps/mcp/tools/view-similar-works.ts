@@ -36,7 +36,7 @@ export const handler = async (input: z.infer<typeof config.inputSchema>) => {
       }
     };
   } catch (error) {
-    handleToolError(error);
+    return handleToolError(error);
   }
 };
 

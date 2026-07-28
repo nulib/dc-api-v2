@@ -304,13 +304,15 @@ describe("MCP Server Integration Tests", () => {
 
   describe("error handling", () => {
     it("should handle invalid tool name", async () => {
-      const result = await context.client.callTool({
-        name: "nonexistent-tool",
-        arguments: {}
+      expect(
+        context.client.callTool({
+          name: "nonexistent-tool",
+          arguments: {}
+        })
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: expect.stringContaining("Tool nonexistent-tool not found")
       });
-      expect((result.content as any)[0].text).toBe(
-        "MCP error -32602: Tool nonexistent-tool not found"
-      );
     });
 
     it("should handle invalid parameters", async () => {

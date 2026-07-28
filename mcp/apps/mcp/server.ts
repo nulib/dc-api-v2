@@ -1,5 +1,5 @@
 import { DC_RESOURCE_ORIGINS } from "./config.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/server";
 import GetWorkTool from "./tools/get-work.js";
 import ListCollectionsTool from "./tools/list-collections.js";
 import SearchTool from "./tools/search-works.js";
@@ -13,11 +13,21 @@ import version from "./common/version.js";
 
 const CLOVER_RESOURCE_URI = "ui://clover-viewer/mcp-app.html";
 export const createServer = () => {
-  const server = new McpServer({
-    name: "dc-api-mcp",
-    description: "A MCP server for the Digital Collections API",
-    version
-  });
+  const server = new McpServer(
+    {
+      name: "dc-api-mcp",
+      description: "A MCP server for the Digital Collections API",
+      version
+    },
+    {
+      // Tool list and UI resource are static per deploy (SEP-2549 cache hints)
+      cacheHints: {
+        "tools/list": { ttlMs: 3_600_000, cacheScope: "public" },
+        "resources/list": { ttlMs: 3_600_000, cacheScope: "public" },
+        "resources/read": { ttlMs: 3_600_000, cacheScope: "public" }
+      }
+    }
+  );
 
   server.registerTool(SearchTool.name, SearchTool.config, SearchTool.handler);
 

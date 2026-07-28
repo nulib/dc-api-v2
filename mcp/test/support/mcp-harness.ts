@@ -1,25 +1,50 @@
 /**
- * Simpler test setup using openapi-fetch's custom fetch option
+ * MCP test harness
+ *
+ * Connects a v2 MCP client to the server through `createMcpHandler` — the
+ * same fetch-style handler the Lambda and Express entry points use — via an
+ * in-process `fetchFn` (no network, so MSW only sees the server's outbound
+ * Digital Collections API calls). The client pins the 2026-07-28 protocol
+ * revision so tests exercise the stateless protocol this server targets.
  */
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import {
+  Client,
+  StreamableHTTPClientTransport
+} from "@modelcontextprotocol/client";
+import {
+  createMcpHandler,
+  type McpServerFactory
+} from "@modelcontextprotocol/server";
 
 export interface McpTestContext {
   client: Client;
-  server: McpServer;
   cleanup: () => Promise<void>;
 }
 
 /**
  * Creates a test context with MCP server and client
+ *
+ * The factory parameter is loosely typed: apps/mcp is ESM while tests
+ * resolve CommonJS typings, so the two module graphs see different nominal
+ * McpServer identities even though the runtime class is the same.
  */
 export async function createTestContext(
-  createServer: () => McpServer
+  createServer: () => unknown
 ): Promise<McpTestContext> {
-  const server = createServer();
-  const [clientTransport, serverTransport] =
-    InMemoryTransport.createLinkedPair();
+  const handler = createMcpHandler(createServer as McpServerFactory);
+
+  // handler.fetch takes a Request object, not the (url, init) fetch call
+  // shape the client transport uses — normalize before handing off.
+  const normalizingFetch = (
+    input: string | URL | Request,
+    init?: RequestInit
+  ): Promise<Response> =>
+    handler.fetch(input instanceof Request ? input : new Request(input, init));
+
+  const transport = new StreamableHTTPClientTransport(
+    new URL("http://mcp.test/mcp"),
+    { fetch: normalizingFetch }
+  );
 
   const client = new Client(
     {
@@ -27,18 +52,16 @@ export async function createTestContext(
       version: "1.0.0"
     },
     {
-      capabilities: {}
+      versionNegotiation: { mode: { pin: "2026-07-28" } }
     }
   );
 
-  await Promise.all([
-    server.connect(serverTransport),
-    client.connect(clientTransport)
-  ]);
+  await client.connect(transport);
 
   const cleanup = async () => {
-    await Promise.all([client.close(), server.close()]);
+    await client.close();
+    await handler.close();
   };
 
-  return { client, server, cleanup };
+  return { client, cleanup };
 }

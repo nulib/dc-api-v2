@@ -13,7 +13,7 @@ import {
 import { buildQuery } from "../apps/mcp/common/works.js";
 import { isEnum } from "../apps/mcp/common/schemas.js";
 import * as z from "zod/v4";
-import { McpError } from "@modelcontextprotocol/sdk/types.js";
+import { ProtocolError } from "@modelcontextprotocol/server";
 
 describe("Pure Function Unit Tests", () => {
   describe("summarizeResults", () => {
@@ -252,7 +252,7 @@ describe("Pure Function Unit Tests", () => {
       errorSpy.mockRestore();
     });
 
-    it("should throw McpError with InvalidParams for ZodError", () => {
+    it("should throw ProtocolError with InvalidParams for ZodError", () => {
       const schema = z.object({
         name: z.string(),
         age: z.number()
@@ -263,7 +263,7 @@ describe("Pure Function Unit Tests", () => {
         } catch (error) {
           handleToolError(error);
         }
-      }).toThrow(McpError);
+      }).toThrow(ProtocolError);
       expect(errorSpy).toHaveBeenCalledTimes(1);
       expect(errorSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -274,14 +274,14 @@ describe("Pure Function Unit Tests", () => {
       );
     });
 
-    it("should throw McpError with InternalError for generic errors", () => {
+    it("should throw ProtocolError with InternalError for generic errors", () => {
       expect(() => {
         try {
           throw new Error("Generic Error");
         } catch (error) {
           handleToolError(error);
         }
-      }).toThrow(McpError);
+      }).toThrow(ProtocolError);
 
       expect(errorSpy).toHaveBeenCalledTimes(1);
       expect(errorSpy).toHaveBeenCalledWith(

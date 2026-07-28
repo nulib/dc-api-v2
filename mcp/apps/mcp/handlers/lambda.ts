@@ -1,5 +1,5 @@
 import { streamableHttpHandler } from "./lambdaStreamableHttp.js";
-import { createServer } from "../server.js";
+import { mcpHandler } from "./mcpHandler.js";
 process.setSourceMapsEnabled?.(true);
 
-export const handler = streamableHttpHandler(createServer());
+export const handler = streamableHttpHandler(mcpHandler);

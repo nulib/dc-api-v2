@@ -1,5 +1,8 @@
 import * as z from "zod/v4";
-import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import {
+  ProtocolError,
+  ProtocolErrorCode
+} from "@modelcontextprotocol/server";
 import { DC_API_BASE } from "../config.js";
 import { sharedResultSchema } from "./schemas.js";
 import * as lz from "lz-string";
@@ -47,12 +50,18 @@ export const buildIIIFSearchUrl = (
   return iiifUrl.toString();
 };
 
-export const handleToolError = (error: unknown) => {
+export const handleToolError = (error: unknown): never => {
   console.error(error);
   if (error instanceof z.ZodError) {
-    throw new McpError(ErrorCode.InvalidParams, z.prettifyError(error));
+    throw new ProtocolError(
+      ProtocolErrorCode.InvalidParams,
+      z.prettifyError(error)
+    );
   }
-  throw new McpError(ErrorCode.InternalError, (error as Error).toString());
+  throw new ProtocolError(
+    ProtocolErrorCode.InternalError,
+    (error as Error).toString()
+  );
 };
 
 export const trimMultilineString = (str: string) =>
