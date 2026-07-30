@@ -275,7 +275,7 @@ Resources:
                 - dynamodb:DeleteItem
               Resource: !GetAtt RateLimitTable.Arn
     Metadata:
-      BuildMethod: nodejs20.x
+      BuildMethod: nodejs24.x
   ChatSyncFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -344,7 +344,7 @@ Resources:
                 - dynamodb:DeleteItem
               Resource: !GetAtt RateLimitTable.Arn
     Metadata:
-      BuildMethod: nodejs20.x
+      BuildMethod: nodejs24.x
   RateLimitTable:
     Type: AWS::DynamoDB::Table
     Properties:
