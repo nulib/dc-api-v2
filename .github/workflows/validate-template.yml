@@ -13,6 +13,7 @@ jobs:
         contents: read
       environment: test
       steps:
+        - uses: oven-sh/setup-bun@v2
         - uses: actions/setup-python@v4
           with:
             python-version: '3.12' 
