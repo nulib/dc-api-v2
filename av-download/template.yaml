@@ -384,7 +384,7 @@ Resources:
   startTranscodeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       CodeUri: ./lambdas
       Handler: start-transcode.handler
       Description: Creates MediaConvert Job to transcode HLS stream
@@ -412,7 +412,7 @@ Resources:
   transcodeStatusFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       CodeUri: ./lambdas
       Handler: transcode-status.handler
       Description: Determines when transcode job has completed or errored
@@ -433,7 +433,7 @@ Resources:
   getDownloadLinkFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       CodeUri: ./lambdas
       Handler: get-download-link.handler
       Description: Generates public-read download link
@@ -454,7 +454,7 @@ Resources:
   sendTemplatedEmailFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: nodejs20.x
+      Runtime: nodejs24.x
       CodeUri: ./lambdas
       Handler: send-templated-email.handler
       Description: Sends email

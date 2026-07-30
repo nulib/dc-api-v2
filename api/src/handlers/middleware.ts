@@ -94,6 +94,7 @@ const encoding = createMiddleware(async (c, next) => {
   await next();
   const contentType = c.res.headers.get("content-type");
 
+  c.res.headers.set("vary", "Accept");
   if (!contentType) {
     c.res.headers.set("content-type", `application/json; charset=UTF-8`);
   } else {

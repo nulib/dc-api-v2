@@ -111,6 +111,7 @@ describe("Retrieve work by id", () => {
       expect(result.headers.get("content-type") ?? "").toMatch(
         /application\/json.*charset=UTF-8/i,
       );
+      expect(result.headers.get("vary") ?? "").toMatch(/Accept/i);
 
       const body = await result.json();
       expect(body.type).toEqual("Manifest");
