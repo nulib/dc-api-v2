@@ -171,17 +171,17 @@ Resources:
           HONEYBADGER_API_KEY:
             Fn::If:
               - HoneybadgerDisabled
-              - AWS::NoValue
+              - !Ref AWS::NoValue
               - !Ref HoneybadgerApiKey
           HONEYBADGER_ENV:
             Fn::If:
               - HoneybadgerDisabled
-              - AWS::NoValue
+              - !Ref AWS::NoValue
               - !Ref HoneybadgerEnv
           HONEYBADGER_REVISION:
             Fn::If:
               - HoneybadgerDisabled
-              - AWS::NoValue
+              - !Ref AWS::NoValue
               - !Ref HoneybadgerRevision
           MAGIC_LINK_EMAIL_TEMPLATE: !Ref magicLinkEmailTemplate
           PROVIDER_CAPABILITIES: !Ref ProviderCapabilities
