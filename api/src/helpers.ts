@@ -43,6 +43,7 @@ export const ExposedHeaders = [
   "Expires",
   "Last-Modified",
   "Pragma",
+  "Vary",
 ];
 
 export async function decodeToken(c: Context): Promise<ApiToken> {
