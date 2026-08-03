@@ -148,7 +148,11 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
       const { iiifContentUrl } = result.structuredContent as any;
       expect(iiifContentUrl).toContain("searchToken=");
@@ -191,8 +195,12 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
       expect(result.content[0].text).toContain(KNOWN_WORK_ID);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
     });
   });
@@ -209,7 +217,11 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
       const { iiifContentUrl } = result.structuredContent as any;
       expect(iiifContentUrl).toContain("searchToken=");
@@ -228,8 +240,12 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
       expect(result.content[0].text).toContain(KNOWN_COLLECTION_ID);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
     });
   });

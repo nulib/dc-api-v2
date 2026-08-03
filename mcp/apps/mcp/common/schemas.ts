@@ -219,6 +219,10 @@ export const collectionResultsSchema = z.object({
   ...sharedResultSchema.shape
 });
 
+export const iiifContentSchema = z.object({
+  iiifContentUrl: z.url().describe("A URL to a IIIF manifest or collection")
+});
+
 export const isEnum = (field: any): boolean => {
   if (field.def.innerType) return isEnum(field.def.innerType);
   return field.def.type === "enum";

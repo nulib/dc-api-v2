@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { components } from "../api-schema.d.js";
 import { getWork } from "../dc-api.js";
+import { iiifContentSchema } from "../common/schemas.js";
 
 export const name = "view-work";
 export const config = {
@@ -10,6 +11,7 @@ export const config = {
   inputSchema: z.object({
     work_id: z.string().describe("The ID of the work to view")
   }),
+  outputSchema: iiifContentSchema,
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,
@@ -25,16 +27,21 @@ export const handler = async ({
   const { id, title, iiif_manifest } =
     work?.data as components["schemas"]["Work"];
 
+  const structuredContent = {
+    iiifContentUrl: iiif_manifest
+  };
   return {
     content: [
       {
         type: "text" as const,
         text: `${id} - "${title}"`
+      },
+      {
+        type: "text" as const,
+        text: JSON.stringify(structuredContent)
       }
     ],
-    structuredContent: {
-      iiifContentUrl: iiif_manifest
-    }
+    structuredContent
   };
 };
 
