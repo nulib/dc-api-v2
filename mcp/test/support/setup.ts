@@ -20,7 +20,15 @@ if (process.env.MSW_MODE === "replay") {
     console.log("Replaying HTTP interactions from fixtures...");
     const handlers = [...fromTraffic(traffic)] as unknown as Parameters<typeof setupServer>;
     const server = setupServer(...handlers);
-    server.listen({ onUnhandledRequest: "error" });
+    server.listen({
+      onUnhandledRequest: (request, print) => {
+        // Tests exercise the local Express bridge over real HTTP; let
+        // loopback traffic through and only error on unmocked external calls.
+        const { hostname } = new URL(request.url);
+        if (hostname === "localhost" || hostname === "127.0.0.1") return;
+        print.error();
+      }
+    });
   } else {
     console.log("No HAR fixtures found, running against live API...");
   }

@@ -148,7 +148,11 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
       const { iiifContentUrl } = result.structuredContent as any;
       expect(iiifContentUrl).toContain("searchToken=");
@@ -191,8 +195,12 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
       expect(result.content[0].text).toContain(KNOWN_WORK_ID);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
     });
   });
@@ -209,7 +217,11 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
       const { iiifContentUrl } = result.structuredContent as any;
       expect(iiifContentUrl).toContain("searchToken=");
@@ -228,8 +240,12 @@ describe("MCP Server Integration Tests", () => {
         }
       });
 
-      expect(result.content).toHaveLength(1);
+      expect(result.content).toHaveLength(2);
       expect(result.content[0].text).toContain(KNOWN_COLLECTION_ID);
+      expect(result.content[1].type).toBe("text");
+      expect(JSON.parse(result.content[1].text)).toEqual(
+        result.structuredContent
+      );
       expect(result.structuredContent).toHaveProperty("iiifContentUrl");
     });
   });
@@ -304,13 +320,15 @@ describe("MCP Server Integration Tests", () => {
 
   describe("error handling", () => {
     it("should handle invalid tool name", async () => {
-      const result = await context.client.callTool({
-        name: "nonexistent-tool",
-        arguments: {}
+      expect(
+        context.client.callTool({
+          name: "nonexistent-tool",
+          arguments: {}
+        })
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: expect.stringContaining("Tool nonexistent-tool not found")
       });
-      expect((result.content as any)[0].text).toBe(
-        "MCP error -32602: Tool nonexistent-tool not found"
-      );
     });
 
     it("should handle invalid parameters", async () => {

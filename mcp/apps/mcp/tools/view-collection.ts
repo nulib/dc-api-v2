@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { components } from "../api-schema.d.js";
 import { getCollection } from "../dc-api.js";
+import { iiifContentSchema } from "../common/schemas.js";
 
 export const name = "view-collection";
 export const config = {
@@ -10,6 +11,7 @@ export const config = {
   inputSchema: z.object({
     collection_id: z.string().describe("The ID of the collection to view")
   }),
+  outputSchema: iiifContentSchema,
   annotations: {
     readOnlyHint: true,
     destructiveHint: false,
@@ -23,16 +25,22 @@ export const handler = async ({ collection_id }: { collection_id: string }) => {
   const { id, title, iiif_collection } =
     collection?.data as components["schemas"]["Collection"];
 
+  const structuredContent = {
+    iiifContentUrl: iiif_collection
+  };
+
   return {
     content: [
       {
         type: "text" as const,
         text: `${id} - "${title}"`
+      },
+      {
+        type: "text" as const,
+        text: JSON.stringify(structuredContent)
       }
     ],
-    structuredContent: {
-      iiifContentUrl: iiif_collection
-    }
+    structuredContent
   };
 };
 

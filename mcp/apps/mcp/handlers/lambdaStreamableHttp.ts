@@ -3,8 +3,7 @@ import {
   APIGatewayProxyResultV2,
   Context
 } from "aws-lambda";
-import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { McpHttpHandler } from "@modelcontextprotocol/server";
 
 function makeRequest(event: APIGatewayProxyEventV2): Request {
   const headers = new Headers();
@@ -43,10 +42,10 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, Mcp-Session-Id, Mcp-Protocol-Version"
+    "Content-Type, Authorization, Mcp-Method, Mcp-Name, MCP-Protocol-Version"
 };
 
-export const streamableHttpHandler = (server: McpServer) => {
+export const streamableHttpHandler = (mcpHandler: McpHttpHandler) => {
   return async (
     event: APIGatewayProxyEventV2,
     _context: Context
@@ -55,14 +54,8 @@ export const streamableHttpHandler = (server: McpServer) => {
       return { statusCode: 204, headers: corsHeaders, body: "" };
     }
 
-    const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined // stateless
-    });
-
     try {
-      const req = makeRequest(event);
-      await server.connect(transport);
-      const res = await transport.handleRequest(req);
+      const res = await mcpHandler.fetch(makeRequest(event));
       return {
         statusCode: res.status,
         headers: {
@@ -74,9 +67,6 @@ export const streamableHttpHandler = (server: McpServer) => {
     } catch (err) {
       console.error(err);
       throw err;
-    } finally {
-      transport.close();
-      server.close();
     }
   };
 };

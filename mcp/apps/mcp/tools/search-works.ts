@@ -44,7 +44,7 @@ export const handler = async (input: z.infer<typeof workSearchSchema>) => {
       structuredContent
     };
   } catch (error) {
-    handleToolError(error);
+    return handleToolError(error);
   }
 };
 
