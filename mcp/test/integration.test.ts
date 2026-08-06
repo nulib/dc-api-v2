@@ -292,6 +292,28 @@ describe("MCP Server Integration Tests", () => {
       expect(response).toHaveProperty("pagination");
       expect(Array.isArray(response.data)).toBe(true);
     });
+
+    it("should extract the work ID from a URI if necessary", async () => {
+      const workId =
+        "https://api.dc.library.northwestern.edu/api/v2/works/6464c86a-29e0-4aeb-ac5c-8e1c9bb0dfc2?as=iiif";
+
+      const result = await context.client.callTool({
+        name: "similarity-search",
+        arguments: {
+          work_id: workId,
+          max_results: 5,
+          page: 1,
+          public_only: true
+        }
+      });
+
+      expect(result.content).toHaveLength(1);
+      const response = JSON.parse((result.content[0] as any).text);
+
+      expect(response).toHaveProperty("data");
+      expect(response).toHaveProperty("pagination");
+      expect(Array.isArray(response.data)).toBe(true);
+    });
   });
 
   describe("tool listing", () => {
