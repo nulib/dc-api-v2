@@ -19,6 +19,9 @@ const ControlledFields = [
   "technique"
 ];
 
+const UUID_REGEX =
+  /[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i;
+
 export const controlledFieldList = (conjunction = "and") =>
   ControlledFields.slice(0, -1).join(", ") +
   `, ${conjunction} ` +
@@ -181,6 +184,8 @@ export const similarityworkSearchSchema = z.object({
 export const buildSimilaritySearchQuery = async (
   input: z.infer<typeof similarityworkSearchSchema>
 ) => {
+  const id = input.work_id.match(UUID_REGEX)?.[0] || input.work_id;
+  
   const mlt_query = {
     more_like_this: {
       fields: [
@@ -193,7 +198,7 @@ export const buildSimilaritySearchQuery = async (
       ],
       like: [
         {
-          _id: input.work_id
+          _id: id
         }
       ],
       max_query_terms: 10,
@@ -202,7 +207,7 @@ export const buildSimilaritySearchQuery = async (
     }
   };
 
-  const doc = await getWork(input.work_id, true);
+  const doc = await getWork(id, true);
   const work = doc?.data as components["schemas"]["Work"];
   const embedding = work?.embedding;
 
@@ -216,7 +221,7 @@ export const buildSimilaritySearchQuery = async (
           filter: {
             bool: {
               must_not: {
-                ids: { values: [input.work_id] }
+                ids: { values: [id] }
               }
             }
           }
