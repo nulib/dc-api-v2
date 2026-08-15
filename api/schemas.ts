@@ -325,6 +325,8 @@ export interface components {
             published: boolean;
             /** @description An entity responsible for making the resource available. */
             publisher: string[];
+            /** @description Description of materials related to the resource. */
+            related_material: string[];
             /** @description URL of a related resource. */
             related_url: {
                 /** Format: uri */

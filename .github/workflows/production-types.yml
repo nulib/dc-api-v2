@@ -31,11 +31,7 @@ jobs:
         with:
           path: "${{ env.TMP_SRCDIR }}"
           fetch-depth: 1
-      - uses: actions/setup-node@v4
-        with:
-          cache-dependency-path: "${{ env.TMP_SRCDIR }}/api/package-lock.json"
-          node-version: 20.x
-          cache: "npm"
+      - uses: oven-sh/setup-bun@v2
       - name: Set short git commit SHA
         working-directory: "${{ env.TMP_SRCDIR }}"
         id: short-sha
@@ -49,8 +45,8 @@ jobs:
       - name: Generate Typescript file
         working-directory: "${{ env.TMP_SRCDIR }}/api"
         run: |
-          npm ci
-          npx openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
+          bun install
+          bun run schemas
       - name: Checkout nulib/dcapi-types
         uses: actions/checkout@v3
         with:
