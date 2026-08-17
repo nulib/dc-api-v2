@@ -18,7 +18,7 @@
       "devDependencies": {
         "@modelcontextprotocol/client": "^2.0.0",
         "@msw/source": "^0.6.1",
-        "@nulib/clover-mcp": "^0.2.0",
+        "@nulib/clover-mcp": "^0.3.0",
         "@types/aws-lambda": "^8.10.161",
         "@types/bun": "latest",
         "@types/cors": "^2.8.19",
@@ -201,7 +201,7 @@
 
     "@mswjs/interceptors": ["@mswjs/interceptors@0.40.0", "", { "dependencies": { "@open-draft/deferred-promise": "^2.2.0", "@open-draft/logger": "^0.3.0", "@open-draft/until": "^2.0.0", "is-node-process": "^1.2.0", "outvariant": "^1.4.3", "strict-event-emitter": "^0.5.1" } }, "sha512-EFd6cVbHsgLa6wa4RljGj6Wk75qoHxUSyc5asLyyPSyuhIcdS2Q3Phw6ImS1q+CkALthJRShiYfKANcQMuMqsQ=="],
 
-    "@nulib/clover-mcp": ["@nulib/clover-mcp@0.2.0", "", { "peerDependencies": { "@modelcontextprotocol/server": "^2.0.0" } }, "sha512-MelJPLvB0DDdjRaIeHkDy87vq5WXgER8PwtiLi9iFVH0B7226TeiHajB04VzT0Hk3cmGZqFBH445P4xsIayMbw=="],
+    "@nulib/clover-mcp": ["@nulib/clover-mcp@0.3.0", "", { "peerDependencies": { "@modelcontextprotocol/server": "^2.0.0" } }, "sha512-Cie5fZ+Rqb3x6mEmiQ6noi6vg/b7z9wJNoCq5AIUGoAotZM2X+ZoJ/MAU1rKNz2pbDAsblHpLV6OODeOW9UgCw=="],
 
     "@nulib/dcapi-types": ["@nulib/dcapi-types@2.9.1", "", {}, "sha512-XBM+a24rdi1D2jVZS/8c99dilfS4am620zq2CWDMYoqftPvCf/+tsw47gTF/XjgRz44ZGihSz6rC73HB0SYFug=="],
 
