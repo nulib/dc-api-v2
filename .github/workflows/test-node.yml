@@ -25,6 +25,8 @@ jobs:
         run: bun run test:coverage
       - name: Validate OpenAPI spec
         run: bun run validate-spec
+      - name: Check generated schema types are current
+        run: bun run schemas:check
   test-mcp:
     runs-on: ubuntu-latest
     defaults:

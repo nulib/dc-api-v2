@@ -371,6 +371,7 @@ paths:
             type: string
             enum:
               - oai_dc
+              - mods
         - name: from
           description: Optional for `ListRecords` and `ListIdentifiers` requests, based on a record's modified date. Accepted formats `YYYY-MM-DD` or `YYYY-MM-DDThh:mm:ssZ`
           in: query
@@ -423,7 +424,7 @@ paths:
                   description: Required for `GetRecord` requests
                   type: string
                 metadataPrefix:
-                  description: Required for `ListIdentifiers`, `ListRecords`, and `GetRecord` requests. The only supported value is `"oai_dc"` currently.
+                  description: Required for `ListIdentifiers`, `ListRecords`, and `GetRecord` requests. Supported values are `"oai_dc"` and `"mods"`.
                   type: string
                 resumptionToken:
                   description: Exclusive parameter for retrieving additional results

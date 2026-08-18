@@ -2,12 +2,18 @@ import { invalidOaiRequest, output } from "../oai/xml-transformer.ts";
 import { earliestRecord, oaiSearch, oaiSets } from "../oai/search.ts";
 import { deleteScroll, getWork, scroll } from "../../api/opensearch.ts";
 import { formatOaiDate } from "./date-utils.ts";
+import {
+  MODS_NAMESPACE,
+  MODS_SCHEMA,
+  modsTransform,
+} from "./mods-transformer.ts";
 import type {
   OpenSearchGetResponse,
   OpenSearchSearchResponse,
 } from "../../api/opensearch-types.ts";
+import type { Collection, Work } from "../../dcapi-types.ts";
 
-const fieldMapper: Record<string, string> = {
+const fieldMapper: Partial<Record<keyof Work, string>> = {
   contributor: "dc:contributor",
   create_date: "dc:date",
   description: "dc:description",
@@ -23,6 +29,39 @@ const fieldMapper: Record<string, string> = {
   subject: "dc:subject",
   work_type: "dc:type",
 };
+
+const SUPPORTED_METADATA_PREFIXES = ["oai_dc", "mods"];
+
+const unsupportedMetadataPrefix = (metadataPrefix: string): Response =>
+  invalidOaiRequest(
+    "cannotDisseminateFormat",
+    `The metadata format identified by '${metadataPrefix}' is not supported by this repository`,
+  );
+
+// Scroll-based resumptionTokens carry no format information of their own, so
+// non-default formats are prepended to the token (e.g. "mods:<scrollId>").
+// A bare token is an oai_dc scroll id, which keeps old tokens valid.
+function encodeResumptionToken(
+  scrollId: string,
+  metadataPrefix: string,
+): string {
+  if (!scrollId || metadataPrefix === "oai_dc") return scrollId;
+  return `${metadataPrefix}:${scrollId}`;
+}
+
+function decodeResumptionToken(token: string): {
+  scrollId: string;
+  metadataPrefix: string;
+} {
+  const separator = token.indexOf(":");
+  if (separator > -1) {
+    const prefix = token.slice(0, separator);
+    if (SUPPORTED_METADATA_PREFIXES.includes(prefix)) {
+      return { scrollId: token.slice(separator + 1), metadataPrefix: prefix };
+    }
+  }
+  return { scrollId: token, metadataPrefix: "oai_dc" };
+}
 
 const oaiAttributes = {
   xmlns: "http://www.openarchives.org/OAI/2.0/",
@@ -77,30 +116,37 @@ function extractSingleValue(
   }
 }
 
-function header(work: Record<string, unknown>): Record<string, unknown> {
+function header(work: Work): Record<string, unknown> {
   let fields: Record<string, unknown> = {
     identifier: work.id,
-    datestamp: formatOaiDate(work.modified_date as string),
+    datestamp: formatOaiDate(work.modified_date),
   };
 
-  if (work?.collection && Object.keys(work.collection as object).length > 0) {
-    fields = {
-      ...fields,
-      setSpec: (work.collection as Record<string, unknown>).id,
-    };
+  if (work.collection && Object.keys(work.collection).length > 0) {
+    fields = { ...fields, setSpec: work.collection.id };
   }
 
   return fields;
 }
 
-function transform(work: Record<string, unknown>): Record<string, unknown> {
-  const filteredWork = Object.keys(work)
+function transform(
+  work: Work,
+  metadataPrefix = "oai_dc",
+): Record<string, unknown> {
+  const metadata =
+    metadataPrefix === "mods" ? modsTransform(work) : oaiDcTransform(work);
+  return { header: { ...header(work) }, metadata };
+}
+
+function oaiDcTransform(work: Work): Record<string, unknown> {
+  const filteredWork = (Object.keys(work) as (keyof Work)[])
     .filter((key) => Object.keys(fieldMapper).includes(key))
     .reduce((obj: Record<string, unknown>, key) => {
       const dcFieldName = fieldMapper[key];
       const extractedValue = extractDcValue(key, work[key]);
 
       if (
+        dcFieldName &&
         extractedValue !== null &&
         extractedValue !== undefined &&
         !(Array.isArray(extractedValue) && extractedValue.length === 0)
@@ -111,42 +157,38 @@ function transform(work: Record<string, unknown>): Record<string, unknown> {
       return obj;
     }, {});
 
-  const metadata = {
-    metadata: {
-      "oai_dc:dc": {
-        _attributes: {
-          "xmlns:oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
-          "xmlns:dc": "http://purl.org/dc/elements/1.1/",
-          "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
-          "xsi:schemaLocation":
-            "http://www.openarchives.org/OAI/2.0/oai_dc/\nhttp://www.openarchives.org/OAI/2.0/oai_dc.xsd",
-        },
-        ...filteredWork,
+  return {
+    "oai_dc:dc": {
+      _attributes: {
+        "xmlns:oai_dc": "http://www.openarchives.org/OAI/2.0/oai_dc/",
+        "xmlns:dc": "http://purl.org/dc/elements/1.1/",
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xsi:schemaLocation":
+          "http://www.openarchives.org/OAI/2.0/oai_dc/\nhttp://www.openarchives.org/OAI/2.0/oai_dc.xsd",
       },
+      ...filteredWork,
     },
   };
-
-  return { header: { ...header(work) }, ...metadata };
 }
 
 export const getRecord = async (
   url: string,
   id: string | undefined,
+  metadataPrefix = "oai_dc",
 ): Promise<Response> => {
   if (!id)
     return invalidOaiRequest(
       "badArgument",
       "You must supply an identifier for GetRecord requests",
     );
+  if (!SUPPORTED_METADATA_PREFIXES.includes(metadataPrefix))
+    return unsupportedMetadataPrefix(metadataPrefix);
 
   const esResponse = await getWork(id);
   if (esResponse.status === 200) {
-    const work = (
-      JSON.parse(esResponse.body) as OpenSearchGetResponse<
-        Record<string, unknown>
-      >
-    )._source!;
-    const record = transform(work);
+    const work = (JSON.parse(esResponse.body) as OpenSearchGetResponse<Work>)
+      ._source!;
+    const record = transform(work, metadataPrefix);
     const document = {
       "OAI-PMH": {
         _attributes: oaiAttributes,
@@ -155,7 +197,7 @@ export const getRecord = async (
           _attributes: {
             verb: "GetRecord",
             identifier: id,
-            metadataPrefix: "oai_dc",
+            metadataPrefix,
           },
           _text: url,
         },
@@ -206,15 +248,22 @@ export const listIdentifiers = async (
       "Missing required metadataPrefix argument",
     );
   }
-  const response =
+  if (metadataPrefix && !SUPPORTED_METADATA_PREFIXES.includes(metadataPrefix))
+    return unsupportedMetadataPrefix(metadataPrefix);
+
+  const decodedToken =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
-      ? await scroll(resumptionToken)
-      : await oaiSearch(dates, set);
+      ? decodeResumptionToken(resumptionToken)
+      : undefined;
+  const format = decodedToken?.metadataPrefix ?? metadataPrefix ?? "oai_dc";
+  const response = decodedToken
+    ? await scroll(decodedToken.scrollId)
+    : await oaiSearch(dates, set);
 
   if (response.status === 200) {
-    const responseBody = JSON.parse(response.body) as OpenSearchSearchResponse<
-      Record<string, unknown>
-    >;
+    const responseBody = JSON.parse(
+      response.body,
+    ) as OpenSearchSearchResponse<Work>;
     const {
       hits: { hits },
     } = responseBody;
@@ -232,7 +281,7 @@ export const listIdentifiers = async (
           (response as { expiration?: string }).expiration,
         ),
       },
-      _text: scrollId,
+      _text: encodeResumptionToken(scrollId, format),
     };
     const obj = {
       "OAI-PMH": {
@@ -276,11 +325,18 @@ export const listMetadataFormats = (url: string): Response => {
       responseDate: formatOaiDate(new Date()),
       request: { _attributes: { verb: "ListMetadataFormats" }, _text: url },
       ListMetadataFormats: {
-        metadataFormat: {
-          metadataPrefix: "oai_dc",
-          schema: "http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
-          metadataNamespace: "http://www.openarchives.org/OAI/2.0/oai_dc/",
-        },
+        metadataFormat: [
+          {
+            metadataPrefix: "oai_dc",
+            schema: "http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
+            metadataNamespace: "http://www.openarchives.org/OAI/2.0/oai_dc/",
+          },
+          {
+            metadataPrefix: "mods",
+            schema: MODS_SCHEMA,
+            metadataNamespace: MODS_NAMESPACE,
+          },
+        ],
       },
     },
   };
@@ -300,15 +356,22 @@ export const listRecords = async (
       "Missing required metadataPrefix argument",
     );
   }
-  const response =
+  if (metadataPrefix && !SUPPORTED_METADATA_PREFIXES.includes(metadataPrefix))
+    return unsupportedMetadataPrefix(metadataPrefix);
+
+  const decodedToken =
     typeof resumptionToken === "string" && resumptionToken.length !== 0
-      ? await scroll(resumptionToken)
-      : await oaiSearch(dates, set);
+      ? decodeResumptionToken(resumptionToken)
+      : undefined;
+  const format = decodedToken?.metadataPrefix ?? metadataPrefix ?? "oai_dc";
+  const response = decodedToken
+    ? await scroll(decodedToken.scrollId)
+    : await oaiSearch(dates, set);
 
   if (response.status === 200) {
-    const responseBody = JSON.parse(response.body) as OpenSearchSearchResponse<
-      Record<string, unknown>
-    >;
+    const responseBody = JSON.parse(
+      response.body,
+    ) as OpenSearchSearchResponse<Work>;
     const {
       hits: { hits },
     } = responseBody;
@@ -319,14 +382,14 @@ export const listRecords = async (
       scrollId = "";
     }
 
-    const records = hits.map((hit) => transform(hit._source));
+    const records = hits.map((hit) => transform(hit._source, format));
     const resumptionTokenElement = {
       _attributes: {
         expirationDate: formatOaiDate(
           (response as { expiration?: string }).expiration,
         ),
       },
-      _text: scrollId,
+      _text: encodeResumptionToken(scrollId, format),
     };
     const obj = {
       "OAI-PMH": {
@@ -361,7 +424,7 @@ export const listSets = async (url: string): Promise<Response> => {
   const response = await oaiSets();
   if (response.status === 200) {
     const responseBody = JSON.parse(response.body) as OpenSearchSearchResponse<
-      Record<string, unknown>
+      Pick<Collection, "id" | "title">
     >;
     const {
       hits: { hits },

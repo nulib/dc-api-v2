@@ -14,6 +14,8 @@
     "lint": "eslint src test",
     "prettier": "prettier -c src test",
     "prettier:fix": "prettier -cw src test",
+    "schemas": "openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts",
+    "schemas:check": "openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts --check",
     "validate-spec": "bunx @openapitools/openapi-generator-cli validate -i ../docs/docs/spec/openapi.yaml"
   },
   "dependencies": {
@@ -53,6 +55,7 @@
     "bun-types": "latest",
     "eslint": "^9",
     "msw": "^2.0.0",
+    "openapi-typescript": "^7.13.0",
     "prettier": "^3",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.59.3"

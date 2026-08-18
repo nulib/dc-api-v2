@@ -18,6 +18,7 @@ import {
   teardownEnv,
   testFixture,
 } from "../test-helpers/index.ts";
+import { formatOaiDate } from "../../src/handlers/oai/date-utils.ts";
 
 const SCROLL_TOKEN =
   "FGluY2x1ZGVfY29udGV4dF91dWlkDXF1ZXJ5QW5kRmV0Y2gBFm1jN3ZCajdnUURpbUhad1hIYnNsQmcAAAAAAAB2DhZXbmtMZVF5Q1JsMi1ScGRsYUlHLUtB";
@@ -32,6 +33,12 @@ const xmlOpts = {
 function parseXml(text: string): any {
   return xmlJs.xml2js(text, xmlOpts);
 }
+
+describe("formatOaiDate", () => {
+  it("returns undefined for an invalid Date object", () => {
+    expect(formatOaiDate(new Date("invalid"))).toBeUndefined();
+  });
+});
 
 describe("Oai routes", () => {
   const server = setupServer();
@@ -88,10 +95,33 @@ describe("Oai routes", () => {
       expect("dc:type" in metadata).toBe(true);
     });
 
-    it("properly extracts values from complex fields for GetRecord", async () => {
+    it("strips fractional seconds from datestamps that cannot be parsed as dates", async () => {
+      const work = JSON.parse(testFixture("mocks/work-1234.json"));
+      work._source.modified_date = "9999-99-99T99:99:99.123456Z";
       server.use(
         http.get(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_doc/1234`, () =>
-          HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
+          HttpResponse.json(work),
+        ),
+      );
+
+      const req = buildRequest("POST", "/oai", {
+        body: "verb=GetRecord&identifier=1234&metadataPrefix=oai_dc",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const resultBody = parseXml(await result.text());
+      const header = resultBody["OAI-PMH"].GetRecord.record.header;
+      expect(header.datestamp._text).toEqual("9999-99-99T99:99:99Z");
+    });
+
+    it("properly extracts values from complex fields for GetRecord", async () => {
+      const work = JSON.parse(testFixture("mocks/work-1234.json"));
+      work._source.work_type = { label: "Sound" };
+      server.use(
+        http.get(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_doc/1234`, () =>
+          HttpResponse.json(work),
         ),
       );
 
@@ -147,6 +177,322 @@ describe("Oai routes", () => {
 
       // Verify rights contains label
       expect(metadata["dc:rights"]._text.includes("Copyright")).toBe(true);
+
+      // Verify object fields without special handling fall back to label
+      expect(metadata["dc:type"]._text).toEqual("Sound");
+    });
+
+    it("supports the mods metadataPrefix for the GetRecord verb", async () => {
+      server.use(
+        http.get(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_doc/1234`, () =>
+          HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
+        ),
+      );
+
+      const req = buildRequest("POST", "/oai", {
+        body: "verb=GetRecord&identifier=1234&metadataPrefix=mods",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(result.headers.get("content-type") ?? "").toMatch(
+        /application\/xml/,
+      );
+
+      const resultBody = parseXml(await result.text());
+      expect(resultBody["OAI-PMH"].request._attributes.metadataPrefix).toEqual(
+        "mods",
+      );
+
+      const record = resultBody["OAI-PMH"].GetRecord.record;
+      expect("identifier" in record.header).toBe(true);
+      const mods = record.metadata["mods:mods"];
+      expect(typeof mods === "object").toBe(true);
+      expect(mods._attributes["xmlns:mods"]).toEqual(
+        "http://www.loc.gov/mods/v3",
+      );
+
+      // titleInfo: main title plus alternate_title and caption as alternatives
+      expect(mods["mods:titleInfo"].length).toEqual(3);
+      expect(mods["mods:titleInfo"][0]["mods:title"]._text).toEqual(
+        "Canary Record TEST 1",
+      );
+      expect(mods["mods:titleInfo"][1]._attributes.type).toEqual("alternative");
+      expect(mods["mods:titleInfo"][1]["mods:title"]._text).toEqual(
+        "This is an alternative title",
+      );
+      expect(mods["mods:titleInfo"][2]["mods:title"]._text).toEqual("Beebo");
+
+      // names: creators first (default role Creator), then contributors with
+      // their own roles; valueURI carries the authority URI
+      const names = mods["mods:name"];
+      expect(names[0]._attributes.valueURI).toEqual(
+        "http://id.loc.gov/authorities/names/no2011059409",
+      );
+      expect(names[0]["mods:namePart"]._text).toEqual("Dessa (Vocalist)");
+      expect(names[0]["mods:displayForm"]._text).toEqual("Dessa (Vocalist)");
+      expect(names[0]["mods:role"]["mods:roleTerm"]._text).toEqual("Creator");
+      const metallica = names.find(
+        (n: { [key: string]: { _text: string } }) =>
+          n["mods:namePart"]._text === "Metallica (Musical group)",
+      );
+      expect(metallica["mods:role"]["mods:roleTerm"]._text).toEqual(
+        "Cartographer",
+      );
+
+      // typeOfResource from work_type
+      expect(mods["mods:typeOfResource"]._text).toEqual("still image");
+      expect(mods["mods:typeOfResource"]._attributes.valueURI).toEqual(
+        "https://www.loc.gov/standards/mods/userguide/typeofresource/img",
+      );
+
+      // genre includes both genre and technique terms
+      const genres = mods["mods:genre"].map((g: { _text: string }) => g._text);
+      expect(genres).toContain("Biographies");
+      expect(genres).toContain("drypoint (printing process)");
+
+      // originInfo
+      expect(mods["mods:originInfo"]["mods:publisher"]._text).toEqual(
+        "Northwestern University Press",
+      );
+      expect(mods["mods:originInfo"]["mods:dateCreated"][0]._text).toEqual(
+        "August 1906 to December 1910",
+      );
+
+      // language has text and code terms
+      const languageTerms = mods["mods:language"]["mods:languageTerm"];
+      expect(languageTerms[0]._text).toEqual("Crimean Tatar");
+      expect(languageTerms[1]._text).toEqual("crh");
+      expect(languageTerms[1]._attributes.authority).toEqual("iso639-2b");
+
+      // physicalDescription concatenates material and size
+      expect(mods["mods:physicalDescription"]["mods:extent"]._text).toEqual(
+        "Acrylic paint on cement block; 16 x 24 inches",
+      );
+
+      // abstract from description
+      expect(mods["mods:abstract"]._text).toEqual(
+        "This is a private record for RepoDev testing on production",
+      );
+
+      // notes carry displayLabel from note type; scope and contents included
+      const notes = mods["mods:note"];
+      const generalNote = notes.find(
+        (n: { _attributes?: { displayLabel?: string } }) =>
+          n._attributes?.displayLabel === "General Note",
+      );
+      expect(generalNote._text).toEqual("Here are some notes");
+      const scopeNote = notes.find(
+        (n: { _attributes?: { displayLabel?: string } }) =>
+          n._attributes?.displayLabel === "Scope and Contents",
+      );
+      expect(scopeNote._text).toEqual("I promise there is scope and content");
+      const indexingNote = notes.find(
+        (n: { _attributes?: { type?: string } }) =>
+          n._attributes?.type === "for indexing only",
+      );
+      expect(indexingNote._text).toContain("Canary Record TEST 1");
+
+      // accessCondition from rights_statement and terms_of_use
+      const accessConditions = mods["mods:accessCondition"];
+      expect(accessConditions[0]._attributes.type).toEqual("rights");
+      expect(accessConditions[0]._attributes["xlink:href"]).toEqual(
+        "http://rightsstatements.org/vocab/InC-EDU/1.0/",
+      );
+      expect(accessConditions[0]._text).toEqual(
+        "In Copyright - Educational Use Permitted",
+      );
+      expect(accessConditions[1]._attributes.type).toEqual(
+        "useAndReproduction",
+      );
+      expect(accessConditions[1]._text).toEqual("Terms");
+
+      // subjects use the right child element for their role
+      const subjects = mods["mods:subject"];
+      const geographic = subjects.find(
+        (s: Record<string, unknown>) => "mods:geographic" in s,
+      );
+      expect(geographic["mods:geographic"]._text).toEqual("Leelanau");
+      const stylePeriod = subjects.find(
+        (s: { _attributes?: { valueURI?: string } }) =>
+          s._attributes?.valueURI === "http://vocab.getty.edu/aat/300018478",
+      );
+      expect(stylePeriod["mods:topic"]._text).toEqual(
+        "Qing (dynastic styles and periods)",
+      );
+
+      // identifiers: local identifiers plus the PID
+      const identifiers = mods["mods:identifier"];
+      expect(identifiers[0]._text).toEqual("555");
+      expect(identifiers[1]._attributes.displayLabel).toEqual("PID");
+      expect(identifiers[1]._text).toEqual("1234");
+
+      // locations: item/thumbnail URLs and the physical location
+      const locations = mods["mods:location"];
+      const urls = locations[0]["mods:url"];
+      expect(urls[0]._text).toEqual(
+        "https://dc.library.northwestern.edu/items/1234",
+      );
+      expect(urls[1]._attributes.displayLabel).toEqual("Thumbnail");
+      expect(urls[1]._text).toEqual(
+        "https://index.test.library.northwestern.edu/iiif/2/mbk-dev/5678/square/100,100/0/default.jpg",
+      );
+      expect(locations[1]["mods:physicalLocation"]._text).toEqual(
+        "Charles Deering McCormick Library of Special Collections",
+      );
+      expect(locations[1]["mods:shelfLocator"]._text).toEqual("555");
+
+      // recordInfo
+      const recordInfo = mods["mods:recordInfo"];
+      expect(recordInfo["mods:recordOrigin"]._text).toEqual(
+        "Northwestern University Libraries Digital Collections API",
+      );
+      expect(recordInfo["mods:recordIdentifier"]._text).toEqual("1234");
+      expect(recordInfo["mods:recordContentSource"]._text).toEqual("IEN");
+
+      // relatedItems: collection host, series, related URLs, source system
+      const relatedItems = mods["mods:relatedItem"];
+      const collection = relatedItems.find(
+        (r: { _attributes?: { displayLabel?: string } }) =>
+          r._attributes?.displayLabel === "Collection",
+      );
+      expect(collection["mods:titleInfo"]["mods:title"]._text).toEqual(
+        "TEST Canary Records",
+      );
+      expect(collection["mods:identifier"]._text).toEqual(
+        "7c50096c-89eb-43e8-b357-5836a788ddeb",
+      );
+      const series = relatedItems.find(
+        (r: { _attributes?: { type?: string } }) =>
+          r._attributes?.type === "series",
+      );
+      expect(series["mods:titleInfo"]["mods:title"]._text).toEqual(
+        "Canaries and How to Care for Them",
+      );
+      const findingAid = relatedItems.find(
+        (r: { _attributes?: { displayLabel?: string } }) =>
+          r._attributes?.displayLabel === "Finding Aid",
+      );
+      expect(findingAid["mods:location"]["mods:url"]._text).toEqual(
+        "https://findingaids.library.northwestern.edu/",
+      );
+      const sourceSystem = relatedItems.find(
+        (r: { _attributes?: { otherType?: string } }) =>
+          r._attributes?.otherType === "sourceSystem",
+      );
+      expect(sourceSystem["mods:titleInfo"]["mods:title"]._text).toEqual(
+        "Digital Collections Images Repository",
+      );
+    });
+
+    it("returns cannotDisseminateFormat for an unsupported metadataPrefix", async () => {
+      const req = buildRequest("POST", "/oai", {
+        body: "verb=GetRecord&identifier=1234&metadataPrefix=marc21",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(400);
+
+      const resultBody = parseXml(await result.text());
+      expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
+        "cannotDisseminateFormat",
+      );
+    });
+
+    it("supports the mods metadataPrefix for the ListRecords verb", async () => {
+      server.use(
+        http.post(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_search`, () =>
+          HttpResponse.json(JSON.parse(testFixture("mocks/scroll.json"))),
+        ),
+      );
+
+      const req = buildRequest("POST", "/oai", {
+        body: "verb=ListRecords&metadataPrefix=mods",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const resultBody = parseXml(await result.text());
+      const records = resultBody["OAI-PMH"].ListRecords.record;
+      expect(records.length).toEqual(12);
+      for (const record of records) {
+        expect("mods:mods" in record.metadata).toBe(true);
+        expect("oai_dc:dc" in record.metadata).toBe(false);
+      }
+
+      // resumptionToken carries the metadata format so subsequent
+      // token-only requests keep producing MODS
+      const resumptionToken = resultBody["OAI-PMH"].ListRecords.resumptionToken;
+      expect(resumptionToken._text.startsWith("mods:")).toBe(true);
+    });
+
+    it("resumes a MODS ListRecords request from a mods-prefixed resumptionToken", async () => {
+      server.use(
+        http.post(
+          `https://${TEST_OPENSEARCH_HOST}/_search/scroll/${SCROLL_TOKEN}`,
+          () => HttpResponse.json(JSON.parse(testFixture("mocks/scroll.json"))),
+        ),
+      );
+
+      const req = buildRequest("POST", "/oai", {
+        body: `verb=ListRecords&resumptionToken=mods:${SCROLL_TOKEN}`,
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const resultBody = parseXml(await result.text());
+      const records = resultBody["OAI-PMH"].ListRecords.record;
+      expect(records.length).toEqual(12);
+      for (const record of records) {
+        expect("mods:mods" in record.metadata).toBe(true);
+      }
+      const resumptionToken = resultBody["OAI-PMH"].ListRecords.resumptionToken;
+      expect(resumptionToken._text.startsWith("mods:")).toBe(true);
+    });
+
+    it("treats a resumptionToken with an unrecognized prefix as a plain oai_dc token", async () => {
+      server.use(
+        http.post(
+          `https://${TEST_OPENSEARCH_HOST}/_search/scroll/unknown\\:${SCROLL_TOKEN}`,
+          () => HttpResponse.json(JSON.parse(testFixture("mocks/scroll.json"))),
+        ),
+      );
+
+      const req = buildRequest("POST", "/oai", {
+        body: `verb=ListRecords&resumptionToken=unknown:${SCROLL_TOKEN}`,
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const resultBody = parseXml(await result.text());
+      const records = resultBody["OAI-PMH"].ListRecords.record;
+      expect(records.length).toEqual(12);
+      for (const record of records) {
+        expect("oai_dc:dc" in record.metadata).toBe(true);
+      }
+    });
+
+    it("supports the mods metadataPrefix for the ListIdentifiers verb", async () => {
+      server.use(
+        http.post(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_search`, () =>
+          HttpResponse.json(JSON.parse(testFixture("mocks/scroll.json"))),
+        ),
+      );
+
+      const req = buildRequest("POST", "/oai", {
+        body: "verb=ListIdentifiers&metadataPrefix=mods",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const resultBody = parseXml(await result.text());
+      const resumptionToken =
+        resultBody["OAI-PMH"].ListIdentifiers.resumptionToken;
+      expect(resumptionToken._text.startsWith("mods:")).toBe(true);
     });
 
     it("enforces the id parameter for the GetRecord verb", async () => {
@@ -468,10 +814,19 @@ describe("Oai routes", () => {
       );
 
       const resultBody = parseXml(await result.text());
-      const listMetadataFormatsElement =
+      const metadataFormats =
         resultBody["OAI-PMH"].ListMetadataFormats.metadataFormat;
-      expect(listMetadataFormatsElement.metadataNamespace._text).toEqual(
+      expect(metadataFormats.length).toEqual(2);
+      expect(metadataFormats[0].metadataPrefix._text).toEqual("oai_dc");
+      expect(metadataFormats[0].metadataNamespace._text).toEqual(
         "http://www.openarchives.org/OAI/2.0/oai_dc/",
+      );
+      expect(metadataFormats[1].metadataPrefix._text).toEqual("mods");
+      expect(metadataFormats[1].metadataNamespace._text).toEqual(
+        "http://www.loc.gov/mods/v3",
+      );
+      expect(metadataFormats[1].schema._text).toEqual(
+        "http://www.loc.gov/standards/mods/v3/mods-3-7.xsd",
       );
     });
   });
