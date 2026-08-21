@@ -349,6 +349,19 @@ describe("Oai routes", () => {
       );
       expect(recordInfo["mods:recordIdentifier"]._text).toEqual("1234");
       expect(recordInfo["mods:recordContentSource"]._text).toEqual("IEN");
+      expect(recordInfo["mods:recordChangeDate"]._attributes.encoding).toEqual(
+        "iso8601",
+      );
+      expect(recordInfo["mods:recordChangeDate"]._text).toMatch(/^\d{14}\.0$/);
+      expect(Object.keys(recordInfo)).toEqual([
+        "mods:recordOrigin",
+        "mods:recordContentSource",
+        "mods:recordCreationDate",
+        "mods:recordChangeDate",
+        "mods:recordIdentifier",
+        "mods:languageOfCataloging",
+        "mods:recordInfoNote",
+      ]);
 
       // relatedItems: collection host, series, related URLs, source system
       const relatedItems = mods["mods:relatedItem"];
