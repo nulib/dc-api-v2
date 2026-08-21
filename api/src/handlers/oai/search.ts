@@ -4,17 +4,22 @@ import {
   modelsToTargets,
 } from "../../api/request/models.ts";
 
+// OAI-PMH only exposes metadata, so (like the unauthenticated DC API) it
+// includes works and collections that are visible to the institution
+// ("Institution" / netID) as well as fully "Public" ones.
+export const OAI_VISIBILITY = ["Institution", "Public"];
+export const oaiVisibilityFilter = [
+  { term: { published: true } },
+  { terms: { visibility: OAI_VISIBILITY } },
+];
+
 export async function earliestRecord(): Promise<string | undefined> {
   const body = {
     size: 1,
     _source: "create_date",
     query: {
       bool: {
-        must: [
-          { term: { api_model: "Work" } },
-          { term: { published: true } },
-          { term: { visibility: "Public" } },
-        ],
+        must: [{ term: { api_model: "Work" } }, ...oaiVisibilityFilter],
       },
     },
     sort: [{ create_date: "asc" }],
@@ -42,12 +47,7 @@ export async function oaiSearch(
   };
   const query: Record<string, unknown> = {
     bool: {
-      must: [
-        { term: { api_model: "Work" } },
-        { term: { published: true } },
-        { term: { visibility: "Public" } },
-        range,
-      ],
+      must: [{ term: { api_model: "Work" } }, ...oaiVisibilityFilter, range],
     },
   };
   if (set)
@@ -79,11 +79,7 @@ export async function oaiSets(): Promise<{ status: number; body: string }> {
     _source: ["id", "title"],
     query: {
       bool: {
-        must: [
-          { term: { api_model: "Collection" } },
-          { term: { published: true } },
-          { term: { visibility: "Public" } },
-        ],
+        must: [{ term: { api_model: "Collection" } }, ...oaiVisibilityFilter],
       },
     },
     sort: [{ title: "asc" }],

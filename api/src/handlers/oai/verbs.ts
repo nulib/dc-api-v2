@@ -1,5 +1,10 @@
 import { invalidOaiRequest, output } from "../oai/xml-transformer.ts";
-import { earliestRecord, oaiSearch, oaiSets } from "../oai/search.ts";
+import {
+  OAI_VISIBILITY,
+  earliestRecord,
+  oaiSearch,
+  oaiSets,
+} from "../oai/search.ts";
 import { deleteScroll, getWork, scroll } from "../../api/opensearch.ts";
 import { formatOaiDate } from "./date-utils.ts";
 import {
@@ -185,9 +190,11 @@ export const getRecord = async (
     return unsupportedMetadataPrefix(metadataPrefix);
 
   const esResponse = await getWork(id);
-  if (esResponse.status === 200) {
-    const work = (JSON.parse(esResponse.body) as OpenSearchGetResponse<Work>)
-      ._source!;
+  const work =
+    esResponse.status === 200
+      ? (JSON.parse(esResponse.body) as OpenSearchGetResponse<Work>)._source
+      : undefined;
+  if (work && work.published && OAI_VISIBILITY.includes(work.visibility)) {
     const record = transform(work, metadataPrefix);
     const document = {
       "OAI-PMH": {
