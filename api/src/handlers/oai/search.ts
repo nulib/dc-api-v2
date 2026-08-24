@@ -19,7 +19,7 @@ export async function earliestRecord(): Promise<string | undefined> {
     _source: "create_date",
     query: {
       bool: {
-        must: [{ term: { api_model: "Work" } }, ...oaiVisibilityFilter],
+        filter: [{ term: { api_model: "Work" } }, ...oaiVisibilityFilter],
       },
     },
     sort: [{ create_date: "asc" }],
@@ -47,11 +47,11 @@ export async function oaiSearch(
   };
   const query: Record<string, unknown> = {
     bool: {
-      must: [{ term: { api_model: "Work" } }, ...oaiVisibilityFilter, range],
+      filter: [{ term: { api_model: "Work" } }, ...oaiVisibilityFilter, range],
     },
   };
   if (set)
-    (query.bool as { must: unknown[] }).must.push({
+    (query.bool as { filter: unknown[] }).filter.push({
       term: { "collection.id": set },
     });
 
@@ -79,7 +79,7 @@ export async function oaiSets(): Promise<{ status: number; body: string }> {
     _source: ["id", "title"],
     query: {
       bool: {
-        must: [{ term: { api_model: "Collection" } }, ...oaiVisibilityFilter],
+        filter: [{ term: { api_model: "Collection" } }, ...oaiVisibilityFilter],
       },
     },
     sort: [{ title: "asc" }],

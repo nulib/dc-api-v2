@@ -876,10 +876,10 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(captured.body.query.bool.must).toEqual(
+      expect(captured.body.query.bool.filter).toEqual(
         expect.arrayContaining(expectedFilter),
       );
-      expect(captured.body.query.bool.must).not.toContainEqual({
+      expect(captured.body.query.bool.filter).not.toContainEqual({
         term: { visibility: "Public" },
       });
     });
@@ -891,7 +891,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(captured.body.query.bool.must).toEqual(
+      expect(captured.body.query.bool.filter).toEqual(
         expect.arrayContaining(expectedFilter),
       );
     });
@@ -910,7 +910,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(captured.body.query.bool.must).toEqual(
+      expect(captured.body.query.bool.filter).toEqual(
         expect.arrayContaining([
           ...expectedFilter,
           { term: { "collection.id": "c4f30015-88b5-4291-b3a6-8ac9b7c7069c" } },
@@ -925,7 +925,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(captured.body.query.bool.must).toEqual(
+      expect(captured.body.query.bool.filter).toEqual(
         expect.arrayContaining(expectedFilter),
       );
     });
@@ -940,7 +940,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(captured.body.query.bool.must).toEqual(
+      expect(captured.body.query.bool.filter).toEqual(
         expect.arrayContaining(expectedFilter),
       );
     });
@@ -995,14 +995,14 @@ describe("Oai routes", () => {
         queryParams: { verb: "ListRecords", metadataPrefix: "oai_dc" },
       });
       await sendRequest(req);
-      const { must } = captured.body.query.bool;
-      const visibility = must.find(
+      const { filter } = captured.body.query.bool;
+      const visibility = filter.find(
         (clause: Record<string, unknown>) =>
           "terms" in clause &&
           "visibility" in (clause.terms as Record<string, unknown>),
       );
       expect(visibility.terms.visibility).not.toContain("Private");
-      expect(must).toContainEqual({ term: { published: true } });
+      expect(filter).toContainEqual({ term: { published: true } });
     });
   });
 
