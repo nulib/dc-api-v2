@@ -349,6 +349,19 @@ describe("Oai routes", () => {
       );
       expect(recordInfo["mods:recordIdentifier"]._text).toEqual("1234");
       expect(recordInfo["mods:recordContentSource"]._text).toEqual("IEN");
+      expect(recordInfo["mods:recordChangeDate"]._attributes.encoding).toEqual(
+        "iso8601",
+      );
+      expect(recordInfo["mods:recordChangeDate"]._text).toMatch(/^\d{14}\.0$/);
+      expect(Object.keys(recordInfo)).toEqual([
+        "mods:recordOrigin",
+        "mods:recordContentSource",
+        "mods:recordCreationDate",
+        "mods:recordChangeDate",
+        "mods:recordIdentifier",
+        "mods:languageOfCataloging",
+        "mods:recordInfoNote",
+      ]);
 
       // relatedItems: collection host, series, related URLs, source system
       const relatedItems = mods["mods:relatedItem"];
@@ -828,6 +841,168 @@ describe("Oai routes", () => {
       expect(metadataFormats[1].schema._text).toEqual(
         "http://www.loc.gov/standards/mods/v3/mods-3-7.xsd",
       );
+    });
+  });
+
+  describe("visibility", () => {
+    // OAI-PMH only exposes metadata, so it should include works visible to
+    // authenticated (netID / "Institution") users as well as "Public" ones,
+    // matching what the unauthenticated DC API returns.
+    const expectedFilter = [
+      { term: { published: true } },
+      { terms: { visibility: ["Institution", "Public"] } },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function captureSearch(index: string, fixture: string): { body?: any } {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const captured: { body?: any } = {};
+      server.use(
+        http.post(
+          `https://${TEST_OPENSEARCH_HOST}/${index}/_search`,
+          async ({ request }) => {
+            captured.body = await request.json();
+            return HttpResponse.json(JSON.parse(testFixture(fixture)));
+          },
+        ),
+      );
+      return captured;
+    }
+
+    it("includes Institution and Public works in ListRecords", async () => {
+      const captured = captureSearch("dc-v2-work", "mocks/scroll.json");
+      const req = buildRequest("GET", "/oai", {
+        queryParams: { verb: "ListRecords", metadataPrefix: "oai_dc" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(captured.body.query.bool.filter).toEqual(
+        expect.arrayContaining(expectedFilter),
+      );
+      expect(captured.body.query.bool.filter).not.toContainEqual({
+        term: { visibility: "Public" },
+      });
+    });
+
+    it("includes Institution and Public works in ListIdentifiers", async () => {
+      const captured = captureSearch("dc-v2-work", "mocks/scroll.json");
+      const req = buildRequest("GET", "/oai", {
+        queryParams: { verb: "ListIdentifiers", metadataPrefix: "oai_dc" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(captured.body.query.bool.filter).toEqual(
+        expect.arrayContaining(expectedFilter),
+      );
+    });
+
+    it("includes Institution and Public works when filtering by set", async () => {
+      const captured = captureSearch(
+        "dc-v2-work",
+        "mocks/oai-list-identifiers-sets.json",
+      );
+      const req = buildRequest("GET", "/oai", {
+        queryParams: {
+          verb: "ListIdentifiers",
+          metadataPrefix: "oai_dc",
+          set: "c4f30015-88b5-4291-b3a6-8ac9b7c7069c",
+        },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(captured.body.query.bool.filter).toEqual(
+        expect.arrayContaining([
+          ...expectedFilter,
+          { term: { "collection.id": "c4f30015-88b5-4291-b3a6-8ac9b7c7069c" } },
+        ]),
+      );
+    });
+
+    it("includes Institution and Public collections in ListSets", async () => {
+      const captured = captureSearch("dc-v2-collection", "mocks/oai-sets.json");
+      const req = buildRequest("GET", "/oai", {
+        queryParams: { verb: "ListSets" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(captured.body.query.bool.filter).toEqual(
+        expect.arrayContaining(expectedFilter),
+      );
+    });
+
+    it("considers Institution and Public works for the Identify earliestDatestamp", async () => {
+      const captured = captureSearch(
+        "dc-v2-work",
+        "mocks/search-earliest-record.json",
+      );
+      const req = buildRequest("GET", "/oai", {
+        queryParams: { verb: "Identify" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+      expect(captured.body.query.bool.filter).toEqual(
+        expect.arrayContaining(expectedFilter),
+      );
+    });
+
+    function getRecordWith(overrides: Record<string, unknown>) {
+      const fixture = JSON.parse(testFixture("mocks/work-1234.json"));
+      fixture._source = { ...fixture._source, ...overrides };
+      server.use(
+        http.get(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_doc/1234`, () =>
+          HttpResponse.json(fixture),
+        ),
+      );
+      return sendRequest(
+        buildRequest("GET", "/oai", {
+          queryParams: {
+            verb: "GetRecord",
+            identifier: "1234",
+            metadataPrefix: "oai_dc",
+          },
+        }),
+      );
+    }
+
+    it("returns Institution works from GetRecord", async () => {
+      const result = await getRecordWith({ visibility: "Institution" });
+      expect(result.status).toEqual(200);
+      const resultBody = parseXml(await result.text());
+      expect(resultBody["OAI-PMH"].GetRecord.record).toBeDefined();
+    });
+
+    it("returns idDoesNotExist for Private works in GetRecord", async () => {
+      const result = await getRecordWith({ visibility: "Private" });
+      expect(result.status).toEqual(404);
+      const resultBody = parseXml(await result.text());
+      expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
+        "idDoesNotExist",
+      );
+    });
+
+    it("returns idDoesNotExist for unpublished works in GetRecord", async () => {
+      const result = await getRecordWith({ published: false });
+      expect(result.status).toEqual(404);
+      const resultBody = parseXml(await result.text());
+      expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
+        "idDoesNotExist",
+      );
+    });
+
+    it("never exposes Private or unpublished works", async () => {
+      const captured = captureSearch("dc-v2-work", "mocks/scroll.json");
+      const req = buildRequest("GET", "/oai", {
+        queryParams: { verb: "ListRecords", metadataPrefix: "oai_dc" },
+      });
+      await sendRequest(req);
+      const { filter } = captured.body.query.bool;
+      const visibility = filter.find(
+        (clause: Record<string, unknown>) =>
+          "terms" in clause &&
+          "visibility" in (clause.terms as Record<string, unknown>),
+      );
+      expect(visibility.terms.visibility).not.toContain("Private");
+      expect(filter).toContainEqual({ term: { published: true } });
     });
   });
 
