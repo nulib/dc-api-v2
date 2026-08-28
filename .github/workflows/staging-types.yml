@@ -35,7 +35,7 @@ jobs:
         working-directory: "${{ env.TMP_SRCDIR }}/api"
         run: |
           bun install
-          bun x openapi-typescript ../docs/docs/spec/data-types.yaml --output schemas.ts
+          bun run schemas
       - name: Checkout dcapi-types
         uses: actions/checkout@v3
         with:

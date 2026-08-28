@@ -740,6 +740,11 @@ components:
           description: An entity responsible for making the resource available.
           items:
             type: string
+        related_material:
+          type: array
+          description: Description of materials related to the resource.
+          items:
+            type: string
         related_url:
           type: array
           description: URL of a related resource.

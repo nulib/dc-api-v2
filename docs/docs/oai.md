@@ -14,3 +14,12 @@ All six verbs are supported:
 - `ListMetadataFormats`: Lists the metadata formats supported by the repository.
 - `ListRecords`: Returns a list of records, along with metadata records.
 - `ListSets`: Lists the sets or collections available in the repository.
+
+## Metadata Formats
+
+Two metadata formats are supported via the `metadataPrefix` parameter:
+
+- `oai_dc`: [Dublin Core](http://www.openarchives.org/OAI/2.0/oai_dc.xsd), the format required by the OAI-PMH specification.
+- `mods`: [MODS v3.7](http://www.loc.gov/standards/mods/v3/mods-3-7.xsd), which provides richer metadata, including names with authority URIs and roles, typed subjects, rights statement URIs, and links to the item and its thumbnail.
+
+For example: `?verb=GetRecord&identifier=<id>&metadataPrefix=mods`

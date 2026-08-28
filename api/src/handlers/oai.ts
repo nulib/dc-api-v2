@@ -75,7 +75,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
 
   switch (verb) {
     case "GetRecord":
-      return await getRecord(url, identifier);
+      return await getRecord(url, identifier, metadataPrefix);
     case "Identify":
       return await identify(url);
     case "ListIdentifiers":
