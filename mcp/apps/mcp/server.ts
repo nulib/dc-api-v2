@@ -1,5 +1,6 @@
 import { DC_RESOURCE_ORIGINS } from "./config.js";
 import { McpServer } from "@modelcontextprotocol/server";
+import type { McpRequestContext } from "@modelcontextprotocol/server";
 import GetWorkTool from "./tools/get-work.js";
 import ListCollectionsTool from "./tools/list-collections.js";
 import SearchTool from "./tools/search-works.js";
@@ -9,10 +10,13 @@ import ViewSearchResultsTool from "./tools/view-search-results.js";
 import ViewSimilarWorksTool from "./tools/view-similar-works.js";
 import ViewWorkTool from "./tools/view-work.js";
 import { CloverUIResource } from "@nulib/clover-mcp";
+import { logRequest, withToolLogging } from "./common/logging.js";
 import version from "./common/version.js";
 
 const CLOVER_RESOURCE_URI = "ui://clover-viewer/mcp-app.html";
-export const createServer = () => {
+export const createServer = (ctx?: McpRequestContext) => {
+  logRequest(ctx);
+
   const server = new McpServer(
     {
       name: "dc-api-mcp",
@@ -29,24 +33,28 @@ export const createServer = () => {
     }
   );
 
-  server.registerTool(SearchTool.name, SearchTool.config, SearchTool.handler);
+  server.registerTool(
+    SearchTool.name,
+    SearchTool.config,
+    withToolLogging(SearchTool.name, SearchTool.handler)
+  );
 
   server.registerTool(
     GetWorkTool.name,
     GetWorkTool.config,
-    GetWorkTool.handler
+    withToolLogging(GetWorkTool.name, GetWorkTool.handler)
   );
 
   server.registerTool(
     ListCollectionsTool.name,
     ListCollectionsTool.config,
-    ListCollectionsTool.handler
+    withToolLogging(ListCollectionsTool.name, ListCollectionsTool.handler)
   );
 
   server.registerTool(
     SimilaritySearchTool.name,
     SimilaritySearchTool.config,
-    SimilaritySearchTool.handler
+    withToolLogging(SimilaritySearchTool.name, SimilaritySearchTool.handler)
   );
 
   const uiResource = new CloverUIResource({
@@ -60,28 +68,28 @@ export const createServer = () => {
     server,
     ViewWorkTool.name,
     ViewWorkTool.config,
-    ViewWorkTool.handler
+    withToolLogging(ViewWorkTool.name, ViewWorkTool.handler)
   );
 
   uiResource.registerTool(
     server,
     ViewCollectionTool.name,
     ViewCollectionTool.config,
-    ViewCollectionTool.handler
+    withToolLogging(ViewCollectionTool.name, ViewCollectionTool.handler)
   );
 
   uiResource.registerTool(
     server,
     ViewSearchResultsTool.name,
     ViewSearchResultsTool.config,
-    ViewSearchResultsTool.handler
+    withToolLogging(ViewSearchResultsTool.name, ViewSearchResultsTool.handler)
   );
 
   uiResource.registerTool(
     server,
     ViewSimilarWorksTool.name,
     ViewSimilarWorksTool.config,
-    ViewSimilarWorksTool.handler
+    withToolLogging(ViewSimilarWorksTool.name, ViewSimilarWorksTool.handler)
   );
 
   uiResource.registerResource(server);
