@@ -61,6 +61,103 @@ class TestSocketCallbackHandler(TestCase):
         ]
         self.mock_socket.send.assert_has_calls(expected_calls, any_order=False)
 
+    def test_on_llm_end_truncated_by_max_tokens(self):
+        # Mocking a response Bedrock cut off at the max_tokens limit
+        class MockMessage:
+            def __init__(self, text, response_metadata):
+                self.text = text
+                self.message = self  # For simplicity, reuse same object for .message
+                self.response_metadata = response_metadata
+                self.tool_calls = []
+
+        class MockLLMResult:
+            def __init__(self, text, stop_reason):
+                self.generations = [[MockMessage(text, {"stop_reason": stop_reason})]]
+
+        response = MockLLMResult("A truncated ans", stop_reason="max_tokens")
+        self.handler.on_llm_end(response)
+
+        # A truncated turn is still over, so the client must get "final_message"
+        # or it waits on a response that will never arrive
+        self.mock_socket.send.assert_has_calls(
+            [unittest.mock.call({"type": "final_message", "ref": self.ref})]
+        )
+
+    def test_on_llm_end_with_tool_calls(self):
+        # Mocking a response that stopped to call a tool
+        class MockMessage:
+            def __init__(self, text, response_metadata, tool_calls):
+                self.text = text
+                self.message = self  # For simplicity, reuse same object for .message
+                self.response_metadata = response_metadata
+                self.tool_calls = tool_calls
+
+        class MockLLMResult:
+            def __init__(self, text, stop_reason, tool_calls):
+                self.generations = [
+                    [MockMessage(text, {"stop_reason": stop_reason}, tool_calls)]
+                ]
+
+        tool_calls = [{"name": "search", "args": {}, "id": "call_1"}]
+        response = MockLLMResult("", stop_reason="tool_use", tool_calls=tool_calls)
+        self.handler.on_llm_end(response)
+
+        # The agent keeps working, so the turn is not final yet
+        self.assertNotIn(
+            unittest.mock.call({"type": "final_message", "ref": self.ref}),
+            self.mock_socket.send.mock_calls,
+        )
+
+    def test_on_llm_end_truncated_mid_tool_call(self):
+        # Mocking a response cut off at max_tokens while emitting a tool call
+        class MockMessage:
+            def __init__(self, text, response_metadata, tool_calls):
+                self.text = text
+                self.message = self  # For simplicity, reuse same object for .message
+                self.response_metadata = response_metadata
+                self.tool_calls = tool_calls
+
+        class MockLLMResult:
+            def __init__(self, text, stop_reason, tool_calls):
+                self.generations = [
+                    [MockMessage(text, {"stop_reason": stop_reason}, tool_calls)]
+                ]
+
+        tool_calls = [{"name": "search", "args": {}, "id": "call_1"}]
+        response = MockLLMResult("", stop_reason="max_tokens", tool_calls=tool_calls)
+        self.handler.on_llm_end(response)
+
+        # The graph routes on tool_calls, not the stop reason, so it keeps going
+        self.assertNotIn(
+            unittest.mock.call({"type": "final_message", "ref": self.ref}),
+            self.mock_socket.send.mock_calls,
+        )
+
+    def test_on_llm_end_unparseable_tool_call(self):
+        # Mocking a "tool_use" stop whose arguments failed to parse, so the call
+        # landed in invalid_tool_calls and tool_calls came back empty
+        class MockMessage:
+            def __init__(self, text, response_metadata, tool_calls):
+                self.text = text
+                self.message = self  # For simplicity, reuse same object for .message
+                self.response_metadata = response_metadata
+                self.tool_calls = tool_calls
+
+        class MockLLMResult:
+            def __init__(self, text, stop_reason, tool_calls):
+                self.generations = [
+                    [MockMessage(text, {"stop_reason": stop_reason}, tool_calls)]
+                ]
+
+        response = MockLLMResult("", stop_reason="tool_use", tool_calls=[])
+        self.handler.on_llm_end(response)
+
+        # should_continue routes on tool_calls, so the graph ends here despite the
+        # "tool_use" stop reason and the client still needs "final_message"
+        self.mock_socket.send.assert_has_calls(
+            [unittest.mock.call({"type": "final_message", "ref": self.ref})]
+        )
+
     def test_on_llm_new_token(self):
         # When a new token arrives
         self.handler.on_llm_new_token("hello")

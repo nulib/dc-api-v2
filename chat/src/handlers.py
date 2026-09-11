@@ -26,7 +26,12 @@ def chat_sync(event, context):
     if config.question is None or config.question == "":
         return {"statusCode": 400, "body": "Question cannot be blank"}
 
-    model = chat_model(model=config.model, streaming=False)
+    model = chat_model(
+        model=config.model,
+        streaming=False,
+        max_tokens=config.max_tokens,
+        temperature=config.temperature,
+    )
     search_agent = SearchAgent(model=model)
     result = MetricsCallbackHandler()
     search_agent.invoke(
@@ -120,7 +125,12 @@ def chat(event, context):
 
     metrics = MetricsCallbackHandler(context.log_stream_name, extra_data=log_info)
     callbacks = [SocketCallbackHandler(config.socket, config.ref), metrics]
-    model = chat_model(model=config.model, streaming=config.stream_response)
+    model = chat_model(
+        model=config.model,
+        streaming=config.stream_response,
+        max_tokens=config.max_tokens,
+        temperature=config.temperature,
+    )
     search_agent = SearchAgent(model=model, metrics=metrics)
 
     try:

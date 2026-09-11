@@ -48,14 +48,12 @@ class SocketCallbackHandler(BaseCallbackHandler):
 
     def on_llm_end(self, response: LLMResult, **kwargs: Dict[str, Any]):
         response_generation = response.generations[0][0]
+        message = response_generation.message
         content = response_generation.text
-        stop_reason = response_generation.message.response_metadata.get(
-            "stop_reason", "unknown"
-        )
         if content != "":
             self.socket.send({"type": "stop", "ref": self.ref})
             self.socket.send({"type": "answer", "ref": self.ref, "message": content})
-        if stop_reason == "end_turn":
+        if not getattr(message, "tool_calls", None):
             self.socket.send({"type": "final_message", "ref": self.ref})
 
     def on_llm_new_token(self, token: str, **kwargs: Dict[str, Any]):
