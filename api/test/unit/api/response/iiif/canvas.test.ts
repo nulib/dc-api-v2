@@ -91,9 +91,7 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     const responseBody = JSON.parse(
       testFixture("mocks/fileset-image-canvas-1234.json"),
     );
-    responseBody._source.annotations = [
-      { type: "transcription", content: "" },
-    ];
+    responseBody._source.annotations = [{ type: "transcription", content: "" }];
 
     const result = await transform({
       status: 200,
