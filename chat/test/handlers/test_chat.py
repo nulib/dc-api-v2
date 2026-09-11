@@ -10,7 +10,7 @@ from moto import mock_aws
 
 from handlers import chat
 from core.apitoken import ApiToken
-from core.event_config import CHAT_MODEL
+from core.event_config import CHAT_MODEL, MAX_TOKENS, TEMPERATURE
 from core.websocket import Websocket
 from langchain_core.language_models.fake_chat_models import FakeListChatModel
 from langgraph.checkpoint.memory import MemorySaver
@@ -56,6 +56,10 @@ class TestHandler(TestCase):
         response = chat(event, MockContext())
         self.assertEqual(response, {'statusCode': 200})
         mock_can.assert_called_once_with("chat")
+
+        _, model_kwargs = mock_chat_model.call_args
+        self.assertEqual(model_kwargs["max_tokens"], MAX_TOKENS)
+        self.assertEqual(model_kwargs["temperature"], TEMPERATURE)
 
     @patch.object(ApiToken, 'can', return_value=True)
     @patch.object(ApiToken, 'is_logged_in', return_value=True)
