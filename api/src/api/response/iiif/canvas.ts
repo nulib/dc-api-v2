@@ -4,6 +4,7 @@ import { transformError } from "../error.ts";
 import {
   buildImageResourceId,
   buildImageService,
+  hasTranscriptionContent,
 } from "./presentation-api/items.ts";
 import { buildPlaceholderCanvas } from "./presentation-api/placeholder-canvas.ts";
 import type { FileSetSource } from "./types.ts";
@@ -21,6 +22,14 @@ export async function transform(
   const canvasId = `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
   const { width, height } = getDimensions(fileSet);
 
+  const transcriptions = (fileSet.annotations || [])
+    .filter((a) => a.type === "transcription")
+    .filter(hasTranscriptionContent);
+  const hasSearchableTranscriptions =
+    /^image\//i.test(fileSet.mime_type as string) &&
+    fileSet.role === "Access" &&
+    transcriptions.length > 0;
+
   const canvas: Record<string, unknown> = {
     "@context": "http://iiif.io/api/presentation/3/context.json",
     id: canvasId,
@@ -29,13 +38,16 @@ export async function transform(
     height,
     label: { none: [label(fileSet)] },
     items: [annotationPage(canvasId, fileSet, { width, height })],
-    service: [
+  };
+
+  if (hasSearchableTranscriptions) {
+    canvas.service = [
       {
         id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/search?as=iiif`,
         type: "SearchService2",
       },
-    ],
-  };
+    ];
+  }
 
   if (fileSet.description) {
     canvas.summary = { none: [fileSet.description] };
@@ -72,14 +84,7 @@ export async function transform(
     canvas.partOf = [partOf];
   }
 
-  const transcriptions = (fileSet.annotations || []).filter(
-    (a) => a.type === "transcription",
-  );
-  if (
-    /^image\//i.test(fileSet.mime_type as string) &&
-    fileSet.role === "Access" &&
-    transcriptions.length
-  ) {
+  if (hasSearchableTranscriptions) {
     canvas.annotations = [
       {
         id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`,
