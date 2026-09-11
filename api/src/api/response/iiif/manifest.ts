@@ -10,6 +10,7 @@ import {
   addSupplementingAnnotationToCanvas,
   addThumbnailToCanvas,
   buildAnnotationBody,
+  hasTranscriptionContent,
   isAltFormat,
   isAudioVideo,
   isPDF,
@@ -19,7 +20,12 @@ import { buildPlaceholderCanvas } from "./presentation-api/placeholder-canvas.ts
 import { metadataLabelFields } from "./presentation-api/metadata.ts";
 import { nulLogo, provider } from "./presentation-api/provider.ts";
 import type { Paginator } from "../../pagination.ts";
-import type { WorkSource, FileSetSource, NavPlace } from "./types.ts";
+import type {
+  FileSetAnnotation,
+  FileSetSource,
+  NavPlace,
+  WorkSource,
+} from "./types.ts";
 
 // deno-lint-ignore no-unused-vars
 type _PaginatorUnused = Paginator;
@@ -310,12 +316,14 @@ export async function transform(
       }
     }
 
-    (jsonManifest as Record<string, unknown>).service = [
-      {
-        id: `${dcApiEndpoint()}/works/${source.id}/search?as=iiif`,
-        type: "SearchService2",
-      },
-    ];
+    if (Object.keys(transcriptionMap).length > 0) {
+      (jsonManifest as Record<string, unknown>).service = [
+        {
+          id: `${dcApiEndpoint()}/works/${source.id}/search?as=iiif`,
+          type: "SearchService2",
+        },
+      ];
+    }
     (jsonManifest as Record<string, unknown>).provider = [provider];
     (jsonManifest as Record<string, unknown>).logo = [nulLogo];
     const navPlace = buildNavPlace(source);
@@ -355,11 +363,12 @@ async function fetchFileSetTranscriptions(
   return hits.reduce((acc: Record<string, Record<string, unknown>[]>, hit) => {
     const fileSetId = (hit._source as { id?: string })?.id;
     const annotations = (
-      (hit._source as { annotations?: Record<string, unknown>[] })
-        ?.annotations ?? []
-    ).filter((annotation) => annotation.type === "transcription");
+      (hit._source as { annotations?: FileSetAnnotation[] })?.annotations ?? []
+    )
+      .filter((annotation) => annotation.type === "transcription")
+      .filter(hasTranscriptionContent);
     if (fileSetId && annotations.length > 0) {
-      acc[fileSetId] = annotations;
+      acc[fileSetId] = annotations as unknown as Record<string, unknown>[];
     }
     return acc;
   }, {});
