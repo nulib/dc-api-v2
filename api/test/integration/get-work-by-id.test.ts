@@ -70,7 +70,7 @@ describe("Retrieve work by id", () => {
       expect(result.status).toEqual(404);
     });
 
-    it("returns a single work as a IIIF Manifest", async () => {
+    it("returns a single work as a IIIF Manifest and omits SearchService2 when no transcriptions exist", async () => {
       server.use(
         http.get(
           "https://index.test.library.northwestern.edu/dc-v2-work/_doc/1234",
@@ -119,6 +119,55 @@ describe("Retrieve work by id", () => {
         "http://iiif.io/api/presentation/3/context.json",
       );
       expect(body.label.none[0]).toEqual("Canary Record TEST 1");
+      expect(body.service).toBeUndefined();
+    });
+
+    it("includes SearchService2 when at least one Access file set has a transcription with content", async () => {
+      server.use(
+        http.get(
+          "https://index.test.library.northwestern.edu/dc-v2-work/_doc/1234",
+          () =>
+            HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
+        ),
+        http.post(
+          "https://index.test.library.northwestern.edu/dc-v2-file-set/_search",
+          () =>
+            HttpResponse.json({
+              hits: {
+                total: { value: 2 },
+                hits: [
+                  {
+                    _source: {
+                      id: "076dcbd8-8c57-40e8-bdf7-dc9153c87a36",
+                      annotations: [
+                        {
+                          id: "anno-1",
+                          type: "transcription",
+                          content: "hello world",
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    _source: {
+                      id: "51862c1c-c024-45dc-ab26-694bd8ebc16c",
+                      annotations: [],
+                    },
+                  },
+                ],
+              },
+            }),
+        ),
+      );
+
+      const req = buildRequest("GET", "/works/{id}", {
+        pathParams: { id: 1234 },
+        queryParams: { as: "iiif" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const body = await result.json();
       expect(body.service).toEqual(
         expect.arrayContaining([
           {
@@ -127,6 +176,49 @@ describe("Retrieve work by id", () => {
           },
         ]),
       );
+    });
+
+    it("omits SearchService2 when transcription annotations exist but content is empty", async () => {
+      server.use(
+        http.get(
+          "https://index.test.library.northwestern.edu/dc-v2-work/_doc/1234",
+          () =>
+            HttpResponse.json(JSON.parse(testFixture("mocks/work-1234.json"))),
+        ),
+        http.post(
+          "https://index.test.library.northwestern.edu/dc-v2-file-set/_search",
+          () =>
+            HttpResponse.json({
+              hits: {
+                total: { value: 1 },
+                hits: [
+                  {
+                    _source: {
+                      id: "076dcbd8-8c57-40e8-bdf7-dc9153c87a36",
+                      annotations: [
+                        {
+                          id: "anno-empty",
+                          type: "transcription",
+                          content: "",
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            }),
+        ),
+      );
+
+      const req = buildRequest("GET", "/works/{id}", {
+        pathParams: { id: 1234 },
+        queryParams: { as: "iiif" },
+      });
+      const result = await sendRequest(req);
+      expect(result.status).toEqual(200);
+
+      const body = await result.json();
+      expect(body.service).toBeUndefined();
     });
 
     it("will retrieve a private, unpublished work document with an entitlement", async () => {

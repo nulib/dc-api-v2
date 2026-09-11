@@ -64,10 +64,59 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     expect(canvas.thumbnail[0].id).toEqual(
       `${source.representative_image_url}/full/!300,300/0/default.jpg`,
     );
+    expect(canvas.service).toBeUndefined();
+  });
+
+  it("includes SearchService2 when the file set has a transcription annotation with content", async () => {
+    const responseBody = JSON.parse(
+      testFixture("mocks/fileset-image-canvas-1234.json"),
+    );
+    responseBody._source.annotations = [
+      { type: "transcription", content: "some text" },
+    ];
+
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = await result.json();
+
     expect(canvas.service).toContainEqual({
-      id: `${dcApiEndpoint()}/file-sets/${source.id}/search?as=iiif`,
+      id: `${dcApiEndpoint()}/file-sets/${responseBody._source.id}/search?as=iiif`,
       type: "SearchService2",
     });
+  });
+
+  it("omits SearchService2 when transcription annotations exist but content is empty", async () => {
+    const responseBody = JSON.parse(
+      testFixture("mocks/fileset-image-canvas-1234.json"),
+    );
+    responseBody._source.annotations = [{ type: "transcription", content: "" }];
+
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = await result.json();
+
+    expect(canvas.service).toBeUndefined();
+    expect(canvas.annotations).toBeUndefined();
+  });
+
+  it("omits SearchService2 when annotations are not of type transcription", async () => {
+    const responseBody = JSON.parse(
+      testFixture("mocks/fileset-image-canvas-1234.json"),
+    );
+    responseBody._source.annotations = [{ type: "other", content: "nope" }];
+
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(responseBody),
+    });
+    const canvas = await result.json();
+
+    expect(canvas.service).toBeUndefined();
+    expect(canvas.annotations).toBeUndefined();
   });
 
   it("builds a painting annotation for image file sets", async () => {
