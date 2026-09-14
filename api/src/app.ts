@@ -24,6 +24,7 @@ import { handler as chatEndpoint } from "./handlers/get-chat-endpoint.ts";
 import { handler as chatFeedback } from "./handlers/post-chat-feedback.ts";
 import { handler as optionsRequest } from "./handlers/options-request.ts";
 import { handler as workSearch } from "./handlers/get-work-search.ts";
+import { handler as mcpServerCard } from "./handlers/mcp-server-card.ts";
 import middleware from "./handlers/middleware.ts";
 import chaosMiddleware from "./handlers/chaos-middleware.ts";
 import status from "http-status-codes";
@@ -116,6 +117,9 @@ app.get("/shared-links/:id", sharedLink);
 // oai (GET, HEAD auto-handled, POST explicit)
 app.get("/oai", oai);
 app.post("/oai", oai);
+
+// MCP server card
+app.get("/mcp/server-card", mcpServerCard);
 
 // OPTIONS catch-all
 app.options("/*", (_c) => optionsRequest());
