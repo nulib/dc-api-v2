@@ -62,7 +62,7 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     expect(canvas.width).toEqual(source.width);
     expect(canvas.height).toEqual(source.height);
     expect(canvas.thumbnail[0].id).toEqual(
-      `${source.representative_image_url}/full/!300,300/0/default.jpg`,
+      `${source.representative_image_url}/full/^!300,300/0/default.jpg`,
     );
     expect(canvas.service).toBeUndefined();
   });
@@ -131,7 +131,7 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     expect(annotation.motivation).toEqual("painting");
     expect(annotation.target).toEqual(canvas.id);
     expect(annotation.body).toMatchObject({
-      id: `${source.representative_image_url}/full/600,/0/default.jpg`,
+      id: `${source.representative_image_url}/full/^600,/0/default.jpg`,
       type: "Image",
       format: source.mime_type,
       width: source.width,
@@ -152,7 +152,7 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     expect(canvas.placeholderCanvas.width).toEqual(640);
     expect(canvas.placeholderCanvas.height).toEqual(877);
     expect(canvas.placeholderCanvas.items[0].items[0].body.id).toEqual(
-      `${source.representative_image_url}/full/!640,877/0/default.jpg`,
+      `${source.representative_image_url}/full/^!640,877/0/default.jpg`,
     );
   });
 
