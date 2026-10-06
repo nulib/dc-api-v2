@@ -37,11 +37,17 @@ export async function oaiSearch(
   set?: string,
   size = 250,
 ): Promise<{ status: number; body: string; expiration: string }> {
+  // OAI bounds include the entire specified second (or day). Anchor dates
+  // explicitly at midnight to avoid OpenSearch filling missing time fields.
+  const startOfPeriod = (date: string): string =>
+    date.length === 10 ? `${date}T00:00:00.000Z` : date.replace(/Z$/, ".000Z");
   const range = {
     range: {
       modified_date: {
-        ...(dates.from && { gt: dates.from }),
-        ...(dates.until && { lt: dates.until }),
+        ...(dates.from && { gte: startOfPeriod(dates.from) }),
+        ...(dates.until && {
+          lt: `${startOfPeriod(dates.until)}||+1${dates.until.length === 10 ? "d" : "s"}`,
+        }),
       },
     },
   };

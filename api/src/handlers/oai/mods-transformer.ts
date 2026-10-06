@@ -302,17 +302,16 @@ function locations(work: Work): XmlElement[] {
   return result;
 }
 
-// Current date/time as YYYYMMDDHHmmss.0, matching the legacy XSL output of
-// format-dateTime(current-dateTime(),'[Y0001][M01][D01][H01][m01][s01]') + ".0".
-//
-// Deliberately UTC, regardless of the TZ env var or host zone: the value is
-// labelled encoding="iso8601" with no zone designator, and OAI-PMH datestamps
-// elsewhere in the response are UTC too. Date#toISOString() is always UTC.
-function recordChangeDateUtc(now: Date = new Date()): string {
-  return now.toISOString().replace(/\D/g, "").slice(0, 14) + ".0";
+// Use the persisted modification time, in UTC, so harvesting an unchanged
+// record does not change its metadata. Preserve the legacy MODS date format.
+function recordChangeDateUtc(value: string): string | undefined {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString().replace(/\D/g, "").slice(0, 14) + ".0";
 }
 
 function recordInfo(work: Work): XmlElement {
+  const changeDate = recordChangeDateUtc(work.modified_date);
   return {
     "mods:recordOrigin": {
       _text: "Northwestern University Libraries Digital Collections API",
@@ -325,10 +324,12 @@ function recordInfo(work: Work): XmlElement {
       _attributes: { encoding: "marc" },
       _text: work.create_date,
     },
-    "mods:recordChangeDate": {
-      _attributes: { encoding: "iso8601" },
-      _text: recordChangeDateUtc(),
-    },
+    ...(changeDate && {
+      "mods:recordChangeDate": {
+        _attributes: { encoding: "iso8601" },
+        _text: changeDate,
+      },
+    }),
     "mods:recordIdentifier": {
       _attributes: { source: "IEN" },
       _text: work.id,
