@@ -19,6 +19,11 @@ export function apiTokenSecret(): string {
   return process.env["API_TOKEN_SECRET"] ?? "";
 }
 
+// The `info` block of every JSON response. It is part of the bytes a C2PA
+// manifest is bound to (see `documentBody`), so on `GET /works/{id}` it must
+// not vary between requests: `link_expiration` is only set by the shared-link
+// route, which is never the signed asset. Add nothing here that depends on
+// the request (time, token, caller).
 export function appInfo(
   options: { expires?: Date | number | null } = {},
 ): Record<string, unknown> {
@@ -27,6 +32,29 @@ export function appInfo(
     description: PackageInfo.description,
     version: PackageInfo.version,
     link_expiration: options.expires ?? null,
+  };
+}
+
+export type C2paCredentials = {
+  certificate: string;
+  key: string;
+  tsaUrl?: string;
+};
+
+// PEM values that have passed through an env file or JSON config often have
+// their newlines flattened into literal "\n" sequences.
+function pem(value: string | undefined): string {
+  return (value ?? "").replace(/\\n/g, "\n");
+}
+
+export function c2paCredentials(): C2paCredentials | null {
+  const certificate = pem(process.env["C2PA_CERTIFICATE"]);
+  const key = pem(process.env["C2PA_KEY"]);
+  if (!certificate || !key) return null;
+  return {
+    certificate,
+    key,
+    tsaUrl: process.env["C2PA_TSA_URL"] || undefined,
   };
 }
 

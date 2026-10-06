@@ -42,6 +42,7 @@ export const ExposedHeaders = [
   "ETag",
   "Expires",
   "Last-Modified",
+  "Link",
   "Pragma",
   "Vary",
 ];

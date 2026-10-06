@@ -1,5 +1,6 @@
 import { getFileSet } from "../api/opensearch.ts";
 import { appInfo } from "../environment.ts";
+import { generalizeStaff } from "../api/response/staff.ts";
 import { transform as opensearchResponse } from "../api/response/opensearch/index.ts";
 import { transform as annotationsResponse } from "../api/response/iiif/file-set-annotations.ts";
 import type { Context } from "hono";
@@ -18,7 +19,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   }
 
   const body = JSON.parse(esResponse.body);
-  const annotations = body?._source?.annotations ?? null;
+  const annotations = generalizeStaff(body?._source ?? {}).annotations ?? null;
   const as = new URL(req.url).searchParams.get("as");
 
   if (as === "iiif") {

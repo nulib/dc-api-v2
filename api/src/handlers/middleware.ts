@@ -34,6 +34,7 @@ const environment = createMiddleware(async (c, next) => {
       `${API_CONFIG_PREFIX}/config/dcapi`,
       `${SECRETS_PATH}/infrastructure/index`,
       `${SECRETS_PATH}/infrastructure/nusso`,
+      `${SECRETS_PATH}/config/c2pa_cert`,
     ];
 
     const putenv = (name: string, value: string | undefined): void => {
@@ -61,6 +62,9 @@ const environment = createMiddleware(async (c, next) => {
     putenv("OPENSEARCH_MODEL_ID", secrets.index?.embedding_model);
     putenv("NUSSO_API_KEY", secrets.nusso?.api_key);
     putenv("NUSSO_BASE_URL", secrets.nusso?.base_url);
+    putenv("C2PA_CERTIFICATE", secrets.c2pa_cert?.certificate);
+    putenv("C2PA_KEY", secrets.c2pa_cert?.key);
+    putenv("C2PA_TSA_URL", secrets.c2pa_cert?.tsa_url);
     process.env["__SKIP_SECRETS__"] = "true";
   }
   await next();
