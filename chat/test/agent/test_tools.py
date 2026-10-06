@@ -2,7 +2,13 @@ from unittest import TestCase
 from unittest.mock import patch, MagicMock
 import json
 
-from agent.tools import discover_fields, search, aggregate, get_keyword_fields
+from agent.tools import (
+    discover_fields,
+    search,
+    aggregate,
+    get_keyword_fields,
+    filter_results,
+)
 from test.fixtures.opensearch import TOP_PROPERTIES
 
 
@@ -67,6 +73,50 @@ class TestTools(TestCase):
         )
         self.assertIsInstance(response, str)
         self.assertEqual(json.loads(response), json.loads(mock_response))
+
+    def test_filter_results_credits_staff_collectively(self):
+        class MockDoc:
+            def __init__(self, metadata):
+                self.metadata = metadata
+
+        docs = [
+            MockDoc(
+                {
+                    "id": "doc1",
+                    "embedding": [0.1, 0.2],
+                    "ai_provenance_exports": {"premis": {}, "c2pa": {}},
+                    "ai_provenance": {
+                        "descriptive_metadata": {
+                            "description": {
+                                "origin": "ai_generated",
+                                "reviewer": "staff-netid",
+                            },
+                            "title": None,
+                        },
+                    },
+                }
+            ),
+            MockDoc({"id": "doc2", "ai_provenance": None}),
+        ]
+
+        self.assertEqual(
+            json.loads(filter_results(docs)),
+            [
+                {
+                    "id": "doc1",
+                    "ai_provenance": {
+                        "descriptive_metadata": {
+                            "description": {
+                                "origin": "ai_generated",
+                                "reviewer": "Northwestern University Libraries staff",
+                            },
+                            "title": None,
+                        },
+                    },
+                },
+                {"id": "doc2", "ai_provenance": None},
+            ],
+        )
 
     def test_get_keyword_fields(self):
         properties = {

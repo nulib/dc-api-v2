@@ -78,12 +78,19 @@ components:
       name: as
       in: query
       required: false
-      description: Desired output format
+      description: >-
+        Desired output format. `c2pa` and `premis` apply to single works only:
+        `c2pa` returns a signed C2PA Manifest Store (`application/c2pa`) bound to
+        the body of the default response, and `premis` returns PREMIS 3.0 XML
+        describing the AI provenance of the work's metadata (or Meadow's
+        PREMIS-shaped JSON projection with `Accept: application/json`).
       schema:
         type: string
         enum:
           - iiif
           - opensearch
+          - c2pa
+          - premis
     thumbnailAspect:
       name: aspect
       in: query

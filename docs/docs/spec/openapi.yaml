@@ -235,7 +235,44 @@ paths:
         - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
-          $ref: "./types.yaml#/components/responses/DocumentResponse"
+          description: >-
+            A single work. With `as=c2pa`, the response is instead a detached
+            C2PA Manifest Store for the work's metadata record; validate it
+            against the exact bytes of the default (`application/json`)
+            response, which advertises it in a `Link` header with
+            `rel="c2pa-manifest"`. Where signing is not configured, `as=c2pa`
+            returns the unsigned manifest definition as JSON with
+            `info.c2pa.signed` set to `false`.
+          headers:
+            Link:
+              description: Location of the C2PA Manifest Store for this response, when signing is configured
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: "./types.yaml#/components/schemas/IndexDocument"
+                      - $ref: "./types.yaml#/components/schemas/IiifPresentationManifest"
+                      - type: object
+                        description: >-
+                          PREMIS-shaped provenance (`as=premis` with an `Accept` header of
+                          `application/json`) or an unsigned C2PA manifest definition (`as=c2pa`)
+                  info:
+                    type: object
+            application/c2pa:
+              schema:
+                type: string
+                format: binary
+            application/xml:
+              schema:
+                type: string
+                description: A PREMIS 3.0 document (`as=premis`) describing the AI provenance of the work's metadata
+        503:
+          description: A C2PA manifest was requested but could not be signed
   /works/{id}/similar:
     get:
       operationId: getSimilarWorks
