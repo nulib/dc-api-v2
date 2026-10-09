@@ -59,5 +59,14 @@
     "prettier": "^3",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.59.3"
-  }
+  },
+  "optionalDependencies": {
+    "@contentauth/c2pa-node": "~0.9.8",
+    "@nulib/c2pa-signing": "~0.1.2",
+    "sharp": "^0.35.5"
+  },
+  "trustedDependencies": [
+    "@contentauth/c2pa-node",
+    "sharp"
+  ]
 }

@@ -120,6 +120,57 @@ describe("Annotation routes", () => {
     });
   });
 
+  describe("staff identities", () => {
+    // A file set as indexed before Meadow stopped naming the reviewer.
+    const fileSet = () => {
+      const doc = JSON.parse(testFixture("mocks/fileset-annotated-1234.json"));
+      for (const annotation of doc._source.annotations) {
+        annotation.ai_provenance = {
+          file_set_annotations: {
+            [`content:${annotation.id}`]: {
+              origin: "ai_generated",
+              reviewer: "staff-netid",
+            },
+          },
+        };
+      }
+      return doc;
+    };
+
+    beforeEach(() =>
+      server.use(
+        http.post(
+          "https://index.test.library.northwestern.edu/dc-v2-file-set/_search",
+          () =>
+            HttpResponse.json(
+              JSON.parse(testFixture("mocks/annotation-search-hit.json")),
+            ),
+        ),
+        http.get(
+          "https://index.test.library.northwestern.edu/dc-v2-file-set/_doc/1234",
+          () => HttpResponse.json(fileSet()),
+        ),
+      ),
+    );
+
+    for (const [path, id] of [
+      ["/file-sets/{id}", "1234"],
+      ["/file-sets/{id}/annotations", "1234"],
+      ["/annotations/{id}", "36a47020-5410-4dda-a7ca-967fe3885bcd"],
+    ]) {
+      it(`are credited collectively by GET ${path}`, async () => {
+        const result = await sendRequest(
+          buildRequest("GET", path, { pathParams: { id } }),
+        );
+        expect(result.status).toEqual(200);
+
+        const body = await result.text();
+        expect(body).toContain("Northwestern University Libraries staff");
+        expect(body).not.toContain("staff-netid");
+      });
+    }
+  });
+
   describe("GET /annotations/{id}", () => {
     it("returns a single annotation", async () => {
       server.use(
