@@ -7,13 +7,12 @@ import {
   transform as c2paResponse,
 } from "../api/response/provenance/c2pa.ts";
 import { transform as premisResponse } from "../api/response/provenance/premis.ts";
+import { negotiate } from "../api/response/negotiate.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
-  const req = c.req.raw;
   const id = c.req.param("id")!;
-  const params = new URL(req.url).searchParams;
   const userToken = c.get("userToken");
 
   const allowPrivate =
@@ -25,20 +24,21 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
 
   const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
 
-  switch (params.get("as")) {
-    case "iiif":
-      return await manifestResponse(esResponse, {
-        allowPrivate,
-        allowUnpublished,
-      });
-    case "c2pa":
-      return await c2paResponse(esResponse);
-    case "premis":
-      return await premisResponse(esResponse, {
-        accept: c.req.header("accept"),
-      });
-  }
+  return negotiate(c, {
+    iiif: () =>
+      manifestResponse(esResponse, { allowPrivate, allowUnpublished }),
+    opensearch: () => workDocument(esResponse),
+    c2pa: () => c2paResponse(esResponse),
+    premisjson: () => premisResponse(esResponse, { format: "json" }),
+    premisxml: () => premisResponse(esResponse, { format: "xml" }),
+  });
+};
 
+/** The default work response, advertising where its Content Credentials live. */
+const workDocument = async (esResponse: {
+  status: number;
+  body: string;
+}): Promise<Response> => {
   const response = await opensearchResponse(esResponse);
   // Tell validators where to find the record's Content Credentials (C2PA
   // 15.5.3.2).

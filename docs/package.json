@@ -7,6 +7,7 @@
   "scripts": {
     "build": "bun ./build.mjs",
     "serve": "bun ./serve.mjs",
+    "sync-spec": "bun ./bin/sync-spec-enums.mjs",
     "clean": "rm -rf site"
   },
   "dependencies": {

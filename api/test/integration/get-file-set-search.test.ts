@@ -122,7 +122,7 @@ describe("IIIF Search 2.0 for a file set", () => {
       });
 
       const result = await sendRequest(req);
-      expect(result.status).toEqual(400);
+      expect(result.status).toEqual(406);
     });
 
     it("returns 404 when the file set does not exist", async () => {

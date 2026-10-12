@@ -218,7 +218,7 @@ describe("IIIF Search 2.0 for a work", () => {
       });
 
       const result = await sendRequest(req);
-      expect(result.status).toEqual(400);
+      expect(result.status).toEqual(406);
     });
 
     it("returns 404 when the work does not exist", async () => {

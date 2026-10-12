@@ -1,4 +1,5 @@
 import { doSearch } from "./search-runner.ts";
+import { negotiate } from "../api/response/negotiate.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
 
@@ -25,8 +26,8 @@ const getCollectionsAsIiif = async (c: Context): Promise<Response> => {
 };
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
-  const req = c.req.raw;
-  return new URL(req.url).searchParams.get("as") === "iiif"
-    ? getCollectionsAsIiif(c)
-    : getCollections(c);
+  return negotiate(c, {
+    iiif: () => getCollectionsAsIiif(c),
+    opensearch: () => getCollections(c),
+  });
 };

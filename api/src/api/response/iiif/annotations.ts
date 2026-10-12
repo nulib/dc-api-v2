@@ -3,6 +3,7 @@ import {
   buildAnnotationTarget,
   buildSearchAnnotationBody,
 } from "./search-helpers.ts";
+import { ContentTypes } from "../content-types.ts";
 import type { FileSetAnnotation, FileSetSource } from "./types.ts";
 
 export function transform(
@@ -23,7 +24,7 @@ export function transform(
     }),
     {
       status: 200,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": ContentTypes.IIIF_JSON_LD },
     },
   );
 }
