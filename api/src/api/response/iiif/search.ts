@@ -5,6 +5,7 @@ import {
   buildSearchAnnotationBody,
   transcriptionAnnotationsMatching,
 } from "./search-helpers.ts";
+import { ContentTypes } from "../content-types.ts";
 import type { FileSetSource, WorkSource } from "./types.ts";
 import type { OpenSearchSearchResponse } from "../../opensearch-types.ts";
 
@@ -95,7 +96,7 @@ export async function transform(
     }),
     {
       status: 200,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": ContentTypes.IIIF_JSON_LD },
     },
   );
 }

@@ -1,3 +1,4 @@
+import { ContentTypes } from "../api/response/content-types.ts";
 import { getWork } from "../api/opensearch.ts";
 import { transform as iiifSearchResponse } from "../api/response/iiif/search.ts";
 import type { Context } from "hono";
@@ -6,11 +7,9 @@ import type { OpenSearchGetResponse } from "../api/opensearch-types.ts";
 import type { WorkSource } from "../api/response/iiif/types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
-  const req = c.req.raw;
   const id = c.req.param("id")!;
-  const params = new URL(req.url).searchParams;
-  const as = params.get("as");
-  const q = params.get("q");
+  const q = c.req.query("q");
+  const as = c.get("format");
   const userToken = c.get("userToken");
 
   const allowPrivate =
@@ -27,7 +26,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
       }),
       {
         status: 400,
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": ContentTypes.JSON },
       },
     );
   }

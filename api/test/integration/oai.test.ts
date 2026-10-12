@@ -18,6 +18,7 @@ import {
   teardownEnv,
   testFixture,
 } from "../test-helpers/index.ts";
+import "../test-helpers/matchers.ts";
 import { formatOaiDate } from "../../src/handlers/oai/date-utils.ts";
 
 const SCROLL_TOKEN =
@@ -65,9 +66,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const header = resultBody["OAI-PMH"].GetRecord.record.header;
@@ -195,9 +194,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].request._attributes.metadataPrefix).toEqual(
@@ -555,9 +552,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -584,9 +579,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(404);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -610,9 +603,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListRecords.record.length).toEqual(12);
@@ -629,9 +620,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -655,9 +644,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListRecords.record.length).toEqual(12);
@@ -676,9 +663,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListRecords.record.length).toEqual(12);
@@ -697,9 +682,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListRecords.record.length).toEqual(12);
@@ -712,9 +695,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
@@ -743,9 +724,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const resumptionToken = resultBody["OAI-PMH"].ListRecords.resumptionToken;
@@ -766,9 +745,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListRecords.record.length).toEqual(12);
@@ -792,9 +769,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(401);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -823,9 +798,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -843,9 +816,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -862,9 +833,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const metadataFormats =
@@ -1114,9 +1083,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
@@ -1141,9 +1108,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const identifyElement = resultBody["OAI-PMH"].Identify;
@@ -1166,9 +1131,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListRecords.record.length).toEqual(12);
@@ -1188,9 +1151,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].ListSets.set.length).toEqual(3);
@@ -1212,9 +1173,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(500);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
@@ -1237,9 +1196,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const resumptionToken =
@@ -1253,9 +1210,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error._attributes.code).toEqual(
@@ -1284,9 +1239,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const headerEl = resultBody["OAI-PMH"].ListIdentifiers.header;
@@ -1320,9 +1273,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const resumptionToken =
@@ -1346,9 +1297,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       const resumptionToken =
@@ -1377,9 +1326,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(401);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -1411,9 +1358,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error["_attributes"]["code"]).toEqual(
@@ -1430,9 +1375,7 @@ describe("Oai routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(400);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("xml");
 
       const resultBody = parseXml(await result.text());
       expect(resultBody["OAI-PMH"].error._attributes.code).toEqual("badVerb");

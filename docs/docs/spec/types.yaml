@@ -74,6 +74,17 @@ components:
       description: Comma-delimited list of fields to include in search results (e.g. "title,accession_number")
       schema:
         type: string
+    accept:
+      name: accept
+      in: header
+      required: false
+      description: Desired response content type
+      schema:
+        type: string
+        enum:
+          - application/json # Same as query parameter "as=opensearch"
+          - application/ld+json # Same as query parameter "as=iiif"
+          - 'application/ld+json;profile="http://iiif.io/api/presentation/3/context.json"' # Same as query parameter "as=iiif"
     as:
       name: as
       in: query
@@ -121,16 +132,12 @@ components:
     DocumentResponse:
       description: A single document response
       content:
+        'application/ld+json; profile="http://iiif.io/api/presentation/3/context.json"':
+          schema:
+            $ref: "#/components/schemas/IiifPresentationManifest"
         application/json:
           schema:
-            type: object
-            properties:
-              data:
-                oneOf:
-                  - $ref: "#/components/schemas/IndexDocument"
-                  - $ref: "#/components/schemas/IiifPresentationManifest"
-              info:
-                type: object
+            $ref: "#/components/schemas/IndexDocument"
     AnnotationsResponse:
       description: Annotations for a FileSet
       content:
@@ -159,11 +166,12 @@ components:
     SearchResponse:
       description: A page of search results
       content:
+        'application/ld+json; profile="http://iiif.io/api/presentation/3/context.json"':
+          schema:
+            $ref: "#/components/schemas/IiifPresentationManifest"
         application/json:
           schema:
-            oneOf:
-              - $ref: "#/components/schemas/OpenSearchResponse"
-              - $ref: "#/components/schemas/IiifPresentationManifest"
+            $ref: "#/components/schemas/OpenSearchResponse"
   schemas:
     IiifPresentationManifest:
       type: object

@@ -17,6 +17,7 @@ import {
   teardownEnv,
   testFixture,
 } from "../test-helpers/index.ts";
+import "../test-helpers/matchers.ts";
 
 describe("Retrieve work by id", () => {
   const server = setupServer();
@@ -44,10 +45,7 @@ describe("Retrieve work by id", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const body = await result.json();
       expect(body.data.id).toEqual("1234");
     });
@@ -108,9 +106,7 @@ describe("Retrieve work by id", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("iiif");
       expect(result.headers.get("vary") ?? "").toMatch(/Accept/i);
 
       const body = await result.json();

@@ -1,3 +1,4 @@
+import { ContentTypes } from "../api/response/content-types.ts";
 import { getFileSet } from "../api/opensearch.ts";
 import { transform as opensearchResponse } from "../api/response/opensearch/index.ts";
 import { transform as iiifSearchResponse } from "../api/response/iiif/file-set-search.ts";
@@ -8,9 +9,8 @@ import type { FileSetSource } from "../api/response/iiif/types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   const id = c.req.param("id")!;
-  const url = new URL(c.req.raw.url);
-  const as = url.searchParams.get("as");
-  const q = url.searchParams.get("q");
+  const as = c.get("format");
+  const q = c.req.query("q");
   const userToken = c.get("userToken");
   const allowPrivate = userToken.isSuperUser() || userToken.isReadingRoom();
   const allowUnpublished = userToken.isSuperUser();
@@ -18,7 +18,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   if (as !== "iiif" || !q?.trim()) {
     return new Response(
       JSON.stringify({ message: "Request must include ?as=iiif&q={query}" }),
-      { status: 400, headers: { "content-type": "application/json" } },
+      { status: 400, headers: { "content-type": ContentTypes.JSON } },
     );
   }
 

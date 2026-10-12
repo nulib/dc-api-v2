@@ -16,6 +16,7 @@ import {
   teardownEnv,
   testFixture,
 } from "../test-helpers/index.ts";
+import "../test-helpers/matchers.ts";
 
 describe("Retrieve collection by id", () => {
   const server = setupServer();
@@ -45,10 +46,7 @@ describe("Retrieve collection by id", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const resultBody = await result.json();
       expect(resultBody.data.id).toEqual("1234");
     });
@@ -134,9 +132,7 @@ describe("Retrieve collection by id", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("iiif");
       const resultBody = await result.json();
       expect(resultBody.type).toEqual("Collection");
       expect(resultBody.label.none[0]).toEqual("Collection Title");
@@ -176,9 +172,7 @@ describe("Retrieve collection by id", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("iiif");
       const resultBody = await result.json();
       expect(resultBody.type).toEqual("Collection");
       expect(resultBody.label.none[0]).toEqual("Collection Title");

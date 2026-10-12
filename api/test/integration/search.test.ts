@@ -18,6 +18,7 @@ import {
   teardownEnv,
   testFixture,
 } from "../test-helpers/index.ts";
+import "../test-helpers/matchers.ts";
 
 describe("Search routes", () => {
   const server = setupServer();
@@ -46,10 +47,7 @@ describe("Search routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const resultBody = await result.json();
       const keys = Object.keys(resultBody);
       expect(keys.join(",")).toContain("data");
@@ -74,10 +72,7 @@ describe("Search routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const resultBody = await result.json();
       const keys = Object.keys(resultBody);
       expect(keys.join(",")).toContain("data");
@@ -116,9 +111,7 @@ describe("Search routes", () => {
       const req = buildRequest("GET", "/search");
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("opensearch");
 
       const resultBody = await result.json();
       expect(resultBody.pagination.next_url).toBeDefined();
@@ -148,9 +141,7 @@ describe("Search routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("opensearch");
     });
 
     it("defaults to page 1", async () => {
@@ -166,9 +157,7 @@ describe("Search routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("opensearch");
     });
 
     it("will return a IIIF collection", async () => {
@@ -184,9 +173,7 @@ describe("Search routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
+      expect(result).toHaveResponseFormat("iiif");
       const resultBody = await result.json();
       expect(resultBody.type).toEqual("Collection");
     });

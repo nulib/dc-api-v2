@@ -63,7 +63,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
     });
   }
 
-  return new URL(c.req.url).searchParams.get("as") === "iiif"
+  return c.get("format") === "iiif"
     ? getIiifCollectionById(c, id)
     : getCollectionById(c, id);
 };

@@ -17,6 +17,7 @@ import {
   teardownEnv,
   testFixture,
 } from "../test-helpers/index.ts";
+import "../test-helpers/matchers.ts";
 
 describe("Doc retrieval routes", () => {
   const server = setupServer();
@@ -44,10 +45,7 @@ describe("Doc retrieval routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const resultBody = await result.json();
       expect(resultBody.data.api_model).toEqual("Work");
       expect(resultBody.data.id).toEqual("1234");
@@ -144,10 +142,7 @@ describe("Doc retrieval routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const resultBody = await result.json();
       expect(resultBody.data.api_model).toEqual("Collection");
       expect(resultBody.data.id).toEqual("1234");
@@ -192,10 +187,7 @@ describe("Doc retrieval routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json.*charset=UTF-8/i,
-      );
-
+      expect(result).toHaveResponseFormat("opensearch");
       const resultBody = await result.json();
       expect(resultBody.data.api_model).toEqual("FileSet");
       expect(resultBody.data.id).toEqual("1234");
@@ -218,9 +210,7 @@ describe("Doc retrieval routes", () => {
       });
       const result = await sendRequest(req);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json/,
-      );
+      expect(result).toHaveResponseFormat("iiif");
 
       const resultBody = await result.json();
       expect(resultBody.type).toEqual("Canvas");
