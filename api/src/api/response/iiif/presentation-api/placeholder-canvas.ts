@@ -26,7 +26,7 @@ export function buildPlaceholderCanvas(
             type: "Annotation",
             motivation: "painting",
             body: {
-              id: `${representative_image_url}/full/!${placeholderWidth},${placeholderHeight}/0/default.jpg`,
+              id: `${representative_image_url}/full/^!${placeholderWidth},${placeholderHeight}/0/default.jpg`,
               type: "Image",
               format: fileSet.mime_type,
               width: placeholderWidth,
