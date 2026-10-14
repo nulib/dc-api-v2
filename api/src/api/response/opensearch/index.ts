@@ -1,5 +1,6 @@
 import { appInfo } from "../../../environment.ts";
 import { transformError } from "../error.ts";
+import { ContentTypes } from "../content-types.ts";
 import type { Paginator } from "../../pagination.ts";
 import type {
   OpenSearchGetResponse,
@@ -34,7 +35,7 @@ async function transformOne(
 
   return new Response(body, {
     status: 200,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": ContentTypes.JSON },
   });
 }
 
@@ -51,7 +52,7 @@ async function transformMany(
 
   return new Response(body, {
     status: 200,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": ContentTypes.JSON },
   });
 }
 

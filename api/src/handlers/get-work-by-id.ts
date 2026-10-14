@@ -5,9 +5,7 @@ import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
-  const req = c.req.raw;
   const id = c.req.param("id")!;
-  const params = new URL(req.url).searchParams;
   const userToken = c.get("userToken");
 
   const allowPrivate =
@@ -19,7 +17,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
 
   const esResponse = await getWork(id, { allowPrivate, allowUnpublished });
 
-  if (params.get("as") === "iiif") {
+  if (c.get("format") === "iiif") {
     return await manifestResponse(esResponse, {
       allowPrivate,
       allowUnpublished,

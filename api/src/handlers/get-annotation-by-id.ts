@@ -4,6 +4,7 @@ import { transformError } from "../api/response/error.ts";
 import { transform as iiifAnnotationsResponse } from "../api/response/iiif/annotations.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
+import { ContentTypes } from "../api/response/content-types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   const annotationId = c.req.param("id");
@@ -57,7 +58,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
 
   if (!annotation) return transformError({ status: 404 });
 
-  const as = c.req.query("as");
+  const as = c.get("format");
   if (as === "iiif") {
     return iiifAnnotationsResponse(annotation, fileSetPayload._source);
   }
@@ -73,7 +74,9 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
     }),
     {
       status: 200,
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": ContentTypes.IIIF_JSON_LD,
+      },
     },
   );
 };

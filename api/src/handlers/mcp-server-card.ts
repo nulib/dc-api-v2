@@ -1,3 +1,4 @@
+import { ContentTypes } from "../api/response/content-types.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
 import { baseUrl } from "../helpers";
@@ -29,7 +30,7 @@ export const handler = async (c: Context<AppEnv>) => {
     }),
     {
       status: status.OK,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     },
   );
 };

@@ -105,6 +105,20 @@ const encoding = createMiddleware(async (c, next) => {
   }
 });
 
+const contentNegotiation = createMiddleware(async (c, next) => {
+  if (c.req.query("as")) {
+    c.set("format", c.req.query("as"));
+  } else {
+    const accept = c.req.header("Accept") ?? "";
+    // This will do for now, but will have to get smarter when
+    // we handle multiple Accept headers and content negotiation
+    if (accept.includes("application/ld+json")) {
+      c.set("format", "iiif");
+    }
+  }
+  await next();
+});
+
 export default every(
   environment,
   normalize,
@@ -119,4 +133,5 @@ export default every(
   }),
   etag(),
   encoding,
+  contentNegotiation,
 );

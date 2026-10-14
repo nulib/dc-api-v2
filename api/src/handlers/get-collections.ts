@@ -25,8 +25,7 @@ const getCollectionsAsIiif = async (c: Context): Promise<Response> => {
 };
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
-  const req = c.req.raw;
-  return new URL(req.url).searchParams.get("as") === "iiif"
+  return c.get("format") === "iiif"
     ? getCollectionsAsIiif(c)
     : getCollections(c);
 };

@@ -1,3 +1,4 @@
+import { ContentTypes } from "../api/response/content-types.ts";
 import { baseUrl, effectivePath, errorMessage } from "../helpers.ts";
 import {
   extractRequestedModels,
@@ -47,6 +48,7 @@ export const doSearch = async (
 
   // Merge URL search params with any caller-supplied overrides
   const effectiveParams = new URLSearchParams(url.searchParams);
+  effectiveParams.set("as", c.get("format") ?? "");
   for (const [k, v] of Object.entries(searchOptions.queryOverrides ?? {})) {
     effectiveParams.set(k, v);
   }
@@ -66,7 +68,7 @@ export const doSearch = async (
   } catch (error) {
     return new Response(JSON.stringify({ message: errorMessage(error) }), {
       status: 400,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     });
   }
 
@@ -77,7 +79,7 @@ export const doSearch = async (
   if (!validModels(models, format)) {
     return new Response(
       JSON.stringify({ message: `Invalid models requested: ${models}` }),
-      { status: 400, headers: { "content-type": "application/json" } },
+      { status: 400, headers: { "content-type": ContentTypes.JSON } },
     );
   }
 
@@ -110,7 +112,7 @@ export const doSearch = async (
         body: JSON.parse(filteredSearchContext),
         query: searchQuery,
       }),
-      { status: 200, headers: { "content-type": "application/json" } },
+      { status: 200, headers: { "content-type": ContentTypes.JSON } },
     );
   }
 
