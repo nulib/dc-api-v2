@@ -25,15 +25,39 @@ def get_keyword_fields(properties, prefix=""):
     return keyword_fields
 
 
+# How staff are named in anything published: collectively.
+STAFF_LABEL = "Northwestern University Libraries staff"
+
+
+def credit_staff(provenance):
+    """
+    Replaces a named reviewer with STAFF_LABEL, in place. Entries are keyed by
+    field path, which reaches the index as nested objects, so a reviewer can
+    sit at any depth.
+    """
+    if not isinstance(provenance, dict):
+        return
+    for key, value in provenance.items():
+        if key == "reviewer":
+            if value:
+                provenance[key] = STAFF_LABEL
+        else:
+            credit_staff(value)
+
+
 def filter_results(results):
     """
-    Filters out the embeddings from the results
+    Filters out of the results what the model has no use for (the embeddings
+    and the standards-shaped provenance exports) and credits staff
+    collectively: documents indexed by older versions of Meadow still name the
+    staff member who reviewed an AI-assisted field.
     """
     filtered = []
     for result in results:
         doc = result.metadata
-        if "embedding" in doc:
-            doc.pop("embedding")
+        doc.pop("embedding", None)
+        doc.pop("ai_provenance_exports", None)
+        credit_staff(doc.get("ai_provenance"))
         filtered.append(doc)
     return json.dumps(filtered)
 
