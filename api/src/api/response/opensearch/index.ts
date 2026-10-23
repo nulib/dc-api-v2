@@ -1,6 +1,5 @@
 import { appInfo } from "../../../environment.ts";
 import { transformError } from "../error.ts";
-import { generalizeStaff } from "../staff.ts";
 import type { Paginator } from "../../pagination.ts";
 import type {
   OpenSearchGetResponse,
@@ -36,7 +35,7 @@ export function documentBody(
   options: { expires?: Date | number | null } = {},
 ): string {
   return JSON.stringify({
-    data: generalizeStaff(source),
+    data: omitAiProvenance(source),
     info: appInfo(options),
   });
 }
@@ -77,5 +76,21 @@ async function paginationInfo(
 }
 
 function extractSource(hits: OpenSearchHit<unknown>[]): unknown[] {
-  return hits.map((hit) => generalizeStaff(hit._source));
+  return hits.map((hit) => omitAiProvenance(hit._source));
+}
+
+// Keep AI provenance available to the dedicated endpoints, but omit it
+// from regular documents and search hits. Never mutate the indexed source.
+function omitAiProvenance(source: unknown): unknown {
+  if (Array.isArray(source)) return source.map(omitAiProvenance);
+  if (!source || typeof source !== "object") return source;
+  const {
+    ai_provenance: _provenance,
+    ai_provenance_exports: _exports,
+    ...document
+  } = source as Record<string, unknown>;
+  if (Array.isArray(document.annotations)) {
+    document.annotations = document.annotations.map(omitAiProvenance);
+  }
+  return document;
 }

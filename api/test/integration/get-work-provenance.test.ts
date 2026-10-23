@@ -506,11 +506,8 @@ describe("Work provenance formats", () => {
       }
 
       const { data } = await (await get()).json();
-      expect(data.ai_provenance.descriptive_metadata.description).toEqual({
-        origin: "ai_assisted_human_modified",
-        model: "test-model",
-        reviewer: "Northwestern University Libraries staff",
-      });
+      expect(data).not.toHaveProperty("ai_provenance_exports");
+      expect(data).not.toHaveProperty("ai_provenance");
     });
 
     it("404s a missing work", async () => {
@@ -575,6 +572,13 @@ describe("Work provenance formats", () => {
     it("signs a manifest bound to the default response body", async () => {
       serveWork();
       const asset = Buffer.from(await (await get()).arrayBuffer());
+
+      expect(JSON.parse(asset.toString()).data).not.toHaveProperty(
+        "ai_provenance_exports",
+      );
+      expect(JSON.parse(asset.toString()).data).not.toHaveProperty(
+        "ai_provenance",
+      );
 
       const result = await get("c2pa");
       expect(result.status).toEqual(200);

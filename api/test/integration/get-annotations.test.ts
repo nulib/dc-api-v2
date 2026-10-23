@@ -120,7 +120,7 @@ describe("Annotation routes", () => {
     });
   });
 
-  describe("staff identities", () => {
+  describe("AI provenance omission", () => {
     // A file set as indexed before Meadow stopped naming the reviewer.
     const fileSet = () => {
       const doc = JSON.parse(testFixture("mocks/fileset-annotated-1234.json"));
@@ -133,6 +133,7 @@ describe("Annotation routes", () => {
             },
           },
         };
+        annotation.ai_provenance_exports = { premis: { events: [] } };
       }
       return doc;
     };
@@ -158,14 +159,15 @@ describe("Annotation routes", () => {
       ["/file-sets/{id}/annotations", "1234"],
       ["/annotations/{id}", "36a47020-5410-4dda-a7ca-967fe3885bcd"],
     ]) {
-      it(`are credited collectively by GET ${path}`, async () => {
+      it(`omits AI provenance from GET ${path}`, async () => {
         const result = await sendRequest(
           buildRequest("GET", path, { pathParams: { id } }),
         );
         expect(result.status).toEqual(200);
 
         const body = await result.text();
-        expect(body).toContain("Northwestern University Libraries staff");
+        expect(body).not.toContain('"ai_provenance"');
+        expect(body).not.toContain('"ai_provenance_exports"');
         expect(body).not.toContain("staff-netid");
       });
     }

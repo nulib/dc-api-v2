@@ -1,7 +1,7 @@
 import { search, getFileSet } from "../api/opensearch.ts";
-import { prefix, appInfo } from "../environment.ts";
+import { prefix } from "../environment.ts";
 import { transformError } from "../api/response/error.ts";
-import { generalizeStaff } from "../api/response/staff.ts";
+import { documentBody } from "../api/response/opensearch/index.ts";
 import { transform as iiifAnnotationsResponse } from "../api/response/iiif/annotations.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
@@ -64,13 +64,10 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   }
 
   return new Response(
-    JSON.stringify({
-      data: {
-        ...generalizeStaff(annotation),
-        file_set_id: fileSetPayload._source.id,
-        work_id: fileSetPayload._source.work_id,
-      },
-      info: appInfo(),
+    documentBody({
+      ...annotation,
+      file_set_id: fileSetPayload._source.id,
+      work_id: fileSetPayload._source.work_id,
     }),
     {
       status: 200,
