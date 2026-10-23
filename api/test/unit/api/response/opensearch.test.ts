@@ -61,7 +61,9 @@ describe("OpenSearch response transformer", () => {
     expect(body.data.length).toBeGreaterThan(0);
     for (const document of body.data) {
       expect(document).not.toHaveProperty("ai_provenance_exports");
-      expect(document).not.toHaveProperty("ai_provenance");
+      expect(document.ai_provenance).toEqual({
+        title: { origin: "ai_generated" },
+      });
     }
     expect("version" in body.info).toBe(true);
     expect("pagination" in body).toBe(true);
@@ -79,7 +81,7 @@ describe("OpenSearch response transformer", () => {
     }
   });
 
-  it("omits AI provenance from documents and annotations without changing the source", () => {
+  it("omits AI provenance exports from documents and annotations without changing the source", () => {
     const source = {
       id: "1234",
       ai_provenance: { title: { origin: "ai_generated" } },
@@ -88,7 +90,9 @@ describe("OpenSearch response transformer", () => {
         {
           id: "annotation-1",
           content: "Transcription",
-          ai_provenance: { content: { diff: "Large diff" } },
+          ai_provenance: {
+            content: { diff: "Large diff", reviewer: "staff-netid" },
+          },
           ai_provenance_exports: { premis: { events: [] } },
         },
         { id: "annotation-2", content: "Other transcription" },
@@ -98,8 +102,18 @@ describe("OpenSearch response transformer", () => {
 
     expect(JSON.parse(documentBody(source)).data).toEqual({
       id: "1234",
+      ai_provenance: { title: { origin: "ai_generated" } },
       annotations: [
-        { id: "annotation-1", content: "Transcription" },
+        {
+          id: "annotation-1",
+          content: "Transcription",
+          ai_provenance: {
+            content: {
+              diff: "Large diff",
+              reviewer: "Northwestern University Libraries staff",
+            },
+          },
+        },
         { id: "annotation-2", content: "Other transcription" },
       ],
     });

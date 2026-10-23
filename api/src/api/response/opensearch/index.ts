@@ -1,5 +1,6 @@
 import { appInfo } from "../../../environment.ts";
 import { transformError } from "../error.ts";
+import { generalizeStaff } from "../staff.ts";
 import type { Paginator } from "../../pagination.ts";
 import type {
   OpenSearchGetResponse,
@@ -35,7 +36,7 @@ export function documentBody(
   options: { expires?: Date | number | null } = {},
 ): string {
   return JSON.stringify({
-    data: omitAiProvenance(source),
+    data: publicSource(source),
     info: appInfo(options),
   });
 }
@@ -76,21 +77,28 @@ async function paginationInfo(
 }
 
 function extractSource(hits: OpenSearchHit<unknown>[]): unknown[] {
-  return hits.map((hit) => omitAiProvenance(hit._source));
+  return hits.map((hit) => publicSource(hit._source));
 }
 
-// Keep AI provenance available to the dedicated endpoints, but omit it
-// from regular documents and search hits. Never mutate the indexed source.
-function omitAiProvenance(source: unknown): unknown {
-  if (Array.isArray(source)) return source.map(omitAiProvenance);
+// A document (or list of annotations) as this API publishes it: staff
+// credited collectively, and the full provenance exports left to the
+// dedicated `?as=premis` and `?as=c2pa` endpoints.
+function publicSource(source: unknown): unknown {
+  if (Array.isArray(source)) return source.map(publicSource);
+  return generalizeStaff(omitProvenanceExports(source));
+}
+
+// Omit `ai_provenance_exports` from regular documents, search hits, and their
+// annotations. The `ai_provenance` summary stays: Digital Collections uses it.
+// Never mutate the indexed source.
+function omitProvenanceExports(source: unknown): unknown {
   if (!source || typeof source !== "object") return source;
-  const {
-    ai_provenance: _provenance,
-    ai_provenance_exports: _exports,
-    ...document
-  } = source as Record<string, unknown>;
+  const { ai_provenance_exports: _exports, ...document } = source as Record<
+    string,
+    unknown
+  >;
   if (Array.isArray(document.annotations)) {
-    document.annotations = document.annotations.map(omitAiProvenance);
+    document.annotations = document.annotations.map(omitProvenanceExports);
   }
   return document;
 }

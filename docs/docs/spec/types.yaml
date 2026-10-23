@@ -178,9 +178,9 @@ components:
     IndexDocument:
       description: >-
         A single index document. Regular document responses and search results
-        omit `ai_provenance` and `ai_provenance_exports`, including on nested
-        annotations. Retrieve detailed work provenance with
-        `/works/{id}?as=premis` or `/works/{id}?as=c2pa`.
+        include the `ai_provenance` summary but omit `ai_provenance_exports`,
+        including on nested annotations. Retrieve the full work provenance
+        exports with `/works/{id}?as=premis` or `/works/{id}?as=c2pa`.
       oneOf:
         - $ref: "./data-types.yaml#/components/schemas/Collection"
         - $ref: "./data-types.yaml#/components/schemas/FileSet"
