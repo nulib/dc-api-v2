@@ -1,5 +1,8 @@
 import { describe, it, beforeEach, afterEach, expect } from "bun:test";
-import { transform } from "../../../../src/api/response/opensearch/index.ts";
+import {
+  documentBody,
+  transform,
+} from "../../../../src/api/response/opensearch/index.ts";
 import { Paginator } from "../../../../src/api/pagination.ts";
 import {
   setupEnv,
@@ -41,15 +44,27 @@ describe("OpenSearch response transformer", () => {
   });
 
   it("transforms a search response", async () => {
+    const search = JSON.parse(testFixture("mocks/search.json"));
+    for (const hit of search.hits.hits) {
+      hit._source.ai_provenance_exports = { premis: { events: [] } };
+      hit._source.ai_provenance = { title: { origin: "ai_generated" } };
+    }
     const response = {
       status: 200,
-      body: testFixture("mocks/search.json"),
+      body: JSON.stringify(search),
     };
     const result = await transform(response, { pager });
     expect(result.status).toEqual(200);
 
     const body = await result.json();
     expect(Array.isArray(body.data)).toBe(true);
+    expect(body.data.length).toBeGreaterThan(0);
+    for (const document of body.data) {
+      expect(document).not.toHaveProperty("ai_provenance_exports");
+      expect(document.ai_provenance).toEqual({
+        title: { origin: "ai_generated" },
+      });
+    }
     expect("version" in body.info).toBe(true);
     expect("pagination" in body).toBe(true);
     const pagination = body.pagination as Record<string, unknown>;
@@ -64,6 +79,45 @@ describe("OpenSearch response transformer", () => {
     ]) {
       expect(key in pagination).toBe(true);
     }
+  });
+
+  it("omits AI provenance exports from documents and annotations without changing the source", () => {
+    const source = {
+      id: "1234",
+      ai_provenance: { title: { origin: "ai_generated" } },
+      ai_provenance_exports: { premis: { events: [] }, c2pa: {} },
+      annotations: [
+        {
+          id: "annotation-1",
+          content: "Transcription",
+          ai_provenance: {
+            content: { diff: "Large diff", reviewer: "staff-netid" },
+          },
+          ai_provenance_exports: { premis: { events: [] } },
+        },
+        { id: "annotation-2", content: "Other transcription" },
+      ],
+    };
+    const original = structuredClone(source);
+
+    expect(JSON.parse(documentBody(source)).data).toEqual({
+      id: "1234",
+      ai_provenance: { title: { origin: "ai_generated" } },
+      annotations: [
+        {
+          id: "annotation-1",
+          content: "Transcription",
+          ai_provenance: {
+            content: {
+              diff: "Large diff",
+              reviewer: "Northwestern University Libraries staff",
+            },
+          },
+        },
+        { id: "annotation-2", content: "Other transcription" },
+      ],
+    });
+    expect(source).toEqual(original);
   });
 
   it("transforms an error response", async () => {

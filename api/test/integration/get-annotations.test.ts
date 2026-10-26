@@ -120,6 +120,60 @@ describe("Annotation routes", () => {
     });
   });
 
+  describe("staff identities and provenance exports", () => {
+    // A file set as indexed before Meadow stopped naming the reviewer.
+    const fileSet = () => {
+      const doc = JSON.parse(testFixture("mocks/fileset-annotated-1234.json"));
+      for (const annotation of doc._source.annotations) {
+        annotation.ai_provenance = {
+          file_set_annotations: {
+            [`content:${annotation.id}`]: {
+              origin: "ai_generated",
+              reviewer: "staff-netid",
+            },
+          },
+        };
+        annotation.ai_provenance_exports = { premis: { events: [] } };
+      }
+      return doc;
+    };
+
+    beforeEach(() =>
+      server.use(
+        http.post(
+          "https://index.test.library.northwestern.edu/dc-v2-file-set/_search",
+          () =>
+            HttpResponse.json(
+              JSON.parse(testFixture("mocks/annotation-search-hit.json")),
+            ),
+        ),
+        http.get(
+          "https://index.test.library.northwestern.edu/dc-v2-file-set/_doc/1234",
+          () => HttpResponse.json(fileSet()),
+        ),
+      ),
+    );
+
+    for (const [path, id] of [
+      ["/file-sets/{id}", "1234"],
+      ["/file-sets/{id}/annotations", "1234"],
+      ["/annotations/{id}", "36a47020-5410-4dda-a7ca-967fe3885bcd"],
+    ]) {
+      it(`are credited collectively, without exports, by GET ${path}`, async () => {
+        const result = await sendRequest(
+          buildRequest("GET", path, { pathParams: { id } }),
+        );
+        expect(result.status).toEqual(200);
+
+        const body = await result.text();
+        expect(body).toContain('"ai_provenance"');
+        expect(body).toContain("Northwestern University Libraries staff");
+        expect(body).not.toContain("staff-netid");
+        expect(body).not.toContain('"ai_provenance_exports"');
+      });
+    }
+  });
+
   describe("GET /annotations/{id}", () => {
     it("returns a single annotation", async () => {
       server.use(
