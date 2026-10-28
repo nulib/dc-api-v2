@@ -351,7 +351,6 @@ components:
           description: Base URL to repeat this query for a given page
         search_token:
           type: string
-          required: false
           description: Tokenized query to use in subsequent GET requests
         current_page:
           type: integer
@@ -467,7 +466,6 @@ components:
             type: string
         accession_number:
           type: string
-          required: true
           description: Accession number for the work. Serves as basis for the filename.
         alternate_title:
           type: array
@@ -599,7 +597,6 @@ components:
         id:
           type: string
           format: uuid
-          required: true
           description: UUID for the work record in the repository.
         identifier:
           type: array
