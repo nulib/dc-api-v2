@@ -24,19 +24,15 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AwsAccount }}:role/github-actions-role
           aws-region: us-east-1
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.12'
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+      - uses: oven-sh/setup-bun@v2
       - name: Install dependencies
-        run: uv sync
+        run: bun install
         working-directory: ./docs
       - name: Build docs
-        run: uv run mkdocs build --clean
+        run: bun run build
         working-directory: ./docs
       - name: Determine correct deploy domain for environment
-        run: sed -i s/API_HOST/${HOSTNAME}/g docs/site/spec/openapi.*
+        run: sed -i s/API_HOST/${HOSTNAME}/g docs/site/index.html docs/site/spec/openapi.*
         env:
           HOSTNAME: ${{ secrets.Hostname }}.${{ secrets.HostedZone }}
       - name: Generate JSON API

@@ -38,7 +38,7 @@ The API will be available at:
 - `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/search`
 - `https://USER_PREFIX.dev.rdc.library.northwestern.edu:3002/collections`
 
-[View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/spec/openapi.html) Questions? [View the production API documentation](https://api.dc.library.northwestern.edu/)
+[View supported endpoints](https://api.dc.library.northwestern.edu/docs/v2/index.html#tag/Collection) Questions? [View the production API documentation](https://api.dc.library.northwestern.edu/)
 
 ### Chaos middleware
 
@@ -179,22 +179,24 @@ API documentation is automatically regenerated and deployed on pushes to the sta
 
 ### Regular Docs
 
-The `docs` directory contains a standard `mkdocs` project, which can be edited using the same tools and format as the main [Repository Documentation](http://docs.rdc.library.northwestern.edu/#contributing).
+The `docs` directory builds a single-page [ReDoc](https://github.com/Redocly/redoc) site. The prose pages in `docs/docs` are Markdown, and the build folds them into the spec's `info.description` so they become the first sections of the sidebar, ahead of the API reference.
 
 In a nutshell:
 
 1. Clone this project into a working directory (which you probably already have).
 2. Edit the Markdown files in the `docs/docs` directory.
-3. To run `mkdocs` locally and preview your work:
+3. To build the site and preview your work:
    ```shell
    sgport open all 8000
    make serve-docs
    ```
-   Docs will be accessible at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/
+   Docs will be accessible at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/, and the server rebuilds whenever a source file changes.
 
-### OpenAPI/Swagger Docs
+The Markdown understands two [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/) conventions that ReDoc does not: `=== "Label"` tab groups, which become a tabbed code widget, and `title="..."` on a fence, which becomes a caption. Both are translated at build time by `docs/lib/markdown.mjs`.
 
-We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). When `mkdocs` is running, the Swagger UI can be found at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/spec/openapi.html. Like the rest of the documentation, changes to the YAML will be immediately visible in the browser.
+### OpenAPI Docs
+
+We also maintain an OpenAPI Specification under the docs directory in [`spec/openapi.yaml`](docs/docs/spec/openapi.yaml). The documentation site renders it with [ReDoc](https://github.com/Redocly/redoc); when `make serve-docs` is running, the API reference is part of the single-page site at http://USER_PREFIX.dev.rdc.library.northwestern.edu:8000/. Like the rest of the documentation, changes to the YAML are picked up by the rebuild watcher and visible on reload.
 
 The existing spec files ([`openapi.yaml`](docs/docs/spec/openapi.yaml), [`types.yaml`](docs/docs/spec/types.yaml), and [`data-types.yaml`](docs/docs/spec/data-types.yaml)) are the best reference for understanding and updating the spec. It's especially important to understand how `openapi.yaml` uses the [`$ref` keyword](https://swagger.io/docs/specification/using-ref/) to refer to reusable elements defined in `types.yaml`, and how `types.yaml` pulls model schemas from `data-types.yaml`.
 
@@ -202,7 +204,7 @@ For an in-depth look, or to learn how to define things for which there aren't go
 
 #### Build Artifacts
 
-`openapi.html` renders the Swagger UI directly from the unmodified `openapi.yaml`. In addition, the build process generates a JSON copy of the spec using the [OpenAPI Generator CLI](https://openapi-generator.tech). In order to make sure the spec is valid before checking it in, run:
+The build copies the spec files to `site/spec/` unmodified, so `openapi.yaml`, `types.yaml`, and `data-types.yaml` stay available to consumers; `site/spec/openapi.html` is a redirect kept for older links. In addition, the build process generates a JSON copy of the spec using the [OpenAPI Generator CLI](https://openapi-generator.tech). In order to make sure the spec is valid before checking it in, run:
 
 ```shell
 bun run validate-spec

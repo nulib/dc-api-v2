@@ -1,11 +1,182 @@
+:root {
+  --nu-purple: rgb(64, 31, 104);
+  --nu-purple-light: #6b46a3;
+  --docs-header-height: 60px;
+}
+
 body {
-  font-family: "Akkurat Pro Regular", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif
+  margin: 0;
+  padding-top: var(--docs-header-height);
+  font-family: "Akkurat Pro Regular", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
 }
 
-.md-header {
-  background-color: rgb(64, 31, 104);
+/* Site header, standing in for the MkDocs Material header */
+
+.docs-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  height: var(--docs-header-height);
+  padding: 0 1.25rem;
+  background-color: var(--nu-purple);
+  color: #fff;
 }
 
-.md-header__topic {
+.docs-header__home img {
+  display: block;
+  height: 18px;
+  filter: brightness(0) invert(1);
+}
+
+.docs-header__title {
+  font-family: "Campton Bold", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.docs-header__repo {
+  margin-left: auto;
+  color: #fff;
+  font-size: 0.85rem;
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.docs-header__repo:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+@media (max-width: 50rem) {
+  .docs-header__repo {
+    display: none;
+  }
+}
+
+/* Fence titles, which ReDoc has no notion of */
+
+.code-caption {
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+/* `=== "Label"` tab groups */
+
+.code-tabs {
+  margin: 1rem 0;
+}
+
+.code-tabs__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.code-tabs__label {
+  padding: 0.4rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #666;
+  cursor: pointer;
+}
+
+.code-tabs__label:hover {
+  color: var(--nu-purple);
+}
+
+.code-tabs__label.is-active {
+  border-bottom-color: var(--nu-purple);
+  color: var(--nu-purple);
+  font-weight: 600;
+}
+
+.code-tabs__panel {
   display: none;
+  padding-top: 0.75rem;
+}
+
+.code-tabs__panel.is-active {
+  display: block;
+}
+
+.code-tabs__code {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  border-radius: 3px;
+  background-color: #11171a;
+  color: #e6e9ea;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
+/* Prism tokens, applied at build time, tuned to match ReDoc's code samples */
+
+.code-tabs__code .token.comment,
+.code-tabs__code .token.prolog,
+.code-tabs__code .token.doctype,
+.code-tabs__code .token.cdata {
+  color: #8c9296;
+}
+
+.code-tabs__code .token.punctuation {
+  color: #b9c0c4;
+}
+
+.code-tabs__code .token.property,
+.code-tabs__code .token.tag,
+.code-tabs__code .token.boolean,
+.code-tabs__code .token.number,
+.code-tabs__code .token.constant,
+.code-tabs__code .token.symbol {
+  color: #f08d49;
+}
+
+.code-tabs__code .token.selector,
+.code-tabs__code .token.attr-name,
+.code-tabs__code .token.string,
+.code-tabs__code .token.char,
+.code-tabs__code .token.builtin {
+  color: #a5d6a7;
+}
+
+.code-tabs__code .token.operator,
+.code-tabs__code .token.entity,
+.code-tabs__code .token.url,
+.code-tabs__code .token.variable {
+  color: #67cdcc;
+}
+
+.code-tabs__code .token.atrule,
+.code-tabs__code .token.attr-value,
+.code-tabs__code .token.keyword,
+.code-tabs__code .token.function {
+  color: #cc99cd;
+}
+
+.code-tabs__code .token.regex,
+.code-tabs__code .token.important {
+  color: #e90;
+}
+
+/* ReDoc section headings carry their own margins on top of the section
+   padding, which leaves the prose sections looking airy. Scoped to the
+   description sections so the API reference keeps ReDoc's own rhythm. */
+
+.api-content > div[data-section-id^="section/"] h1,
+.api-content > div[data-section-id^="section/"] h2 {
+  margin-top: 0;
+  margin-bottom: 0;
 }

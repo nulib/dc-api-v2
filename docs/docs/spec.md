@@ -1,1 +1,0 @@
-!!swagger ./spec/openapi.yaml!!

@@ -24,6 +24,7 @@ describe("MCP server card", () => {
     expect(body).toHaveProperty("name", "io.github.nulib/dc-api");
     expect(body).toHaveProperty("version");
     expect(body).toHaveProperty("description");
+    expect(body.description.length).toBeLessThanOrEqual(100);
     expect(body).toHaveProperty("title");
     expect(body).toHaveProperty("websiteUrl");
     expect(body).toHaveProperty("repository");

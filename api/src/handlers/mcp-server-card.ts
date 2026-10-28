@@ -11,8 +11,9 @@ export const handler = async (c: Context<AppEnv>) => {
         "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
       name: "io.github.nulib/dc-api",
       version,
+      // The server card schema caps this at 100 characters.
       description:
-        "Connect AI assistants to Northwestern University Libraries Digital Collections - enabling seamless discovery, display, and retrieval of digital assets.",
+        "Discover, display, and retrieve digital assets from Northwestern University Libraries.",
       title: "Northwestern University Libraries Digital Collections API",
       websiteUrl: "https://github.com/nulib/dc-api-v2",
       repository: {

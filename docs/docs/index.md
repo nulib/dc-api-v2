@@ -4,7 +4,7 @@ Our mission is to create, acquire, describe, and archive digital objects for lon
 
 This API provides access to the Library's digital resources to easily integrate the data into your own applications and workflows, regardless of your preferred programming language or framework. In fact, we use the API internally to provide the data and search functionality for our [Digital Collections site](https://dc.library.northwestern.edu). We also publish a command-line interface (CLI) [application](https://github.com/nulib/nuldc) written in Python that provides built-in commands for fetching and querying the API from your terminal. See the code examples below for ways to interact with the API using a variety of programming languages.
 
-Check out the [OpenAPI specification page](./spec.md) for detailed descriptions of each API endpoint with runnable examples.
+Check out the [OpenAPI specification](#tag/Collection) for detailed descriptions of each API endpoint, with request and response examples.
 
 ### Application Programming Interfaces (APIs)
 
