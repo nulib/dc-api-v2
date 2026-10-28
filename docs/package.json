@@ -1,0 +1,17 @@
+{
+  "name": "dc-api-v2-docs",
+  "version": "2.11.16",
+  "private": true,
+  "type": "module",
+  "description": "Documentation site for the NUL Digital Collections API",
+  "scripts": {
+    "build": "bun ./build.mjs",
+    "serve": "bun ./serve.mjs",
+    "clean": "rm -rf site"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "prismjs": "^1.30.0",
+    "redoc": "^2.5.0"
+  }
+}

@@ -2,7 +2,7 @@
 
 The Open Archives Initiative Protocol for Metadata Harvesting (OAI-PMH) is a protocol that enables the harvesting of metadata descriptions of records in a repository. The Digital Collections API is an OAI-PMH `Data Provider`, which means structured metadata is exposed according to the [OAI-PMH specification](http://www.openarchives.org/OAI/openarchivesprotocol.html). OAI-PMH is a set of verbs or services that are invoked using the HTTP protocol. The OAI-PMH endpoint is available at `https://api.dc.library.northwestern.edu/api/v2/oai`.
 
-Please see the [OpenAPI specification page](./spec.md) for more information about making requests using each OAI-PMH verb, including parameters and examples.
+Please see the [OpenAPI specification](#tag/OAI-PMH) for more information about making requests using each OAI-PMH verb, including parameters and examples.
 
 ## Verbs
 
