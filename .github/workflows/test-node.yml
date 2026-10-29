@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: oven-sh/setup-bun@v2
+      - name: Install xmllint (PREMIS schema validation in tests)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxml2-utils
       - run: bun install
       - name: Check code style
         run: bun run lint && bun run prettier

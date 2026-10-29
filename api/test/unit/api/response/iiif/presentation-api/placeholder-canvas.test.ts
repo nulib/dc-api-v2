@@ -78,7 +78,7 @@ describe("IIIF response presentation API placeholderCanvas helpers", () => {
 
     const body = annotation.body as Record<string, unknown>;
     expect(body.id).toEqual(
-      `${fileSet.representative_image_url}/full/!640,480/0/default.jpg`,
+      `${fileSet.representative_image_url}/full/^!640,480/0/default.jpg`,
     );
     expect(body.type).toEqual("Image");
     expect(body.format).toEqual(fileSet.mime_type);

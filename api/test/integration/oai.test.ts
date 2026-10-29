@@ -352,7 +352,9 @@ describe("Oai routes", () => {
       expect(recordInfo["mods:recordChangeDate"]._attributes.encoding).toEqual(
         "iso8601",
       );
-      expect(recordInfo["mods:recordChangeDate"]._text).toMatch(/^\d{14}\.0$/);
+      expect(recordInfo["mods:recordChangeDate"]._text).toEqual(
+        "20221013205631.0",
+      );
       expect(Object.keys(recordInfo)).toEqual([
         "mods:recordOrigin",
         "mods:recordContentSource",
@@ -398,6 +400,39 @@ describe("Oai routes", () => {
       );
     });
 
+    for (const [modifiedDate, expected] of [
+      ["2026-10-02T09:59:51.123456-05:00", "20261002145951.0"],
+      ["2026-10-03T00:00:00Z", "20261003000000.0"],
+      ["invalid", undefined],
+    ]) {
+      it(`uses the stored MODS change date for ${modifiedDate}`, async () => {
+        const work = JSON.parse(testFixture("mocks/work-1234.json"));
+        work._source.modified_date = modifiedDate;
+        server.use(
+          http.get(`https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_doc/1234`, () =>
+            HttpResponse.json(work),
+          ),
+        );
+        const result = await sendRequest(
+          buildRequest("GET", "/oai", {
+            queryParams: {
+              verb: "GetRecord",
+              identifier: "1234",
+              metadataPrefix: "mods",
+            },
+          }),
+        );
+        expect(result.status).toEqual(200);
+        const record = parseXml(await result.text())["OAI-PMH"].GetRecord
+          .record;
+        expect(
+          record.metadata["mods:mods"]["mods:recordInfo"][
+            "mods:recordChangeDate"
+          ]?._text,
+        ).toEqual(expected);
+      });
+    }
+
     it("returns cannotDisseminateFormat for an unsupported metadataPrefix", async () => {
       const req = buildRequest("POST", "/oai", {
         body: "verb=GetRecord&identifier=1234&metadataPrefix=marc21",
@@ -432,6 +467,11 @@ describe("Oai routes", () => {
       for (const record of records) {
         expect("mods:mods" in record.metadata).toBe(true);
         expect("oai_dc:dc" in record.metadata).toBe(false);
+        expect(
+          record.metadata["mods:mods"]["mods:recordInfo"][
+            "mods:recordChangeDate"
+          ]._text,
+        ).toEqual(record.header.datestamp._text.replace(/\D/g, "") + ".0");
       }
 
       // resumptionToken carries the metadata format so subsequent
@@ -842,6 +882,67 @@ describe("Oai routes", () => {
         "http://www.loc.gov/standards/mods/v3/mods-3-7.xsd",
       );
     });
+  });
+
+  describe("inclusive harvest date bounds", () => {
+    const cases: {
+      dates: Record<string, string>;
+      expected: Record<string, string>;
+    }[] = [
+      { dates: {}, expected: {} },
+      {
+        dates: { from: "2026-10-02T14:59:51Z", until: "2026-10-02T14:59:51Z" },
+        expected: {
+          gte: "2026-10-02T14:59:51.000Z",
+          lt: "2026-10-02T14:59:51.000Z||+1s",
+        },
+      },
+      {
+        dates: { from: "2026-10-02", until: "2026-10-02" },
+        expected: {
+          gte: "2026-10-02T00:00:00.000Z",
+          lt: "2026-10-02T00:00:00.000Z||+1d",
+        },
+      },
+      {
+        dates: { from: "2026-10-02" },
+        expected: { gte: "2026-10-02T00:00:00.000Z" },
+      },
+      {
+        dates: { until: "2026-12-31T23:59:59Z" },
+        expected: { lt: "2026-12-31T23:59:59.000Z||+1s" },
+      },
+    ];
+    for (const verb of ["ListRecords", "ListIdentifiers"]) {
+      for (const { dates, expected } of cases) {
+        it(`${verb} includes the complete boundary periods for ${JSON.stringify(dates)}`, async () => {
+          let filters: unknown;
+          server.use(
+            http.post(
+              `https://${TEST_OPENSEARCH_HOST}/dc-v2-work/_search`,
+              async ({ request }) => {
+                const body = (await request.json()) as {
+                  query: { bool: { filter: unknown[] } };
+                };
+                filters = body.query.bool.filter;
+                return HttpResponse.json(
+                  JSON.parse(testFixture("mocks/scroll.json")),
+                );
+              },
+            ),
+          );
+          const result = await sendRequest(
+            buildRequest("GET", "/oai", {
+              queryParams: { verb, metadataPrefix: "mods", ...dates },
+            }),
+          );
+          expect(result.status).toEqual(200);
+          expect(filters).toContainEqual({
+            range: { modified_date: expected },
+          });
+        });
+      }
+    }
   });
 
   describe("visibility", () => {

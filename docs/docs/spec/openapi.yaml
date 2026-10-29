@@ -1,4 +1,4 @@
-openapi: 3.0.1
+openapi: 3.1.0
 info:
   title: Northwestern University Libraries Digital Collections API
   description: >
@@ -13,9 +13,6 @@ info:
 servers:
   - url: https://API_HOST/api/v2
 tags:
-  - name: Models
-    description: >
-      Endpoints for listing and retrieving Collections, FileSets, and Works.
   - name: Collection
   - name: FileSet
   - name: Work
@@ -31,6 +28,21 @@ tags:
       As OAI-PMH is not a REST protocol, it is difficult to represent using OpenAPI/Swagger documentation.
       For full documentation and examples, please see the [official specification](https://www.openarchives.org/pmh/).
       Note: all 'from' and 'until' query parameters must follow the OAI-PMH specification and use either 'YYYY-MM-DD' or 'YYYY-MM-DDThh:mm:ssZ'. If you do not need second-level precision, use the date-only form.
+x-tagGroups:
+  - name: Models
+    tags:
+      - Collection
+      - FileSet
+      - Work
+      - Annotation
+  - name: Authentication & Search
+    tags:
+      - Authentication
+      - Search
+  - name: Other Protocols
+    tags:
+      - OAI-PMH
+      - MCP
 components:
   securitySchemes:
     bearerAuth:
@@ -235,7 +247,44 @@ paths:
         - $ref: "./types.yaml#/components/parameters/as"
       responses:
         200:
-          $ref: "./types.yaml#/components/responses/DocumentResponse"
+          description: >-
+            A single work. With `as=c2pa`, the response is instead a detached
+            C2PA Manifest Store for the work's metadata record; validate it
+            against the exact bytes of the default (`application/json`)
+            response, which advertises it in a `Link` header with
+            `rel="c2pa-manifest"`. Where signing is not configured, `as=c2pa`
+            returns the unsigned manifest definition as JSON with
+            `info.c2pa.signed` set to `false`.
+          headers:
+            Link:
+              description: Location of the C2PA Manifest Store for this response, when signing is configured
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    oneOf:
+                      - $ref: "./types.yaml#/components/schemas/IndexDocument"
+                      - $ref: "./types.yaml#/components/schemas/IiifPresentationManifest"
+                      - type: object
+                        description: >-
+                          PREMIS-shaped provenance (`as=premis` with an `Accept` header of
+                          `application/json`) or an unsigned C2PA manifest definition (`as=c2pa`)
+                  info:
+                    type: object
+            application/c2pa:
+              schema:
+                type: string
+                format: binary
+            application/xml:
+              schema:
+                type: string
+                description: A PREMIS 3.0 document (`as=premis`) describing the AI provenance of the work's metadata
+        503:
+          description: A C2PA manifest was requested but could not be signed
   /works/{id}/similar:
     get:
       operationId: getSimilarWorks
@@ -445,3 +494,82 @@ paths:
             application/xml:
               schema:
                 type: object
+  /mcp/server-card:
+    get:
+      operationId: getServerCard
+      tags:
+        - MCP
+      responses:
+        200:
+          description: >-
+            A server card describing this deployment's MCP server, conforming to the
+            [Model Context Protocol server card schema](https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  $schema:
+                    type: string
+                    format: uri
+                    description: The server card schema this document conforms to
+                  name:
+                    type: string
+                    description: Reverse-DNS identifier for the server in the MCP registry
+                  version:
+                    type: string
+                    description: Version of the API serving the card
+                  description:
+                    type: string
+                    description: What the server offers to an AI assistant
+                  title:
+                    type: string
+                    description: Human-readable name for the server
+                  websiteUrl:
+                    type: string
+                    format: uri
+                    description: Home page for the server
+                  repository:
+                    type: object
+                    description: Source repository for the server
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+                      source:
+                        type: string
+                        description: Hosting service holding the repository
+                      id:
+                        type: string
+                        description: Identifier for the repository within that service
+                    required:
+                      - url
+                      - source
+                      - id
+                  remotes:
+                    type: array
+                    description: Endpoints where the MCP server can be reached
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: MCP transport the endpoint speaks
+                          enum:
+                            - streamable-http
+                            - sse
+                        url:
+                          type: string
+                          format: uri
+                      required:
+                        - type
+                        - url
+                required:
+                  - $schema
+                  - name
+                  - version
+                  - description
+                  - title
+                  - websiteUrl
+                  - repository
+                  - remotes                

@@ -55,6 +55,8 @@ deps-api:
 	bun install --cwd api
 deps-av-download:
 	bun install --cwd av-download/lambdas
+deps-docs:
+	bun install --cwd docs
 deps-mcp: 
 	bun install --cwd mcp
 test-mcp: deps-mcp
@@ -135,17 +137,19 @@ clean:
 	rm -rf .aws-sam api/.aws-sam chat/.aws-sam av-download/.aws-sam api/node_modules api/src/node_modules av-download/lambdas/node_modules chat/**/__pycache__ chat/.coverage chat/.ruff_cache
 reset:
 	for f in $$(find . -maxdepth 2 -name '*.orig'); do mv $$f $${f%%.orig}; done
-serve-docs:
-	cd docs && uv sync && uv run mkdocs serve -a 0.0.0.0:8000
+serve-docs: deps-docs
+	cd docs && bun run serve
+build-docs: deps-docs
+	cd docs && bun run build
 
 BUMP ?= ""
 version:
 	@if [[ -n "$(BUMP)" ]]; then \
-		for pkg in api av-download/lambdas mcp mcp/apps/mcp; do \
+		for pkg in api av-download/lambdas mcp mcp/apps/mcp docs; do \
 			echo -n "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && npm version $(BUMP)) >&2; \
 		done; \
-		for pkg in chat docs; do \
+		for pkg in chat; do \
 			echo "Bumping version in $$pkg: " >&2 ; \
 			(cd $$pkg && uv version --bump $(BUMP)) >&2; \
 		done; \

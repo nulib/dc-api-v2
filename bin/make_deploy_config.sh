@@ -61,7 +61,7 @@ for section in deploy sync; do
         ApiConfigPrefix="dev-environment-${DEV_PREFIX}"
         ApiTokenName="dcapi$(openssl rand -hex 4 | cut -c1-7)"
         ApiTokenSecret="$(get_secret staging/config/dcapi api_token_secret)"
-        CustomDomainCertificateArn="$(aws acm list-certificates --query "CertificateSummaryList[?DomainName=='*.rdc-staging.library.northwestern.edu'].CertificateArn" --output text)"
+        CustomDomainCertificateArn="$(aws acm list-certificates --query "CertificateSummaryList[?DomainName=='rdc-staging.library.northwestern.edu'].CertificateArn" --output text)"
         CustomDomainHost="dcapi-${DEV_PREFIX}"
         CustomDomainZone="rdc-staging.library.northwestern.edu"
         DcApiEndpoint="https://dcapi-${DEV_PREFIX}.rdc-staging.library.northwestern.edu/api/v2"

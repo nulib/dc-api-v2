@@ -40,7 +40,7 @@ describe("IIIF response presentation API items helpers", () => {
     const bodyId = items.buildAnnotationBodyId(accessImage, "Image");
 
     expect(bodyId).toEqual(
-      `${accessImage.representative_image_url}/full/600,/0/default.jpg`,
+      `${accessImage.representative_image_url}/full/^600,/0/default.jpg`,
     );
   });
 
@@ -48,7 +48,7 @@ describe("IIIF response presentation API items helpers", () => {
     expect(
       items.buildImageResourceId(accessImage.representative_image_url),
     ).toEqual(
-      `${accessImage.representative_image_url}/full/!300,300/0/default.jpg`,
+      `${accessImage.representative_image_url}/full/^!300,300/0/default.jpg`,
     );
     expect(
       items.buildImageResourceId(
@@ -56,7 +56,7 @@ describe("IIIF response presentation API items helpers", () => {
         "1000,1000",
       ),
     ).toEqual(
-      `${accessImage.representative_image_url}/full/1000,1000/0/default.jpg`,
+      `${accessImage.representative_image_url}/full/^1000,1000/0/default.jpg`,
     );
     expect(
       items.buildImageResourceId(
@@ -65,7 +65,7 @@ describe("IIIF response presentation API items helpers", () => {
         "square",
       ),
     ).toEqual(
-      `${accessImage.representative_image_url}/square/!300,300/0/default.jpg`,
+      `${accessImage.representative_image_url}/square/^!300,300/0/default.jpg`,
     );
     expect(
       items.buildImageResourceId(
@@ -73,7 +73,7 @@ describe("IIIF response presentation API items helpers", () => {
         "!300,300",
       ),
     ).toEqual(
-      `${accessImage.representative_image_url}/full/!300,300/0/default.jpg`,
+      `${accessImage.representative_image_url}/full/^!300,300/0/default.jpg`,
     );
   });
 
