@@ -11,6 +11,7 @@ import type {
   PremisRights,
   ProvenanceWorkSource,
 } from "./types.ts";
+import { ContentTypes } from "../content-types.ts";
 
 export const PREMIS_NAMESPACE = "http://www.loc.gov/premis/v3";
 const PREMIS_SCHEMA = "https://www.loc.gov/standards/premis/v3/premis.xsd";
@@ -60,24 +61,15 @@ type XmlNode = Record<string, unknown>;
  * instead, as indexed. A work no AI activity has touched gets a document
  * describing the work with no events, rather than a 404.
  */
-export async function transform(
-  response: { status: number; body: string },
-  options: { accept?: string | null } = {},
-): Promise<Response> {
-  if (response.status !== 200) return transformError(response);
 
-  const source = (
-    JSON.parse(response.body) as OpenSearchGetResponse<ProvenanceWorkSource>
-  )._source!;
-  const data = source.ai_provenance_exports?.premis ?? emptyExport(source);
+function asJson(data: PremisExport): Response {
+  return new Response(JSON.stringify({ data, info: appInfo() }), {
+    status: 200,
+    headers: { "content-type": ContentTypes.PREMIS_JSON },
+  });
+}
 
-  if (wantsJson(options.accept)) {
-    return new Response(JSON.stringify({ data, info: appInfo() }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    });
-  }
-
+function asXml(data: PremisExport, source: ProvenanceWorkSource): Response {
   const body = convert.js2xml(
     {
       _declaration: { _attributes: { version: "1.0", encoding: "utf-8" } },
@@ -87,12 +79,29 @@ export async function transform(
   );
   return new Response(body, {
     status: 200,
-    headers: { "content-type": "application/xml" },
+    headers: { "content-type": ContentTypes.PREMIS_XML },
   });
 }
 
-function wantsJson(accept?: string | null): boolean {
-  return !!accept && /application\/json/.test(accept) && !/xml/.test(accept);
+export async function transform(
+  response: { status: number; body: string },
+  options: { format?: string | null } = {},
+): Promise<Response> {
+  if (response.status !== 200) return transformError(response);
+
+  const source = (
+    JSON.parse(response.body) as OpenSearchGetResponse<ProvenanceWorkSource>
+  )._source!;
+  const data = source.ai_provenance_exports?.premis ?? emptyExport(source);
+  switch (options.format) {
+    case "json":
+      return asJson(data);
+    case "default":
+    case "xml":
+      return asXml(data, source);
+    default:
+      return transformError({ status: 406 });
+  }
 }
 
 function emptyExport(source: ProvenanceWorkSource): PremisExport {

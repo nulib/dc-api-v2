@@ -4,6 +4,7 @@
  * These tests don't require HTTP mocking or MCP client/server setup.
  * They test isolated business logic directly.
  */
+import "./support/setup.ts";
 import { describe, it, expect, beforeEach, afterEach, spyOn } from "bun:test";
 import {
   summarizeResults,

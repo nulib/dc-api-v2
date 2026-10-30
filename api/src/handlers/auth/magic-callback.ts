@@ -1,3 +1,4 @@
+import { ContentTypes } from "../../api/response/content-types.ts";
 import { verifyMagicToken } from "./magic-link.ts";
 import { ApiToken } from "../../api/api-token.ts";
 import type { Context } from "hono";
@@ -9,7 +10,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   if (!token) {
     return new Response(JSON.stringify({ error: "Missing token" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     });
   }
   try {
@@ -36,7 +37,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
     }
     return new Response(JSON.stringify({ error: err.message }), {
       status: status,
-      headers: { "Content-Type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     });
   }
 };
