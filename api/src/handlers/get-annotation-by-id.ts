@@ -3,8 +3,10 @@ import { prefix } from "../environment.ts";
 import { transformError } from "../api/response/error.ts";
 import { documentBody } from "../api/response/opensearch/index.ts";
 import { transform as iiifAnnotationsResponse } from "../api/response/iiif/annotations.ts";
+import { negotiate } from "../api/response/negotiate.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
+import { ContentTypes } from "../api/response/content-types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   const annotationId = c.req.param("id");
@@ -58,20 +60,19 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
 
   if (!annotation) return transformError({ status: 404 });
 
-  const as = c.req.query("as");
-  if (as === "iiif") {
-    return iiifAnnotationsResponse(annotation, fileSetPayload._source);
-  }
-
-  return new Response(
-    documentBody({
-      ...annotation,
-      file_set_id: fileSetPayload._source.id,
-      work_id: fileSetPayload._source.work_id,
-    }),
-    {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    },
-  );
+  return negotiate(c, {
+    iiif: () => iiifAnnotationsResponse(annotation, fileSetPayload._source),
+    opensearch: () =>
+      new Response(
+        documentBody({
+          ...annotation,
+          file_set_id: fileSetPayload._source.id,
+          work_id: fileSetPayload._source.work_id,
+        }),
+        {
+          status: 200,
+          headers: { "content-type": ContentTypes.JSON },
+        },
+      ),
+  });
 };

@@ -1,7 +1,7 @@
 {
   "name": "@nulib/dc-api-mcp",
   "mcpName": "io.github.nulib/dc-api",
-  "version": "2.12.0",
+  "version": "2.12.1",
   "description": "Agent integration with the Northwestern University Libraries Digital Collections API",
   "repository": {
     "type": "git",
@@ -26,11 +26,11 @@
     "build": "bun run ./build.ts",
     "clean": "rm -rf dist",
     "prepare": "rm -rf dist && PUBLISHING=true bun run ./build.ts",
-    "test": "MSW_MODE=${MSW_MODE:-replay} bun test",
+    "test": "bun test",
     "test:clear": "rm -rf test/fixtures/*.har",
     "test:record": "concurrently --kill-others -n 'RECORD,TEST' 'mitmdump --set hardump=test/fixtures/interactions.har -s test/support/redact.py' 'sleep 2 && MSW_MODE=record HTTP_PROXY=http://localhost:8080 HTTPS_PROXY=http://localhost:8080 NODE_EXTRA_CA_CERTS=$HOME/.mitmproxy/mitmproxy-ca-cert.pem bun test'",
-    "test:watch": "MSW_MODE=${MSW_MODE:-replay} bun test --watch",
-    "test:coverage": "MSW_MODE=${MSW_MODE:-replay} bun test --coverage"
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.563.0",

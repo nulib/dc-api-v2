@@ -1,12 +1,13 @@
 {
   "name": "dc-api-v2-docs",
-  "version": "2.12.0",
+  "version": "2.12.1",
   "private": true,
   "type": "module",
   "description": "Documentation site for the NUL Digital Collections API",
   "scripts": {
     "build": "bun ./build.mjs",
     "serve": "bun ./serve.mjs",
+    "sync-spec": "bun ./bin/sync-spec-enums.mjs",
     "clean": "rm -rf site"
   },
   "dependencies": {

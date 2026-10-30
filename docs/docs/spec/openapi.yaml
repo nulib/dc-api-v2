@@ -16,6 +16,7 @@ tags:
   - name: Collection
   - name: FileSet
   - name: Work
+  - name: Annotation
   - name: Search
     description: >
       Endpoints for searching the index.

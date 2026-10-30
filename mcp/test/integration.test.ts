@@ -11,6 +11,7 @@
  * To replay from fixtures (default):
  *   bun test
  */
+import "./support/setup.ts";
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 
 import { createServer } from "../apps/mcp/server.js";
