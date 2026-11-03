@@ -116,6 +116,16 @@ describe("IIIF Search 2.0 for a work", () => {
       expect(body.id).toContain("?as=iiif&q=Lorem");
       expect(body.items).toHaveLength(1);
 
+      expect(body.annotations).toHaveLength(1);
+      const context = body.annotations[0].items[0];
+      expect(context.motivation).toBe("contextualizing");
+      expect(context.target.source).toBe(body.items[0].id);
+      expect(context.target.selector[0]).toMatchObject({
+        type: "TextQuoteSelector",
+        prefix: "",
+        exact: "Lorem",
+      });
+      expect(context.target.selector[0].suffix.length).toBeLessThanOrEqual(100);
       const item = body.items[0];
       expect(item.type).toEqual("Annotation");
       expect(item.motivation).toEqual("commenting");
@@ -199,6 +209,7 @@ describe("IIIF Search 2.0 for a work", () => {
       const body = await result.json();
       expect(body.type).toEqual("AnnotationPage");
       expect(body.items).toEqual([]);
+      expect(body).not.toHaveProperty("annotations");
     });
 
     it("returns 400 when q parameter is missing", async () => {
