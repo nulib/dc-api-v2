@@ -116,6 +116,39 @@ describe("IIIF Search 2.0 for a file set", () => {
       expect(body).not.toHaveProperty("annotations");
     });
 
+    it.each([
+      { label: "null", annotations: null },
+      { label: "missing", annotations: undefined },
+      { label: "empty", annotations: [] },
+    ])(
+      "returns an empty search page when annotations are $label",
+      async ({ annotations }) => {
+        const fileSet = JSON.parse(
+          testFixture("mocks/fileset-annotated-1234.json"),
+        );
+        fileSet._source.annotations = annotations;
+        server.use(
+          http.get(
+            "https://index.test.library.northwestern.edu/dc-v2-file-set/_doc/1234",
+            () => HttpResponse.json(fileSet),
+          ),
+        );
+
+        const req = buildRequest("GET", "/file-sets/{id}/search", {
+          pathParams: { id: "1234" },
+          queryParams: { as: "iiif", q: "the" },
+        });
+
+        const result = await sendRequest(req);
+        expect(result.status).toEqual(200);
+
+        const body = await result.json();
+        expect(body.type).toEqual("AnnotationPage");
+        expect(body.items).toEqual([]);
+        expect(body).not.toHaveProperty("annotations");
+      },
+    );
+
     it("returns 400 when q parameter is missing", async () => {
       const req = buildRequest("GET", "/file-sets/{id}/search", {
         pathParams: { id: "1234" },
