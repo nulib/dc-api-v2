@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import yaml from "js-yaml";
 import { renderContent } from "./lib/markdown.mjs";
+import { syncEnums } from "./lib/spec-enums.mjs";
 
 const require = createRequire(import.meta.url);
 const root = path.dirname(fileURLToPath(import.meta.url));
@@ -18,6 +19,7 @@ const SITE_TITLE = "NUL Digital Collections API";
 // that follows them is grouped under SPEC_GROUP.
 const SECTIONS = [
   { title: "Overview", file: "index.md" },
+  { title: "Response Formats", file: "formats.md" },
   { title: "Protocol for Metadata Harvesting (OAI-PMH)", file: "oai.md" },
 ];
 const SPEC_GROUP = "OpenAPI Specification";
@@ -27,6 +29,18 @@ const SPEC_GROUP = "OpenAPI Specification";
 const SPEC_PARTS = ["types.yaml", "data-types.yaml"];
 
 const loadYaml = (file) => yaml.load(fs.readFileSync(file, "utf8"));
+
+// The negotiation enums are generated from the API's format registry, so a
+// format added there and not synced here would publish a spec that lies.
+function checkSpecEnums() {
+  const file = path.join(specDir, "types.yaml");
+  const current = fs.readFileSync(file, "utf8");
+  if (syncEnums(current) !== current) {
+    throw new Error(
+      "spec/types.yaml is out of date with the format registry; run `bun run sync-spec`",
+    );
+  }
+}
 
 // ReDoc is handed a spec object rather than a URL, so external `$ref`s have to
 // be resolved up front. Our parts never collide, so merging `components` and
@@ -157,6 +171,7 @@ function copyDir(from, to) {
 }
 
 function build() {
+  checkSpecEnums();
   const spec = mergeSpec();
   spec.info.description = buildDescription();
   spec["x-tagGroups"] = tagGroups(spec);

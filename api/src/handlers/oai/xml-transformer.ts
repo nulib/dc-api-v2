@@ -1,5 +1,6 @@
 import convert from "xml-js";
 import { formatOaiDate } from "./date-utils.ts";
+import { ContentTypes } from "../../api/response/content-types.ts";
 
 const json2xmlOptions = { compact: true, ignoreComment: true, spaces: 4 };
 
@@ -37,6 +38,6 @@ export const output = (
   const body = convert.js2xml({ ...declaration, ...obj }, json2xmlOptions);
   return new Response(body, {
     status: status,
-    headers: { "content-type": "application/xml" },
+    headers: { "content-type": ContentTypes.XML },
   });
 };

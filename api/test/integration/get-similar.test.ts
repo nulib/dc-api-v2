@@ -41,9 +41,7 @@ describe("Similar routes", () => {
     });
     const result = await sendRequest(req);
     expect(result.status).toEqual(200);
-    expect(result.headers.get("content-type") ?? "").toMatch(
-      /application\/json.*charset=UTF-8/i,
-    );
+    expect(result).toHaveResponseFormat("opensearch");
 
     const body = await result.json();
     const url = new URL(body.pagination.query_url);
@@ -65,9 +63,7 @@ describe("Similar routes", () => {
     });
     const result = await sendRequest(req);
     expect(result.status).toEqual(200);
-    expect(result.headers.get("content-type") ?? "").toMatch(
-      /application\/json.*charset=UTF-8/i,
-    );
+    expect(result).toHaveResponseFormat("opensearch");
 
     const resultBody = await result.json();
     expect(resultBody.pagination.current_page).toEqual(3);

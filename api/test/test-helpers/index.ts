@@ -1,6 +1,12 @@
 import { readFileSync } from "fs";
 import app from "../../src/app.ts";
 
+// Registering the custom matchers here rather than in `bunfig.toml` keeps them
+// working under runners that don't find this package's config — the VS Code
+// extension runs the whole monorepo's tests from the workspace root, where no
+// bunfig exists. Every test file that uses a matcher already imports this.
+import "./matchers.ts";
+
 export const TEST_BASE = "https://api.test.library.northwestern.edu";
 export const TEST_OPENSEARCH_HOST = "index.test.library.northwestern.edu";
 

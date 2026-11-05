@@ -1,3 +1,4 @@
+import { ContentTypes } from "../api/response/content-types.ts";
 import { handleError } from "./error-handler.ts";
 import type { Context } from "hono";
 import { errorMessage } from "../helpers.ts";
@@ -7,7 +8,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   try {
     return new Response(JSON.stringify(c.get("userToken").userInfo()), {
       status: 200,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     });
   } catch (error) {
     await handleError(error as Error);

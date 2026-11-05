@@ -1,3 +1,4 @@
+import { ContentTypes } from "../../api/response/content-types.ts";
 import { dcApiEndpoint } from "../../environment.ts";
 import { errorMessage } from "../../helpers.ts";
 import { createMagicToken } from "./magic-link.ts";
@@ -19,7 +20,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
   if (!email) {
     return new Response(JSON.stringify({ error: "Email is required" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     });
   }
 
@@ -45,7 +46,7 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
         error: "Failed to send email",
         reason: errorMessage(err),
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { "content-type": ContentTypes.JSON } },
     );
   }
 

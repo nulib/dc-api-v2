@@ -7,6 +7,7 @@
  * so MSW HAR fixtures are not involved; MSW's unhandled-request guard lets
  * loopback traffic through (see test/support/setup.ts).
  */
+import "./support/setup.ts";
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import type { Server } from "node:http";
 

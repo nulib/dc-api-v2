@@ -275,9 +275,7 @@ describe("Work provenance formats", () => {
       serveWork();
       const result = await get("premis");
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/xml/,
-      );
+      expect(result).toHaveResponseFormat("premisxml");
 
       const xml = await result.text();
       const { valid, report } = validatePremis(xml);
@@ -400,9 +398,7 @@ describe("Work provenance formats", () => {
       serveWork();
       const result = await get("premis", asJson);
       expect(result.status).toEqual(200);
-      expect(result.headers.get("content-type") ?? "").toMatch(
-        /application\/json/,
-      );
+      expect(result).toHaveResponseFormat("premisjson");
 
       const body = await result.json();
       expect(body.data).toEqual(exports.premis);
@@ -413,6 +409,7 @@ describe("Work provenance formats", () => {
       serveWork(false);
       const result = await get("premis", asJson);
       expect(result.status).toEqual(200);
+      expect(result).toHaveResponseFormat("premisjson");
 
       const { data } = await result.json();
       expect(data).toEqual({

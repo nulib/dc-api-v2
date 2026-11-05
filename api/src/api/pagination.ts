@@ -1,5 +1,7 @@
 import lzstring from "lz-string";
 import { defaultSearchSize } from "../environment.ts";
+import { DEFAULT_FORMAT, Formats } from "./response/formats.ts";
+import type { ResponseFormat } from "./response/formats.ts";
 import type { OpenSearchSearchResponse } from "./opensearch-types.ts";
 
 const {
@@ -29,7 +31,7 @@ export async function decodeSearchToken(
 export async function encodeSearchToken(
   models: string[],
   body: Record<string, unknown>,
-  format: string,
+  format: ResponseFormat,
   options: Record<string, unknown>,
 ): Promise<string> {
   const token: Record<string, unknown> = {
@@ -83,7 +85,7 @@ export class Paginator {
   route: string;
   models: string[];
   body: Record<string, unknown>;
-  format: string;
+  format: ResponseFormat;
   options: Record<string, unknown>;
 
   constructor(
@@ -91,7 +93,7 @@ export class Paginator {
     route: string,
     models: string[],
     body: Record<string, unknown>,
-    format: string,
+    format: ResponseFormat,
     options: Record<string, unknown>,
   ) {
     this.baseUrl = baseUrl;
@@ -142,6 +144,15 @@ export class Paginator {
           (queryStringParameters as Record<string, string>)[param],
         );
       }
+    }
+
+    // The format is part of a pagination URL's identity: following one has to
+    // come back in the same representation, even where the original request
+    // negotiated it with an `Accept` header rather than `as`.
+    if (this.format === DEFAULT_FORMAT) {
+      url.searchParams.delete("as");
+    } else {
+      url.searchParams.set("as", Formats[this.format].as[0] ?? this.format);
     }
 
     const aggregatedCount =

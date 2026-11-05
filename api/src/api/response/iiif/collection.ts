@@ -1,6 +1,7 @@
 import { dcApiEndpoint, dcUrl } from "../../../environment.ts";
 import { transformError } from "../error.ts";
 import { provider, nulLogo } from "./presentation-api/provider.ts";
+import { ContentTypes } from "../content-types.ts";
 import type { Paginator } from "../../pagination.ts";
 import type { WorkSummarySource, NavPlace } from "./types.ts";
 
@@ -18,7 +19,9 @@ export async function transform(
       JSON.stringify(await buildCollection(responseBody, pageInfo)),
       {
         status: 200,
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": ContentTypes.IIIF_JSON_LD,
+        },
       },
     );
   }

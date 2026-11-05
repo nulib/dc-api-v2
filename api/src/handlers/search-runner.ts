@@ -1,3 +1,6 @@
+import { ContentTypes } from "../api/response/content-types.ts";
+import { DEFAULT_FORMAT, Formats } from "../api/response/formats.ts";
+import { negotiate } from "../api/response/negotiate.ts";
 import { baseUrl, effectivePath, errorMessage } from "../helpers.ts";
 import {
   extractRequestedModels,
@@ -11,6 +14,7 @@ import RequestPipeline from "../api/request/pipeline.ts";
 import { defaultSearchSize } from "../environment.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
+import type { ResponseFormat } from "../api/response/formats.ts";
 import { cloneRawRequest } from "hono/request";
 
 const AllowedQueryParams = ["search_pipeline"];
@@ -39,9 +43,37 @@ const sanitizeQueryString = (
   return Object.keys(sanitized).length === 0 ? undefined : sanitized;
 };
 
+/** `as` value that dumps the assembled query instead of running it. */
+const EXPLAIN = "_explain";
+
 export const doSearch = async (
   c: Context<AppEnv>,
   searchOptions: SearchOptions = {},
+): Promise<Response> => {
+  if (c.req.query("as") === EXPLAIN) {
+    return await runSearch(c, searchOptions, DEFAULT_FORMAT, { explain: true });
+  }
+
+  // A search token minted by an earlier request carries the format that
+  // produced it, so a client following a pagination URL gets the same
+  // representation back without repeating `as=`.
+  const preferred = await formatFromToken(c.req.query("searchToken"));
+
+  return await negotiate(
+    c,
+    {
+      iiif: () => runSearch(c, searchOptions, "iiif"),
+      opensearch: () => runSearch(c, searchOptions, "opensearch"),
+    },
+    { preferred },
+  );
+};
+
+const runSearch = async (
+  c: Context<AppEnv>,
+  searchOptions: SearchOptions,
+  format: ResponseFormat,
+  { explain = false }: { explain?: boolean } = {},
 ): Promise<Response> => {
   const url = new URL(c.req.url);
 
@@ -54,7 +86,6 @@ export const doSearch = async (
   const models = extractRequestedModels(
     searchOptions.modelOverride ?? c.req.param("models"),
   );
-  const format = await responseFormat(effectiveParams);
 
   let searchContext: Record<string, unknown>;
   try {
@@ -66,7 +97,7 @@ export const doSearch = async (
   } catch (error) {
     return new Response(JSON.stringify({ message: errorMessage(error) }), {
       status: 400,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": ContentTypes.JSON },
     });
   }
 
@@ -77,7 +108,7 @@ export const doSearch = async (
   if (!validModels(models, format)) {
     return new Response(
       JSON.stringify({ message: `Invalid models requested: ${models}` }),
-      { status: 400, headers: { "content-type": "application/json" } },
+      { status: 400, headers: { "content-type": ContentTypes.JSON } },
     );
   }
 
@@ -103,14 +134,14 @@ export const doSearch = async (
   const searchModels = modelsToTargets(models);
   const searchQuery = sanitizeQueryString(effectiveParams);
 
-  if (format === "_explain") {
+  if (explain) {
     return new Response(
       JSON.stringify({
         models: searchModels,
         body: JSON.parse(filteredSearchContext),
         query: searchQuery,
       }),
-      { status: 200, headers: { "content-type": "application/json" } },
+      { status: 200, headers: { "content-type": ContentTypes.JSON } },
     );
   }
 
@@ -209,18 +240,22 @@ const parseSortParameter = (sortString: string | null): unknown[] | null => {
   return values;
 };
 
-const responseFormat = async (params: URLSearchParams): Promise<string> => {
-  const as = params.get("as");
-  if (as) return as;
-
-  const token = params.get("searchToken");
-  if (token === null) return "default";
+/**
+ * The format recorded in a search token, where it names one this API still
+ * produces. Tokens minted before formats were named this way carry values like
+ * `default`, which mean the default representation.
+ */
+const formatFromToken = async (
+  token: string | undefined,
+): Promise<ResponseFormat | undefined> => {
+  if (!token) return undefined;
 
   try {
-    const request = await decodeSearchToken(token);
-    return (request as { format: string }).format;
+    const request = (await decodeSearchToken(token)) as { format?: string };
+    const format = request.format;
+    return format && format in Formats ? (format as ResponseFormat) : undefined;
   } catch {
-    return "default";
+    return undefined;
   }
 };
 

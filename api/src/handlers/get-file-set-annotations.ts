@@ -1,14 +1,15 @@
+import { ContentTypes } from "../api/response/content-types.ts";
 import { getFileSet } from "../api/opensearch.ts";
 import {
   documentBody,
   transform as opensearchResponse,
 } from "../api/response/opensearch/index.ts";
 import { transform as annotationsResponse } from "../api/response/iiif/file-set-annotations.ts";
+import { negotiate } from "../api/response/negotiate.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
 
 export const handler = async (c: Context<AppEnv>): Promise<Response> => {
-  const req = c.req.raw;
   const id = c.req.param("id")!;
   const userToken = c.get("userToken");
   const allowPrivate = userToken.isSuperUser() || userToken.isReadingRoom();
@@ -21,14 +22,13 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
 
   const body = JSON.parse(esResponse.body);
   const annotations = body?._source?.annotations ?? null;
-  const as = new URL(req.url).searchParams.get("as");
 
-  if (as === "iiif") {
-    return await annotationsResponse(esResponse);
-  }
-
-  return new Response(documentBody(annotations), {
-    status: 200,
-    headers: { "content-type": "application/json" },
+  return negotiate(c, {
+    iiif: () => annotationsResponse(esResponse),
+    opensearch: () =>
+      new Response(documentBody(annotations), {
+        status: 200,
+        headers: { "content-type": ContentTypes.JSON },
+      }),
   });
 };

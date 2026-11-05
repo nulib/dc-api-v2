@@ -1,6 +1,7 @@
 import { HttpRequest } from "@smithy/protocol-http";
 import { awsFetch } from "../aws/fetch.ts";
 import { openSearchEndpoint, prefix } from "../environment.ts";
+import { ContentTypes } from "./response/content-types.ts";
 import Honeybadger from "@honeybadger-io/js";
 
 export async function getCollection(
@@ -159,7 +160,7 @@ function initRequest(path: string): HttpRequest {
   return new HttpRequest({
     method: "GET",
     hostname: endpoint,
-    headers: { Host: endpoint, "Content-Type": "application/json" },
+    headers: { Host: endpoint, "content-type": ContentTypes.JSON },
     path: path,
   });
 }
@@ -175,7 +176,7 @@ export async function search(
   const request = new HttpRequest({
     method: "POST",
     hostname: endpoint,
-    headers: { Host: endpoint, "Content-Type": "application/json" },
+    headers: { Host: endpoint, "content-type": ContentTypes.JSON },
     body: body,
     path: `/${targets}/_search`,
     query: optionsQuery,
@@ -191,7 +192,7 @@ export async function scroll(
   const request = new HttpRequest({
     method: "POST",
     hostname: endpoint,
-    headers: { Host: endpoint, "Content-Type": "application/json" },
+    headers: { Host: endpoint, "content-type": ContentTypes.JSON },
     body: JSON.stringify({ scroll: "2m" }),
     path: `_search/scroll/${scrollId}`,
   });
@@ -205,7 +206,7 @@ export async function deleteScroll(
   const request = new HttpRequest({
     method: "DELETE",
     hostname: endpoint,
-    headers: { Host: endpoint, "Content-Type": "application/json" },
+    headers: { Host: endpoint, "content-type": ContentTypes.JSON },
     path: `_search/scroll/${scrollId}`,
   });
   return await awsFetch(request);

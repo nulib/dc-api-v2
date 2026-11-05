@@ -8,6 +8,7 @@
  * call the Digital Collections API are used over HTTP, so MSW replay
  * fixtures are not involved.
  */
+import "./support/setup.ts";
 import { describe, it, expect, beforeEach, afterEach } from "bun:test";
 
 import { createServer } from "../apps/mcp/server.js";

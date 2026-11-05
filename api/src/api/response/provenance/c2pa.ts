@@ -11,9 +11,7 @@ import type {
 } from "./types.ts";
 import Honeybadger from "@honeybadger-io/js";
 import PackageInfo from "../../../../package.json" with { type: "json" };
-
-export const MANIFEST_MEDIA_TYPE = "application/c2pa";
-const ASSET_MEDIA_TYPE = "application/json";
+import { ContentTypes } from "../content-types.ts";
 
 // The record is assembled from repository data by software. Meadow overrides
 // this when any of the record's live content is AI-generated.
@@ -46,12 +44,12 @@ export async function transform(response: {
   try {
     const manifest = await signManifest(definition, {
       buffer: Buffer.from(documentBody(source)),
-      mimeType: ASSET_MEDIA_TYPE,
+      mimeType: ContentTypes.JSON,
     });
     return new Response(new Uint8Array(manifest), {
       status: 200,
       headers: {
-        "content-type": MANIFEST_MEDIA_TYPE,
+        "content-type": ContentTypes.C2PA_MANIFEST,
         // Browsers save the response; give it the name a validator looks for.
         "content-disposition": `attachment; filename="${source.id}.c2pa"`,
         link: `<${workLink(source)}>; rel="describes"`,
@@ -89,7 +87,7 @@ function unsignedResponse(
   });
   return new Response(body, {
     status: 200,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": ContentTypes.JSON },
   });
 }
 
@@ -104,7 +102,7 @@ export function manifestDefinition(
 
   return {
     title: source.title || `Work ${source.id}`,
-    format: ASSET_MEDIA_TYPE,
+    format: ContentTypes.JSON,
     claim_generator_info: [
       { name: PackageInfo.name, version: PackageInfo.version },
     ],

@@ -8,6 +8,7 @@ import {
 } from "./presentation-api/items.ts";
 import { buildPlaceholderCanvas } from "./presentation-api/placeholder-canvas.ts";
 import type { FileSetSource } from "./types.ts";
+import { ContentTypes } from "../content-types.ts";
 
 export async function transform(
   response: { status: number; body: string },
@@ -96,7 +97,7 @@ export async function transform(
   return new Response(JSON.stringify(canvas), {
     status: 200,
     headers: {
-      "content-type": "application/json",
+      "content-type": ContentTypes.IIIF_JSON_LD,
     },
   });
 }

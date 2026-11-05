@@ -1,4 +1,5 @@
 import { prefix } from "../../environment.ts";
+import type { ResponseFormat } from "../response/formats.ts";
 
 const mapTargets: Record<string, string> = {
   works: "dc-v2-work",
@@ -12,7 +13,7 @@ export function extractRequestedModels(
   return requestedModels == null ? ["works"] : requestedModels.split(",");
 }
 
-export function validModels(models: string[], format: string): boolean {
+export function validModels(models: string[], format: ResponseFormat): boolean {
   if (format === "iiif") {
     return (
       models.length == 1 &&

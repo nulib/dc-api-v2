@@ -2,6 +2,7 @@ import { baseUrl } from "../helpers.ts";
 import { doSearch } from "./search-runner.ts";
 import { getCollection } from "../api/opensearch.ts";
 import { transform as opensearchResponse } from "../api/response/opensearch/index.ts";
+import { negotiate } from "../api/response/negotiate.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
 
@@ -63,7 +64,8 @@ export const handler = async (c: Context<AppEnv>): Promise<Response> => {
     });
   }
 
-  return new URL(c.req.url).searchParams.get("as") === "iiif"
-    ? getIiifCollectionById(c, id)
-    : getCollectionById(c, id);
+  return negotiate(c, {
+    iiif: () => getIiifCollectionById(c, id),
+    opensearch: () => getCollectionById(c, id),
+  });
 };
