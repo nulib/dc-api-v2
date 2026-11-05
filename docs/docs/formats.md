@@ -20,12 +20,12 @@ representations apart.
 
 ## Formats
 
-| `as` value | Media type | Applies to |
-| --- | --- | --- |
-| `opensearch` (default) | `application/json` | every resource and search endpoint |
-| `iiif` | `application/ld+json` with the IIIF Presentation 3 `profile` | works, collections, file sets, annotations, search |
-| `premis` | `application/xml` (or `application/json`, see below) | a single work |
-| `c2pa` | `application/c2pa` | a single work |
+| `as` value             | Media type                                                   | Applies to                                         |
+| ---------------------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| `opensearch` (default) | `application/json`                                           | every resource and search endpoint                 |
+| `iiif`                 | `application/ld+json` with the IIIF Presentation 3 `profile` | works, collections, file sets, annotations, search |
+| `premis`               | `application/xml` (or `application/json`, see below)         | a single work                                      |
+| `c2pa`                 | `application/c2pa`                                           | a single work                                      |
 
 Omitting `as` — or sending a value the endpoint doesn't recognize — yields the default
 JSON representation.
@@ -63,7 +63,7 @@ curl 'https://api.dc.library.northwestern.edu/api/v2/search/works?query=football
 ### PREMIS (`as=premis`)
 
 A [PREMIS 3.0](https://www.loc.gov/standards/premis/) document describing the AI
-provenance of a work's *metadata* — the objects, events, agents, and rights statements
+provenance of a work's _metadata_ — the objects, events, agents, and rights statements
 recorded when machine-generated description was applied to the record. The default
 response is XML, valid against the Library of Congress schema, and is served as
 `application/xml`.
@@ -92,7 +92,7 @@ browsers and validators save it under the name they look for.
 
 The manifest is **detached**: JSON has nowhere to embed one, so the manifest is signed on
 request and bound to the asset it describes by hash. That asset is the body of the
-default work response, *byte for byte*, which means a validator needs both the `.c2pa`
+default work response, _byte for byte_, which means a validator needs both the `.c2pa`
 file and the unmodified `?as=opensearch` response to check the credentials. The default
 response advertises where to find its manifest in a `Link` header:
 
@@ -103,7 +103,7 @@ Link: <https://api.dc.library.northwestern.edu/api/v2/works/{id}?as=c2pa>; rel="
 and the manifest response points back at the asset with `rel="describes"`.
 
 Two responses are worth planning for. Where signing is not configured in an environment,
-`as=c2pa` returns the unsigned manifest *definition* as JSON with `info.c2pa.signed` set
+`as=c2pa` returns the unsigned manifest _definition_ as JSON with `info.c2pa.signed` set
 to `false` — a description of what would be signed, not a Content Credential. Where
 signing is configured but fails, the response is `503` rather than an unsigned stand-in.
 
@@ -121,12 +121,12 @@ curl -o work.c2pa \
 
 Where no `as` parameter is present, the request's `Accept` header selects the format:
 
-| `Accept` contains | Equivalent to |
-| --- | --- |
-| `application/c2pa` | `as=c2pa` |
-| `application/json` | `as=opensearch` |
-| `application/ld+json` | `as=iiif` |
-| `application/premis+xml` | `as=premis` |
+| `Accept` contains        | Equivalent to   |
+| ------------------------ | --------------- |
+| `application/c2pa`       | `as=c2pa`       |
+| `application/json`       | `as=opensearch` |
+| `application/ld+json`    | `as=iiif`       |
+| `application/premis+xml` | `as=premis`     |
 
 The header is parsed properly: quality values are honored, so
 `Accept: application/json;q=0.5, application/ld+json` returns IIIF, and `q=0` refuses a
@@ -216,15 +216,34 @@ auth routes — don't.
 
 ## Which formats apply where
 
-| Endpoint | Formats |
-| --- | --- |
-| `/works/{id}` | default, `iiif`, `premis`, `c2pa` |
-| `/works/{id}/search` | `iiif` only — a request without it returns `400` |
-| `/collections`, `/collections/{id}` | default, `iiif` |
-| `/file-sets/{id}` | default, `iiif` |
-| `/file-sets/{id}/annotations`, `/annotations/{id}` | default, `iiif` |
-| `/file-sets/{id}/search` | `iiif` only — a request without it returns `400` |
-| `/search`, `/search/{models}`, `/works/{id}/similar` | default, `iiif` |
+| Endpoint                                             | Formats                                          |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| `/works/{id}`                                        | default, `iiif`, `premis`, `c2pa`                |
+| `/works/{id}/search`                                 | `iiif` only — a request without it returns `406` |
+| `/collections`, `/collections/{id}`                  | default, `iiif`                                  |
+| `/file-sets/{id}`                                    | default, `iiif`                                  |
+| `/file-sets/{id}/annotations`, `/annotations/{id}`   | default, `iiif`                                  |
+| `/file-sets/{id}/search`                             | `iiif` only — a request without it returns `406` |
+| `/search`, `/search/{models}`, `/works/{id}/similar` | default, `iiif`                                  |
 
 `premis` and `c2pa` describe a single work's metadata record, so they are meaningful only
 on `/works/{id}`; elsewhere they result in a `406 Not Acceptable` error response.
+
+### IIIF content-search excerpts
+
+The work and file-set content-search endpoints return the full matching
+transcriptions in `items`. Their `annotations` array contains a context
+AnnotationPage with one `contextualizing` annotation per literal,
+case-insensitive occurrence of the query. Each targets the matching annotation
+ID and supplies a `TextQuoteSelector`: `exact` preserves the matched text,
+`prefix` contains up to 60 preceding characters, and `suffix` contains up to
+100 following characters (one fewer at an edge rather than split an emoji or
+other surrogate pair). Context remains verbatim plain text, without HTML or
+added ellipses. A response includes at most 100 context annotations, taken in
+`items` order, so very common queries return every matching transcription but
+only the first 100 excerpts. When nothing matches, `annotations` is omitted.
+
+This follows [IIIF Content Search 2.0 match context](https://iiif.io/api/search/2.0/#431-match-context)
+and allows compatible viewers, including Clover 4.1, to display short excerpts
+and highlight only the matched phrase. Canvas targets and full transcriptions
+remain unchanged; the response does not add word coordinates on the image.

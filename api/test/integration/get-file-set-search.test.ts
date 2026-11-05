@@ -56,6 +56,16 @@ describe("IIIF Search 2.0 for a file set", () => {
       expect(body.id).toContain("/file-sets/1234/search?as=iiif&q=Lorem");
       expect(body.items).toHaveLength(1);
 
+      expect(body.annotations).toHaveLength(1);
+      const context = body.annotations[0].items[0];
+      expect(context.motivation).toBe("contextualizing");
+      expect(context.target.source).toBe(body.items[0].id);
+      expect(context.target.selector[0]).toMatchObject({
+        type: "TextQuoteSelector",
+        prefix: "",
+        exact: "Lorem",
+      });
+      expect(context.target.selector[0].suffix.length).toBeLessThanOrEqual(100);
       const item = body.items[0];
       expect(item.id).toEqual(
         `${process.env.DC_API_ENDPOINT}/annotations/36a47020-5410-4dda-a7ca-967fe3885bcd?as=iiif`,
@@ -103,6 +113,7 @@ describe("IIIF Search 2.0 for a file set", () => {
       const body = await result.json();
       expect(body.type).toEqual("AnnotationPage");
       expect(body.items).toEqual([]);
+      expect(body).not.toHaveProperty("annotations");
     });
 
     it("returns 400 when q parameter is missing", async () => {

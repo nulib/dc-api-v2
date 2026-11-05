@@ -2,6 +2,7 @@ import { dcApiEndpoint } from "../../../environment.ts";
 import { getWorkFileSets } from "../../opensearch.ts";
 import {
   buildAnnotationTarget,
+  buildSearchContext,
   buildSearchAnnotationBody,
   transcriptionAnnotationsMatching,
 } from "./search-helpers.ts";
@@ -66,7 +67,13 @@ export async function transform(
     fileSetGroups[key].push(fs);
   });
 
-  const items: Record<string, unknown>[] = [];
+  const items: {
+    id: string;
+    body: Record<string, unknown>;
+    type: string;
+    motivation: string;
+    target: Record<string, unknown>;
+  }[] = [];
 
   Object.entries(fileSetGroups).forEach(([groupKey, groupFileSets]) => {
     const canvasId = groupCanvasIdMap[groupKey];
@@ -87,12 +94,15 @@ export async function transform(
     });
   });
 
+  const annotations = buildSearchContext(items, q, searchId);
+
   return new Response(
     JSON.stringify({
       "@context": "http://iiif.io/api/search/2/context.json",
       id: searchId,
       type: "AnnotationPage",
       items,
+      ...(annotations.length > 0 && { annotations }),
     }),
     {
       status: 200,
