@@ -39,10 +39,10 @@ export function buildAnnotationTarget(
 }
 
 export function transcriptionAnnotationsMatching(
-  annotations: FileSetAnnotation[] = [],
+  annotations: FileSetAnnotation[] | null | undefined,
   q: string,
 ): FileSetAnnotation[] {
-  return annotations
+  return (annotations ?? [])
     .filter((ann) => ann.type === "transcription")
     .filter((ann) =>
       getTranscriptionContent(ann).toLowerCase().includes(q.toLowerCase()),
