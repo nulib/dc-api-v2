@@ -302,7 +302,7 @@ wheels = [
 
 [[package]]
 name = "dc-api-v2-chat"
-version = "2.12.1"
+version = "2.12.2"
 source = { virtual = "." }
 default-groups = []
 dependencies = [
