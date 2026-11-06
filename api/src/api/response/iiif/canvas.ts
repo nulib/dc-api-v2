@@ -1,3 +1,5 @@
+import { dimensions, fileSetDimensions } from "./dimensions.ts";
+export { dimensions } from "./dimensions.ts";
 import { dcApiEndpoint } from "../../../environment.ts";
 import { getWork } from "../../opensearch.ts";
 import { transformError } from "../error.ts";
@@ -21,7 +23,7 @@ export async function transform(
   };
   const fileSet = openSearchResponse._source;
   const canvasId = `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
-  const { width, height } = getDimensions(fileSet);
+  const { width, height } = dimensions(fileSet);
 
   const transcriptions = (fileSet.annotations || [])
     .filter((a) => a.type === "transcription")
@@ -70,14 +72,10 @@ export async function transform(
   if (
     isImage(fileSet) &&
     fileSet.representative_image_url &&
-    fileSetWidth(fileSet) &&
-    fileSetHeight(fileSet)
+    fileSetDimensions(fileSet).width &&
+    fileSetDimensions(fileSet).height
   ) {
-    canvas.placeholderCanvas = buildPlaceholderCanvas(canvasId, {
-      ...fileSet,
-      width,
-      height,
-    });
+    canvas.placeholderCanvas = buildPlaceholderCanvas(canvasId, fileSet);
   }
 
   const partOf = await parentManifest(fileSet, options);
@@ -169,31 +167,6 @@ export function bodyType(fileSet: FileSetSource): string {
   if (mimeType.startsWith("video/")) return "Video";
   if (mimeType === "application/pdf") return "Text";
   return "Dataset";
-}
-
-export function dimensions(fileSet: FileSetSource): {
-  width: number;
-  height: number;
-} {
-  return getDimensions(fileSet);
-}
-
-function getDimensions(fileSet: FileSetSource): {
-  width: number;
-  height: number;
-} {
-  return {
-    width: fileSetWidth(fileSet) || 100,
-    height: fileSetHeight(fileSet) || 100,
-  };
-}
-
-function fileSetWidth(fileSet: FileSetSource): number | undefined {
-  return fileSet.width || fileSet.extracted_metadata?.exif?.value?.imageWidth;
-}
-
-function fileSetHeight(fileSet: FileSetSource): number | undefined {
-  return fileSet.height || fileSet.extracted_metadata?.exif?.value?.imageHeight;
 }
 
 function isImage(fileSet: FileSetSource): boolean {
