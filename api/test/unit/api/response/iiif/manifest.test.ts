@@ -449,3 +449,61 @@ describe("IIIF Multiple Choice of Images in a Single View", () => {
     }
   });
 });
+
+for (const workType of ["Image", "Video"]) {
+  it(`orients ${workType} work image canvases using EXIF from file-set records`, async () => {
+    const response = JSON.parse(testFixture("mocks/work-1234.json"));
+    const fileSet = response._source.file_sets[0];
+    Object.assign(fileSet, {
+      mime_type: "image/jpeg",
+      role: workType === "Image" ? "Access" : "Auxiliary",
+      width: 224,
+      height: 1351,
+    });
+    delete fileSet.extracted_metadata;
+    response._source.work_type = workType;
+    response._source.file_sets = [fileSet];
+    server.use(
+      http.post(osUrl(/\/_search$/), async ({ request }) => {
+        const query = (await request.json()) as {
+          _source: string[];
+          query: { bool: { must: unknown[]; filter: unknown[] } };
+        };
+        expect(query._source).toContain("extracted_metadata.exif");
+        expect(query.query.bool.must).not.toContainEqual({
+          term: { role: "Access" },
+        });
+        expect(query.query.bool.filter).toContainEqual({
+          term: { published: true },
+        });
+        return HttpResponse.json({
+          hits: {
+            hits: [
+              {
+                _source: {
+                  id: fileSet.id,
+                  extracted_metadata: {
+                    exif: { value: { orientation: "Rotate 270 CW" } },
+                  },
+                },
+              },
+            ],
+          },
+        });
+      }),
+    );
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(response),
+    });
+    const manifest = await result.json();
+    const canvas = manifest.items[0];
+    expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+    const body = canvas.items[0].items[0].body;
+    expect([body.width, body.height]).toEqual([1351, 224]);
+    expect([
+      canvas.placeholderCanvas.width,
+      canvas.placeholderCanvas.height,
+    ]).toEqual([640, 106]);
+  });
+}

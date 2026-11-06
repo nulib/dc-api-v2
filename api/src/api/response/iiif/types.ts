@@ -40,7 +40,13 @@ export interface FileSetSource {
   work_title?: string;
   description?: string;
   extracted_metadata?: {
-    exif?: { value?: { imageWidth?: number; imageHeight?: number } };
+    exif?: {
+      value?: {
+        imageWidth?: number;
+        imageHeight?: number;
+        orientation?: string | number;
+      };
+    };
   };
   annotations?: FileSetAnnotation[];
 }
