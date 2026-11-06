@@ -1,3 +1,4 @@
+import { dimensions } from "./dimensions.ts";
 import { IIIFBuilder } from "iiif-builder";
 import {
   dcApiEndpoint,
@@ -42,7 +43,7 @@ export async function transform(
 
     const manifestId = `${dcApiEndpoint()}/works/${source.id}?as=iiif`;
 
-    const transcriptionMap = await fetchFileSetTranscriptions(source, options);
+    const transcriptionMap = await fetchFileSetMetadata(source, options);
     const canvasAnnotations: Record<string, { id: string; type: string }> = {};
 
     const manifestNormalized = builder.createManifest(
@@ -58,8 +59,7 @@ export async function transform(
             if (isAudioVideo(source.work_type))
               canvas.duration = fileSet.duration || 1;
 
-            canvas.height = fileSet.height || 100;
-            canvas.width = fileSet.width || 100;
+            Object.assign(canvas, dimensions(fileSet));
             canvas.addLabel(fileSet.label ?? "", "none");
             addThumbnailToCanvas(canvas, fileSet);
 
@@ -214,8 +214,7 @@ export async function transform(
             if (isAudioVideo(source.work_type)) {
               canvas.duration = primaryFileSet.duration || 1;
             }
-            canvas.height = primaryFileSet.height || 100;
-            canvas.width = primaryFileSet.width || 100;
+            Object.assign(canvas, dimensions(primaryFileSet));
             canvas.addLabel(primaryFileSet.label ?? "", "none");
             addThumbnailToCanvas(canvas, primaryFileSet);
 
@@ -342,18 +341,27 @@ function fileSetCanvasId(fileSet: FileSetSource): string {
   return `${dcApiEndpoint()}/file-sets/${fileSet.id}?as=iiif`;
 }
 
-async function fetchFileSetTranscriptions(
+async function fetchFileSetMetadata(
   source: WorkSource,
   options: { allowPrivate?: boolean; allowUnpublished?: boolean },
 ): Promise<Record<string, Record<string, unknown>[]>> {
-  if (source.work_type !== "Image") return {};
+  if (
+    source.work_type !== "Image" &&
+    !source.file_sets.some((fileSet) => fileSet.mime_type.startsWith("image/"))
+  )
+    return {};
   if (!openSearchEndpoint()) return {};
 
   const response = await getWorkFileSets(source.id, {
     allowPrivate: options.allowPrivate ?? false,
     allowUnpublished: options.allowUnpublished ?? false,
-    role: "Access",
-    source: ["id", "annotations"],
+    source: [
+      "id",
+      "annotations",
+      "extracted_metadata.exif.value.orientation",
+      "extracted_metadata.exif.value.imageWidth",
+      "extracted_metadata.exif.value.imageHeight",
+    ],
   });
 
   if (response.status !== 200) return {};
@@ -362,7 +370,18 @@ async function fetchFileSetTranscriptions(
   const hits: Record<string, unknown>[] = body?.hits?.hits ?? [];
 
   return hits.reduce((acc: Record<string, Record<string, unknown>[]>, hit) => {
-    const fileSetId = (hit._source as { id?: string })?.id;
+    const details = hit._source as Partial<FileSetSource> | undefined;
+    const fileSetId = details?.id;
+    // Work documents omit EXIF. Enrich only file sets already included in the work,
+    // using the same publication/visibility filters as the transcription lookup.
+    const fileSet = source.file_sets.find((item) => item.id === fileSetId);
+    if (fileSet && details?.extracted_metadata?.exif) {
+      fileSet.extracted_metadata = {
+        ...fileSet.extracted_metadata,
+        exif: details.extracted_metadata.exif,
+      };
+    }
+    if (fileSet?.role !== "Access") return acc;
     const annotations = (
       (hit._source as { annotations?: FileSetAnnotation[] })?.annotations ?? []
     )

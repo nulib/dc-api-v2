@@ -449,3 +449,145 @@ describe("IIIF Multiple Choice of Images in a Single View", () => {
     }
   });
 });
+
+for (const workType of ["Image", "Video"]) {
+  it(`orients ${workType} work image canvases using EXIF from file-set records`, async () => {
+    const response = JSON.parse(testFixture("mocks/work-1234.json"));
+    const fileSet = response._source.file_sets[0];
+    Object.assign(fileSet, {
+      mime_type: "image/jpeg",
+      role: workType === "Image" ? "Access" : "Auxiliary",
+      width: 224,
+      height: 1351,
+    });
+    delete fileSet.extracted_metadata;
+    response._source.work_type = workType;
+    response._source.file_sets = [fileSet];
+    server.use(
+      http.post(osUrl(/\/_search$/), async ({ request }) => {
+        const query = (await request.json()) as {
+          _source: string[];
+          query: { bool: { must: unknown[]; filter: unknown[] } };
+        };
+        expect(query._source).toEqual([
+          "id",
+          "annotations",
+          "extracted_metadata.exif.value.orientation",
+          "extracted_metadata.exif.value.imageWidth",
+          "extracted_metadata.exif.value.imageHeight",
+        ]);
+        expect(query.query.bool.must).not.toContainEqual({
+          term: { role: "Access" },
+        });
+        expect(query.query.bool.filter).toContainEqual({
+          term: { published: true },
+        });
+        return HttpResponse.json({
+          hits: {
+            hits: [
+              {
+                _source: {
+                  id: fileSet.id,
+                  extracted_metadata: {
+                    exif: { value: { orientation: "Rotate 270 CW" } },
+                  },
+                },
+              },
+            ],
+          },
+        });
+      }),
+    );
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(response),
+    });
+    const manifest = await result.json();
+    const canvas = manifest.items[0];
+    expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+    const body = canvas.items[0].items[0].body;
+    expect([body.width, body.height]).toEqual([1351, 224]);
+    expect([
+      canvas.placeholderCanvas.width,
+      canvas.placeholderCanvas.height,
+    ]).toEqual([640, 106]);
+  });
+}
+
+describe("file-set metadata enrichment", () => {
+  it.each(["Access", "Auxiliary"])(
+    "only advertises transcription search for Access file sets (%s)",
+    async (role) => {
+      const response = JSON.parse(testFixture("mocks/work-1234.json"));
+      const fileSet = response._source.file_sets[0];
+      Object.assign(fileSet, {
+        role,
+        mime_type: "image/jpeg",
+        width: undefined,
+        height: undefined,
+      });
+      delete fileSet.extracted_metadata;
+      response._source.work_type = "Image";
+      response._source.file_sets = [fileSet];
+      server.use(
+        http.post(osUrl(/\/_search$/), () =>
+          HttpResponse.json({
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    id: fileSet.id,
+                    extracted_metadata: {
+                      exif: {
+                        value: {
+                          orientation: "Rotate 270 CW",
+                          imageWidth: 224,
+                          imageHeight: 1351,
+                        },
+                      },
+                    },
+                    annotations: [
+                      {
+                        id: "transcription-1",
+                        type: "transcription",
+                        content: "Example text",
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          }),
+        ),
+      );
+
+      const result = await transform({
+        status: 200,
+        body: JSON.stringify(response),
+      });
+      expect(result.status).toBe(200);
+      const manifest = await result.json();
+      const canvas = manifest.items[0];
+      expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+      const body = canvas.items[0].items[0].body;
+      expect([body.width, body.height]).toEqual([1351, 224]);
+      if (role === "Access") {
+        expect(manifest.service).toEqual([
+          {
+            id: `${dcApiEndpoint()}/works/${response._source.id}/search?as=iiif`,
+            type: "SearchService2",
+          },
+        ]);
+        expect(canvas.annotations).toEqual([
+          {
+            id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`,
+            type: "AnnotationPage",
+          },
+        ]);
+      } else {
+        expect(manifest).not.toHaveProperty("service");
+        expect(canvas).not.toHaveProperty("annotations");
+      }
+    },
+  );
+});
