@@ -469,7 +469,13 @@ for (const workType of ["Image", "Video"]) {
           _source: string[];
           query: { bool: { must: unknown[]; filter: unknown[] } };
         };
-        expect(query._source).toContain("extracted_metadata.exif");
+        expect(query._source).toEqual([
+          "id",
+          "annotations",
+          "extracted_metadata.exif.value.orientation",
+          "extracted_metadata.exif.value.imageWidth",
+          "extracted_metadata.exif.value.imageHeight",
+        ]);
         expect(query.query.bool.must).not.toContainEqual({
           term: { role: "Access" },
         });
@@ -507,3 +513,81 @@ for (const workType of ["Image", "Video"]) {
     ]).toEqual([640, 106]);
   });
 }
+
+describe("file-set metadata enrichment", () => {
+  it.each(["Access", "Auxiliary"])(
+    "only advertises transcription search for Access file sets (%s)",
+    async (role) => {
+      const response = JSON.parse(testFixture("mocks/work-1234.json"));
+      const fileSet = response._source.file_sets[0];
+      Object.assign(fileSet, {
+        role,
+        mime_type: "image/jpeg",
+        width: undefined,
+        height: undefined,
+      });
+      delete fileSet.extracted_metadata;
+      response._source.work_type = "Image";
+      response._source.file_sets = [fileSet];
+      server.use(
+        http.post(osUrl(/\/_search$/), () =>
+          HttpResponse.json({
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    id: fileSet.id,
+                    extracted_metadata: {
+                      exif: {
+                        value: {
+                          orientation: "Rotate 270 CW",
+                          imageWidth: 224,
+                          imageHeight: 1351,
+                        },
+                      },
+                    },
+                    annotations: [
+                      {
+                        id: "transcription-1",
+                        type: "transcription",
+                        content: "Example text",
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          }),
+        ),
+      );
+
+      const result = await transform({
+        status: 200,
+        body: JSON.stringify(response),
+      });
+      expect(result.status).toBe(200);
+      const manifest = await result.json();
+      const canvas = manifest.items[0];
+      expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+      const body = canvas.items[0].items[0].body;
+      expect([body.width, body.height]).toEqual([1351, 224]);
+      if (role === "Access") {
+        expect(manifest.service).toEqual([
+          {
+            id: `${dcApiEndpoint()}/works/${response._source.id}/search?as=iiif`,
+            type: "SearchService2",
+          },
+        ]);
+        expect(canvas.annotations).toEqual([
+          {
+            id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`,
+            type: "AnnotationPage",
+          },
+        ]);
+      } else {
+        expect(manifest).not.toHaveProperty("service");
+        expect(canvas).not.toHaveProperty("annotations");
+      }
+    },
+  );
+});

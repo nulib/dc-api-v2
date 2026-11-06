@@ -355,7 +355,13 @@ async function fetchFileSetMetadata(
   const response = await getWorkFileSets(source.id, {
     allowPrivate: options.allowPrivate ?? false,
     allowUnpublished: options.allowUnpublished ?? false,
-    source: ["id", "annotations", "extracted_metadata.exif"],
+    source: [
+      "id",
+      "annotations",
+      "extracted_metadata.exif.value.orientation",
+      "extracted_metadata.exif.value.imageWidth",
+      "extracted_metadata.exif.value.imageHeight",
+    ],
   });
 
   if (response.status !== 200) return {};
@@ -375,6 +381,7 @@ async function fetchFileSetMetadata(
         exif: details.extracted_metadata.exif,
       };
     }
+    if (fileSet?.role !== "Access") return acc;
     const annotations = (
       (hit._source as { annotations?: FileSetAnnotation[] })?.annotations ?? []
     )
