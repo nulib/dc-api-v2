@@ -20,6 +20,7 @@ import {
 import { buildPlaceholderCanvas } from "./presentation-api/placeholder-canvas.ts";
 import { metadataLabelFields } from "./presentation-api/metadata.ts";
 import { nulLogo, provider } from "./presentation-api/provider.ts";
+import { buildNavDate } from "./presentation-api/nav-date.ts";
 import { ContentTypes } from "../content-types.ts";
 import type { Paginator } from "../../pagination.ts";
 import type {
@@ -328,6 +329,8 @@ export async function transform(
     (jsonManifest as Record<string, unknown>).logo = [nulLogo];
     const navPlace = buildNavPlace(source);
     if (navPlace) (jsonManifest as Record<string, unknown>).navPlace = navPlace;
+    const navDate = buildNavDate(source);
+    if (navDate) (jsonManifest as Record<string, unknown>).navDate = navDate;
 
     return new Response(JSON.stringify(jsonManifest), {
       status: 200,

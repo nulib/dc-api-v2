@@ -10,6 +10,7 @@ import {
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { transform } from "../../../../../src/api/response/iiif/manifest.ts";
+import { buildNavDate } from "../../../../../src/api/response/iiif/presentation-api/nav-date.ts";
 import { dcApiEndpoint, dcUrl } from "../../../../../src/environment.ts";
 import {
   setupEnv,
@@ -158,6 +159,42 @@ describe("Image Work as IIIF Manifest response transformer", () => {
   it("omits navPlace when source has no navPlace data", async () => {
     const { manifest } = await setup("mocks/work-1234-no-collection.json");
     expect(manifest.navPlace).toEqual(undefined);
+  });
+
+  it("populates Manifest navDate from the earliest date created", async () => {
+    const { manifest } = await setup();
+    expect(manifest.navDate).toEqual("1906-08-01T00:00:00Z");
+  });
+
+  it("omits navDate when source has no bounded date created", async () => {
+    const { manifest } = await setup("mocks/work-1234-no-collection.json");
+    expect(manifest.navDate).toEqual(undefined);
+  });
+
+  describe("buildNavDate", () => {
+    const work = (date_created_start: unknown) => ({
+      date_created_start: date_created_start as string | null | undefined,
+    });
+
+    it("appends the time an xsd:dateTime requires", () => {
+      expect(buildNavDate(work("1960-01-01"))).toEqual("1960-01-01T00:00:00Z");
+    });
+
+    it("accepts BCE and five-digit years", () => {
+      expect(buildNavDate(work("-0500-01-01"))).toEqual(
+        "-0500-01-01T00:00:00Z",
+      );
+      expect(buildNavDate(work("10000-01-01"))).toEqual(
+        "10000-01-01T00:00:00Z",
+      );
+    });
+
+    it("returns null for a missing, null, or malformed date", () => {
+      expect(buildNavDate(work(undefined))).toBeNull();
+      expect(buildNavDate(work(null))).toBeNull();
+      expect(buildNavDate(work("1958"))).toBeNull();
+      expect(buildNavDate(work("1958-12-31T00:00:00Z"))).toBeNull();
+    });
   });
 
   it("populates Manifest partOf", async () => {
