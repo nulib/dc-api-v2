@@ -10,7 +10,11 @@ import {
 import { search } from "../api/opensearch.ts";
 import { transformSearchResult } from "../api/response/transformer.ts";
 import { decodeSearchToken, Paginator } from "../api/pagination.ts";
-import RequestPipeline from "../api/request/pipeline.ts";
+import { EmbeddingError } from "../api/embeddings.ts";
+import RequestPipeline, {
+  FileSetSearchError,
+  InvalidQueryError,
+} from "../api/request/pipeline.ts";
 import { defaultSearchSize } from "../environment.ts";
 import type { Context } from "hono";
 import type { AppEnv } from "../types.ts";
@@ -127,9 +131,42 @@ const runSearch = async (
     },
   );
 
-  const filteredSearchContext = new RequestPipeline(searchContext)
-    .authFilter(c.get("userToken"), effectiveParams)
-    .toJson();
+  // The pipeline rewrites the query in place. It gets its own copy so the
+  // pagination token keeps the query as the client sent it.
+  const pipeline = new RequestPipeline(
+    structuredClone(searchContext),
+  ).authFilter(c.get("userToken"), effectiveParams);
+
+  try {
+    await pipeline.joinFileSets((body) =>
+      search(modelsToTargets(["file-sets"]), body),
+    );
+    await pipeline.embedNeuralQueries();
+  } catch (error) {
+    if (error instanceof InvalidQueryError) {
+      return new Response(JSON.stringify({ message: error.message }), {
+        status: 400,
+        headers: { "content-type": ContentTypes.JSON },
+      });
+    }
+    if (error instanceof FileSetSearchError) {
+      return new Response(
+        JSON.stringify({ message: "The file set query could not be run" }),
+        {
+          status: error.status === 400 ? 400 : 502,
+          headers: { "content-type": ContentTypes.JSON },
+        },
+      );
+    }
+    if (!(error instanceof EmbeddingError)) throw error;
+    console.error("Semantic search unavailable", error);
+    return new Response(
+      JSON.stringify({ message: "Semantic search is temporarily unavailable" }),
+      { status: 503, headers: { "content-type": ContentTypes.JSON } },
+    );
+  }
+
+  const filteredSearchContext = pipeline.toJson();
 
   const searchModels = modelsToTargets(models);
   const searchQuery = sanitizeQueryString(effectiveParams);
@@ -150,7 +187,7 @@ const runSearch = async (
     filteredSearchContext,
     searchQuery,
   );
-  return transformSearchResult(esResponse, pager);
+  return transformSearchResult(pipeline.withFileSetMatches(esResponse), pager);
 };
 
 const constructSearchContext = async (

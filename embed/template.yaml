@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: dc-api-v2 Query Embedding Function
+Parameters:
+  ModelRevision:
+    Type: String
+    Description: Revision of the Hugging Face model repository baked into the image
+    Default: main
+  ProvisionedConcurrency:
+    Type: Number
+    Description: Number of warm instances to keep (0 for none)
+    Default: 0
+Conditions:
+  Provisioned: !Not [!Equals [!Ref ProvisionedConcurrency, 0]]
+Resources:
+  embedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: |
+        Embeds search text with EmbeddingGemma 2 so it can be compared with the
+        document vectors Meadow stores in the index. Invoked directly by the API
+        and chat functions.
+      PackageType: Image
+      Architectures:
+        - x86_64
+      MemorySize: 3008
+      Timeout: 30
+      AutoPublishAlias: live
+      ProvisionedConcurrencyConfig:
+        Fn::If:
+          - Provisioned
+          - ProvisionedConcurrentExecutions: !Ref ProvisionedConcurrency
+          - !Ref AWS::NoValue
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: .
+      DockerTag: latest
+      DockerBuildArgs:
+        MODEL_REVISION: !Ref ModelRevision
+Outputs:
+  EmbedFunctionArn:
+    Description: ARN of the alias callers should invoke
+    Value: !Ref embedFunction.Alias

@@ -216,6 +216,17 @@ components:
               nullable: true
               additionalProperties:
                 type: string
+            embedding:
+              type: array
+              description: >-
+                Vector representation of the file set's image in the repository's semantic space.
+                Present only for image file sets that have been embedded. It shares a space with
+                work embeddings, so file sets can be searched with the same `neural` text queries.
+              items:
+                type: number
+            embedding_model:
+              type: string
+              description: The name of the inference model used to generate the `embedding` from the file set's image.
             annotations:
               type: array
               nullable: true

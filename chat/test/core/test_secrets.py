@@ -27,10 +27,9 @@ class TestSecrets(TestCase):
         self.assertNotEqual(
             "https://opensearch-endpoint", os.getenv("OPENSEARCH_ENDPOINT")
         )
-        self.assertNotEqual("opensearch-model", os.getenv("OPENSEARCH_MODEL_ID"))
         load_secrets()
         self.assertEqual("dcapi-token", os.getenv("API_TOKEN_SECRET"))
         self.assertEqual(
             "https://opensearch-endpoint", os.getenv("OPENSEARCH_ENDPOINT")
         )
-        self.assertEqual("opensearch-model", os.getenv("OPENSEARCH_MODEL_ID"))
+        self.assertIsNone(os.getenv("OPENSEARCH_MODEL_ID"))

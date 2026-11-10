@@ -65,7 +65,6 @@ def opensearch_vector_store(region_name=None):
 
     docsearch = OpenSearchNeuralSearch(
         index=prefix("dc-v2-work"),
-        model_id=os.getenv("OPENSEARCH_MODEL_ID"),
         endpoint=opensearch_endpoint(),
         connection_class=RequestsHttpConnection,
         http_auth=awsauth,

@@ -59,7 +59,6 @@ const environment = createMiddleware(async (c, next) => {
 
     putenv("API_TOKEN_SECRET", secrets.dcapi?.api_token_secret);
     putenv("OPENSEARCH_ENDPOINT", endpoint);
-    putenv("OPENSEARCH_MODEL_ID", secrets.index?.embedding_model);
     putenv("NUSSO_API_KEY", secrets.nusso?.api_key);
     putenv("NUSSO_BASE_URL", secrets.nusso?.base_url);
     putenv("C2PA_CERTIFICATE", secrets.c2pa_cert?.certificate);

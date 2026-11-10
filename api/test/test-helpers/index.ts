@@ -34,6 +34,8 @@ export const TestEnvironment: Record<string, string> = {
   DC_URL: "https://thisisafakedcurl",
   DC_API_ENDPOINT: "https://thisisafakeapiurl",
   DEV_TEAM_NET_IDS: "abc123,def456",
+  EMBEDDING_FUNCTION:
+    "arn:aws:lambda:us-east-1:000000000000:function:embed:live",
   NUSSO_BASE_URL: "https://nusso-base.com/",
   NUSSO_API_KEY: "abc123",
   WEBSOCKET_URI: "wss://thisisafakewebsocketapiurl",

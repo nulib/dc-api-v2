@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 
 def filter(query: dict, facets: list = None):
@@ -27,7 +27,7 @@ def filter(query: dict, facets: list = None):
 
 def hybrid_query(
     query: str,
-    model_id: str,
+    vector: List[float],
     vector_field: str = "embedding",
     k: int = 40,
     facets: list = None,
@@ -94,11 +94,10 @@ def hybrid_query(
                     ),
                     filter(
                         {
-                            "neural": {
+                            "knn": {
                                 vector_field: {
                                     "k": k,
-                                    "model_id": model_id,
-                                    "query_text": query,
+                                    "vector": vector,
                                 }
                             }
                         },

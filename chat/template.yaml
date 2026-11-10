@@ -9,6 +9,9 @@ Parameters:
   ApiTokenName:
     Type: String
     Description: Name of the jwt that DC API issues
+  EmbedFunctionArn:
+    Type: String
+    Description: ARN of the function that embeds search text
   EnvironmentPrefix:
     Type: String
     Description: Prefix for Index names
@@ -220,6 +223,7 @@ Resources:
           API_CONFIG_PREFIX: !Ref ApiConfigPrefix
           API_TOKEN_NAME: !Ref ApiTokenName
           CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
+          EMBEDDING_FUNCTION: !Ref EmbedFunctionArn
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
@@ -243,6 +247,11 @@ Resources:
                 - "es:ESHttpGet"
                 - "es:ESHttpPost"
               Resource: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Ref EmbedFunctionArn
         - Statement:
             - Effect: Allow
               Action:
@@ -293,6 +302,7 @@ Resources:
           API_CONFIG_PREFIX: !Ref ApiConfigPrefix
           API_TOKEN_NAME: !Ref ApiTokenName
           CHECKPOINT_BUCKET_NAME: !Ref CheckpointBucket
+          EMBEDDING_FUNCTION: !Ref EmbedFunctionArn
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_API_KEY: !Ref HoneybadgerApiKey
           HONEYBADGER_ENVIRONMENT: !Ref HoneybadgerEnv
@@ -311,6 +321,11 @@ Resources:
                 - "es:ESHttpGet"
                 - "es:ESHttpPost"
               Resource: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Ref EmbedFunctionArn
         - Statement:
             - Effect: Allow
               Action:

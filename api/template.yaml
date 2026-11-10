@@ -41,6 +41,9 @@ Parameters:
   DevTeamNetIds:
     Type: String
     Description: Northwestern NetIDs of the development team
+  EmbedFunctionArn:
+    Type: String
+    Description: ARN of the function that embeds search text
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -166,6 +169,7 @@ Resources:
           DC_URL: !Ref DcUrl
           DEFAULT_SEARCH_SIZE: "100"
           DEV_TEAM_NET_IDS: !Ref DevTeamNetIds
+          EMBEDDING_FUNCTION: !Ref EmbedFunctionArn
           ENV_PREFIX: !Ref EnvironmentPrefix
           HONEYBADGER_DISABLED: !If [HoneybadgerDisabled, "true", "false"]
           HONEYBADGER_API_KEY:
@@ -200,6 +204,11 @@ Resources:
                 - states:StartExecution
               Resource:
                 - "*"
+            - Sid: InvokeEmbedFunction
+              Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Ref EmbedFunctionArn
             - Sid: BucketAccess
               Effect: Allow
               Action:

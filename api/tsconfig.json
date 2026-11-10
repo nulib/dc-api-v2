@@ -9,5 +9,5 @@
     "noEmit": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "server.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "server.ts", "local-embedder.ts"]
 }

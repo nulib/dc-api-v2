@@ -116,7 +116,6 @@ class TestOpenSearchVectorStore(unittest.TestCase):
             {
                 "AWS_REGION": "us-west-2",
                 "OPENSEARCH_ENDPOINT": "test.amazonaws.com",
-                "OPENSEARCH_MODEL_ID": "test-model",
                 "ENV_PREFIX": "dev",
             },
         ):
@@ -132,7 +131,6 @@ class TestOpenSearchVectorStore(unittest.TestCase):
             # Verify OpenSearchNeuralSearch initialization
             mock_neural_search.assert_called_once_with(
                 index="dev-dc-v2-work",
-                model_id="test-model",
                 endpoint="test.amazonaws.com",
                 connection_class=RequestsHttpConnection,
                 http_auth=mock_aws4auth.return_value,

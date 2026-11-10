@@ -28,6 +28,7 @@ help:
 	echo "make serve-https           | run the SAM server locally (HTTPS on port 3002)"
 	echo "make style-node            | run node code style check"
 	echo "make style-python          | run python code style check"
+	echo "make test-embed            | run embed function tests"
 	echo "make test-mcp              | run mcp tests"
 	echo "make test-node             | run node tests"
 	echo "make test-python           | run python tests"
@@ -39,7 +40,8 @@ help:
 api: ./api/template.yaml ./api/bun.lock $(wildcard ./api/src/**/*.ts)
 chat: ./chat/template.yaml ./chat/dependencies/requirements.txt $(wildcard ./chat/src/**/*.py)
 av-download: ./av-download/template.yaml ./av-download/lambdas/bun.lock $(wildcard ./av-download/lambdas/**/*.js)
-.aws-sam/build.toml: ./template.yaml api chat av-download
+embed: ./embed/template.yaml ./embed/Dockerfile ./embed/package-lock.json $(wildcard ./embed/*.mjs)
+.aws-sam/build.toml: ./template.yaml api chat av-download embed
 	@sed -Ei.orig 's/^(\s+)#\*\s/\1/' chat/template.yaml; \
 	sam build --cached --parallel
 	@mv chat/template.yaml.orig chat/template.yaml
@@ -57,11 +59,15 @@ deps-av-download:
 	bun install --cwd av-download/lambdas
 deps-docs:
 	bun install --cwd docs
+deps-embed:
+	bun install --cwd embed
+test-embed: deps-embed
+	cd embed && bun test
 deps-mcp: 
 	bun install --cwd mcp
 test-mcp: deps-mcp
 	cd mcp && bun test
-deps-node: deps-api deps-av-download deps-mcp
+deps-node: deps-api deps-av-download deps-embed deps-mcp
 cover-node: deps-node
 	cd api && bun run test:coverage
 style-node: deps-node
@@ -111,7 +117,7 @@ state-machine:
 	aws stepfunctions create-state-machine --endpoint http://localhost:8083 --definition file://$$TEMPLATE_DIR/av_download.json --name "hlsStitcherStepFunction" --role-arn arn:aws:iam::012345678901:role/DummyRole --no-cli-pager
 deps: deps-node deps-python
 style: style-node style-python
-test: test-node test-mcp test-python
+test: test-node test-embed test-mcp test-python
 cover: cover-node cover-python
 env.json:
 	./bin/make_env.sh

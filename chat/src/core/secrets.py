@@ -9,7 +9,6 @@ def load_secrets():
     EnvironmentMap = [
         ["API_TOKEN_SECRET", "dcapi", "api_token_secret"],
         ["OPENSEARCH_ENDPOINT", "index", "endpoint"],
-        ["OPENSEARCH_MODEL_ID", "index", "embedding_model"],
     ]
 
     client = boto3.client(

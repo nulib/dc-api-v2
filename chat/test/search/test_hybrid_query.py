@@ -3,7 +3,7 @@ from search.hybrid_query import hybrid_query, filter
 
 class TestFunction:
     def test_hybrid_query(self):
-        dsl = hybrid_query("Question?", "MODEL_ID", k=10)
+        dsl = hybrid_query("Question?", [0.1, 0.2, 0.3], k=10)
         subject = dsl["query"]["hybrid"]["queries"]
 
         assert len(subject) == 2
@@ -14,7 +14,9 @@ class TestFunction:
         assert {"term": {"published": True}} in queries_first
 
         queries_second = subject[1]["bool"]["must"]
-        assert queries_second[0]["neural"]["embedding"]["model_id"] == "MODEL_ID"
+        assert queries_second[0] == {
+            "knn": {"embedding": {"k": 10, "vector": [0.1, 0.2, 0.3]}}
+        }
         assert {"terms": {"visibility": ["Public", "Institution"]}} in queries_second
         assert {"term": {"published": True}} in queries_second
 

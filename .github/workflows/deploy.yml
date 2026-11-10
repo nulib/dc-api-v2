@@ -78,6 +78,7 @@ jobs:
           sam deploy \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
+            --resolve-image-repos \
             --config-file ./samconfig.${DEPLOY_ENV}.yaml \
           | sed 's/\(Parameter overrides\s*\): .*/\1: ***** REDACTED *****/'
           exit ${PIPESTATUS[0]}

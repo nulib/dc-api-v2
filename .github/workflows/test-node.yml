@@ -4,6 +4,7 @@ on:
     paths:
       - ".github/workflows/test-node.yml"
       - "api/**"
+      - "embed/**"
       - "mcp/**"
   workflow_dispatch:
 jobs:
@@ -29,6 +30,17 @@ jobs:
         run: bun run validate-spec
       - name: Check generated schema types are current
         run: bun run schemas:check
+  test-embed:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./embed
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - name: Run tests
+        run: bun test
   test-mcp:
     runs-on: ubuntu-latest
     defaults:

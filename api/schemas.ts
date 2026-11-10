@@ -85,6 +85,10 @@ export interface components {
             digests: {
                 [key: string]: string;
             } | null;
+            /** @description Vector representation of the file set's image in the repository's semantic space. Present only for image file sets that have been embedded. It shares a space with work embeddings, so file sets can be searched with the same `neural` text queries. */
+            embedding?: number[];
+            /** @description The name of the inference model used to generate the `embedding` from the file set's image. */
+            embedding_model?: string;
             annotations?: components["schemas"]["Annotation"][] | null;
             extracted_metadata: Record<string, never> | null;
             indexed_at: string | null;

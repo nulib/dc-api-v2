@@ -20,6 +20,7 @@ const encodeFields = [
   "collapse",
   "aggs",
   "_source",
+  "search_pipeline",
 ];
 
 export async function decodeSearchToken(

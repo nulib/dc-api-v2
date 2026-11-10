@@ -288,100 +288,332 @@ describe("RequestPipeline", () => {
     });
   });
 
-  describe("addNeuralModelId", () => {
+  describe("embedNeuralQueries", () => {
+    const queryText =
+      "Do you have any materials related to testing the request pipeline?";
+    const vector = [0.1, 0.2, 0.3];
+    let embedded: string[];
+    const embedder = async (text: string) => {
+      embedded.push(text);
+      return vector;
+    };
+
     beforeEach(() => {
-      process.env["OPENSEARCH_MODEL_ID"] = "MODEL_ID";
+      embedded = [];
+      requestBody.query = {
+        neural: { embedding: { query_text: queryText, k: 5 } },
+      };
+      pipeline = new RequestPipeline(requestBody);
+    });
+
+    it("replaces a neural query with a knn query on the embedded text", async () => {
+      await pipeline.embedNeuralQueries(embedder);
+      expect(embedded).toEqual([queryText]);
+      expect(pipeline.searchContext.query).toEqual({
+        knn: { embedding: { vector, k: 5 } },
+      });
+    });
+
+    it("drops the model id and keeps every other option", async () => {
       requestBody.query = {
         neural: {
           embedding: {
-            query_text:
-              "Do you have any materials related to testing the request pipeline?",
+            query_text: queryText,
+            model_id: "MODEL_ID",
             k: 5,
+            boost: 2,
+            filter: { term: { work_type: "Image" } },
           },
         },
       };
       pipeline = new RequestPipeline(requestBody);
-    });
-
-    afterEach(() => {
-      delete process.env["OPENSEARCH_MODEL_ID"];
-    });
-
-    it("does not modify the query if OPENSEARCH_MODEL_ID is not set", () => {
-      delete process.env["OPENSEARCH_MODEL_ID"];
-      pipeline.addNeuralModelId();
-      expect(pipeline.searchContext.query).toEqual(requestBody.query);
-    });
-
-    it("does not modify the query if there are no neural queries", () => {
-      requestBody.query = {
-        term: {
-          all_titles: "request pipeline testing",
+      await pipeline.embedNeuralQueries(embedder);
+      expect(pipeline.searchContext.query).toEqual({
+        knn: {
+          embedding: {
+            vector,
+            k: 5,
+            boost: 2,
+            filter: { term: { work_type: "Image" } },
+          },
         },
-      };
-      pipeline = new RequestPipeline(requestBody);
-      pipeline.addNeuralModelId();
-      expect(pipeline.searchContext.query).toEqual(requestBody.query);
+      });
     });
 
-    it("does not modify the query if there is already a model_id", () => {
-      (requestBody.query as Record<string, unknown>).neural = {
-        embedding: {
-          ...((
-            (requestBody.query as Record<string, unknown>).neural as Record<
-              string,
-              unknown
-            >
-          ).embedding as Record<string, unknown>),
-          model_id: "EXISTING_MODEL_ID",
+    it("keeps the auth filter inside the knn query", async () => {
+      pipeline.authFilter(new ApiToken(), new URLSearchParams());
+      await pipeline.embedNeuralQueries(embedder);
+
+      const query = pipeline.searchContext.query as Record<string, unknown>;
+      expect(query.neural).toBeUndefined();
+      const knn = (query.knn as Record<string, Record<string, unknown>>)
+        .embedding;
+      expect(knn.vector).toEqual(vector);
+      expect(knn.filter).toEqual({
+        bool: {
+          filter: [
+            { terms: { published: [true] } },
+            { terms: { visibility: ["Institution", "Public"] } },
+          ],
         },
-      };
-      pipeline = new RequestPipeline(requestBody);
-      pipeline.addNeuralModelId();
-      const neural = (pipeline.searchContext.query as Record<string, unknown>)
-        .neural as Record<string, unknown>;
-      const embedding = neural.embedding as Record<string, unknown>;
-      expect(embedding.model_id).toEqual("EXISTING_MODEL_ID");
+      });
     });
 
-    it("automatically adds the model_id to a neural query", () => {
-      pipeline.addNeuralModelId();
-      const neural = (pipeline.searchContext.query as Record<string, unknown>)
-        .neural as Record<string, unknown>;
-      const embedding = neural.embedding as Record<string, unknown>;
-      expect(embedding.model_id).toEqual("MODEL_ID");
-    });
-
-    it("recursively adds the model_id to all neural queries in a hybrid query", () => {
+    it("rewrites neural queries nested in hybrid and bool queries", async () => {
       requestBody.query = {
         hybrid: {
           queries: [
+            { match: { all_titles: { query: "pipeline" } } },
             {
-              neural: {
-                embedding: {
-                  query_text:
-                    "Do you have any materials related to testing the request pipeline?",
-                  k: 5,
-                },
+              bool: {
+                must: [{ neural: { embedding: { query_text: "one", k: 5 } } }],
+                filter: [{ term: { published: true } }],
+              },
+            },
+            { neural: { embedding: { query_text: "two", k: 10 } } },
+          ],
+        },
+      };
+      pipeline = new RequestPipeline(requestBody);
+      await pipeline.embedNeuralQueries(embedder);
+
+      expect(embedded.sort()).toEqual(["one", "two"]);
+      expect(pipeline.searchContext.query).toEqual({
+        hybrid: {
+          queries: [
+            { match: { all_titles: { query: "pipeline" } } },
+            {
+              bool: {
+                must: [{ knn: { embedding: { vector, k: 5 } } }],
+                filter: [{ term: { published: true } }],
+              },
+            },
+            { knn: { embedding: { vector, k: 10 } } },
+          ],
+        },
+      });
+    });
+
+    it("does not call the embedder when there are no neural queries", async () => {
+      requestBody.query = { term: { all_titles: "request pipeline testing" } };
+      pipeline = new RequestPipeline(requestBody);
+      await pipeline.embedNeuralQueries(embedder);
+      expect(embedded).toEqual([]);
+      expect(pipeline.searchContext.query).toEqual(requestBody.query);
+    });
+
+    it("leaves a field that happens to be named neural alone", async () => {
+      requestBody.query = { term: { neural: "networks" } };
+      pipeline = new RequestPipeline(requestBody);
+      await pipeline.embedNeuralQueries(embedder);
+      expect(embedded).toEqual([]);
+      expect(pipeline.searchContext.query).toEqual(requestBody.query);
+    });
+
+    it("leaves neural queries without query text alone", async () => {
+      requestBody.query = {
+        neural: { embedding: { query_image: "base64", k: 5 } },
+      };
+      pipeline = new RequestPipeline(requestBody);
+      await pipeline.embedNeuralQueries(embedder);
+      expect(embedded).toEqual([]);
+      expect(pipeline.searchContext.query).toEqual(requestBody.query);
+    });
+
+    it("propagates embedding failures", async () => {
+      const failing = async () => {
+        throw new Error("no embedding");
+      };
+      expect(pipeline.embedNeuralQueries(failing)).rejects.toThrow(
+        "no embedding",
+      );
+    });
+  });
+
+  describe("joinFileSets", () => {
+    const vector = [0.1, 0.2, 0.3];
+    const embedder = async () => vector;
+    const hit = (id: string, workId: string, score: number) => ({
+      _id: id,
+      _score: score,
+      _source: { id, work_id: workId, label: `Page ${id}` },
+    });
+
+    let searched: Record<string, unknown>[];
+    let hits: unknown[];
+    let status: number;
+    const searcher = async (body: string) => {
+      searched.push(JSON.parse(body));
+      return { status, body: JSON.stringify({ hits: { hits } }) };
+    };
+
+    const join = {
+      has_file_set: {
+        query: { neural: { embedding: { query_text: "a red barn", k: 500 } } },
+        size: 25,
+      },
+    };
+
+    beforeEach(() => {
+      searched = [];
+      status = 200;
+      hits = [hit("fs-1", "work-1", 0.9), hit("fs-2", "work-2", 0.7)];
+      requestBody.query = structuredClone(join);
+      pipeline = new RequestPipeline(requestBody);
+    });
+
+    it("searches file sets, one per work, under the auth filter", async () => {
+      pipeline.authFilter(new ApiToken(), new URLSearchParams());
+      await pipeline.joinFileSets(searcher, embedder);
+
+      expect(searched).toHaveLength(1);
+      expect(searched[0].size).toEqual(25);
+      expect(searched[0].collapse).toEqual({ field: "work_id" });
+      expect(searched[0].query).toEqual({
+        knn: {
+          embedding: {
+            vector,
+            k: 500,
+            filter: {
+              bool: {
+                filter: [
+                  { terms: { published: [true] } },
+                  { terms: { visibility: ["Institution", "Public"] } },
+                ],
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it("replaces the clause with the matching works, scored by file set", async () => {
+      await pipeline.joinFileSets(searcher, embedder);
+
+      expect(pipeline.searchContext.query).toEqual({
+        bool: {
+          should: [
+            {
+              constant_score: {
+                filter: { ids: { values: ["work-1"] } },
+                boost: 0.9,
               },
             },
             {
-              term: {
-                all_titles: "request pipeline testing",
+              constant_score: {
+                filter: { ids: { values: ["work-2"] } },
+                boost: 0.7,
+              },
+            },
+          ],
+          minimum_should_match: 1,
+        },
+      });
+    });
+
+    it("resolves a clause inside a hybrid query and keeps its filters", async () => {
+      requestBody.query = {
+        hybrid: {
+          queries: [
+            { match: { title: "barn" } },
+            {
+              bool: {
+                must: [structuredClone(join)],
+                filter: [{ term: { work_type: "Image" } }],
               },
             },
           ],
         },
       };
       pipeline = new RequestPipeline(requestBody);
-      pipeline.addNeuralModelId();
+      pipeline.authFilter(new ApiToken(), new URLSearchParams());
+      await pipeline.joinFileSets(searcher, embedder);
 
-      const hybrid = (pipeline.searchContext.query as Record<string, unknown>)
-        .hybrid as Record<string, unknown>;
-      const queries = hybrid.queries as Record<string, unknown>[];
-      const neural = queries[0].neural as Record<string, unknown>;
-      const embedding = neural.embedding as Record<string, unknown>;
-      expect(embedding.model_id).toEqual("MODEL_ID");
+      const queries = (
+        pipeline.searchContext.query as {
+          hybrid: { queries: { bool: Record<string, unknown[]> }[] };
+        }
+      ).hybrid.queries;
+      const joined = queries[1].bool;
+      expect(Object.keys(joined.must[0] as object)).toEqual(["bool"]);
+      expect(joined.filter).toEqual([
+        { term: { work_type: "Image" } },
+        { terms: { published: [true] } },
+        { terms: { visibility: ["Institution", "Public"] } },
+      ]);
+    });
+
+    it("matches nothing when no file sets match", async () => {
+      hits = [];
+      await pipeline.joinFileSets(searcher, embedder);
+      expect(pipeline.searchContext.query).toEqual({ match_none: {} });
+    });
+
+    it("uses the default size", async () => {
+      requestBody.query = { has_file_set: { query: { match_all: {} } } };
+      pipeline = new RequestPipeline(requestBody);
+      await pipeline.joinFileSets(searcher, embedder);
+      expect(searched[0].size).toEqual(100);
+    });
+
+    it("does nothing without a has_file_set clause", async () => {
+      requestBody.query = { term: { has_file_set: "a field value" } };
+      pipeline = new RequestPipeline(requestBody);
+      await pipeline.joinFileSets(searcher, embedder);
+      expect(searched).toEqual([]);
+      expect(pipeline.searchContext.query).toEqual(requestBody.query);
+    });
+
+    it("rejects a clause without a query or with a bad size", async () => {
+      requestBody.query = { has_file_set: { size: 10 } };
+      await expect(
+        new RequestPipeline(requestBody).joinFileSets(searcher, embedder),
+      ).rejects.toThrow("requires a `query`");
+
+      requestBody.query = {
+        has_file_set: { query: { match_all: {} }, size: 501 },
+      };
+      await expect(
+        new RequestPipeline(requestBody).joinFileSets(searcher, embedder),
+      ).rejects.toThrow("must be an integer from 1 to 500");
+    });
+
+    it("fails when the file set search fails", async () => {
+      status = 400;
+      await expect(pipeline.joinFileSets(searcher, embedder)).rejects.toThrow(
+        "File set search failed with status 400",
+      );
+    });
+
+    it("adds the matched file sets to the hits for their works", async () => {
+      await pipeline.joinFileSets(searcher, embedder);
+      const response = pipeline.withFileSetMatches({
+        status: 200,
+        body: JSON.stringify({
+          hits: {
+            hits: [
+              { _id: "work-2", _source: { id: "work-2" } },
+              { _id: "work-3", _source: { id: "work-3" } },
+            ],
+          },
+        }),
+      });
+
+      expect(JSON.parse(response.body).hits.hits).toEqual([
+        {
+          _id: "work-2",
+          _source: {
+            id: "work-2",
+            matched_file_sets: [{ id: "fs-2", label: "Page fs-2", score: 0.7 }],
+          },
+        },
+        { _id: "work-3", _source: { id: "work-3" } },
+      ]);
+    });
+
+    it("leaves responses alone when nothing was joined", () => {
+      const response = { status: 200, body: "{}" };
+      expect(pipeline.withFileSetMatches(response)).toBe(response);
     });
   });
 });

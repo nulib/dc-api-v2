@@ -42,6 +42,14 @@ Parameters:
   DevTeamNetIds:
     Type: String
     Description: Northwestern NetIDs of the development team
+  EmbeddingModelRevision:
+    Type: String
+    Description: Revision of the embedding model repository baked into the embed function image
+    Default: main
+  EmbeddingProvisionedConcurrency:
+    Type: Number
+    Description: Number of warm embed function instances to keep (0 for none)
+    Default: 0
   EnvironmentPrefix:
     Type: String
     Description: Index Prefix
@@ -127,12 +135,20 @@ Resources:
             Action:
               - secretsmanager:BatchGetSecretValue
             Resource: "*"
+  embed:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./embed/template.yaml
+      Parameters:
+        ModelRevision: !Ref EmbeddingModelRevision
+        ProvisionedConcurrency: !Ref EmbeddingProvisionedConcurrency
   api:
     Type: AWS::Serverless::Application
     DependsOn: rootApi
     Properties:
       Location: ./api/template.yaml
       Parameters:
+        EmbedFunctionArn: !GetAtt [embed, Outputs.EmbedFunctionArn]
         ApiConfigPrefix: !Ref ApiConfigPrefix
         ApiTokenName: !Ref ApiTokenName
         ApiTokenSecret: !Ref ApiTokenSecret
@@ -180,6 +196,7 @@ Resources:
     Properties:
       Location: ./chat/template.yaml
       Parameters:
+        EmbedFunctionArn: !GetAtt [embed, Outputs.EmbedFunctionArn]
         ApiConfigPrefix: !Ref ApiConfigPrefix
         ApiTokenName: !Ref ApiTokenName
         EnvironmentPrefix: !Ref EnvironmentPrefix

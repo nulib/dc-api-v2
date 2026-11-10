@@ -6,8 +6,13 @@ from search.opensearch_neural_search import OpenSearchNeuralSearch
 from langchain_core.documents import Document
 
 
+def fake_embed(text):
+    return [0.1, 0.2, 0.3]
+
+
 class MockClient:
     def search(self, index, body, params):
+        self.body = body
         return {"hits": {"hits": [{"_source": {"id": "test"}, "_score": 0.12345}]}}
 
 
@@ -19,11 +24,11 @@ class MockErrorClient:
 class TestOpenSearchNeuralSearch(TestCase):
     def setUp(self):
         self.search = OpenSearchNeuralSearch(
-            client=MockClient(), endpoint="test", index="test", model_id="test"
+            client=MockClient(), endpoint="test", index="test", embed=fake_embed
         )
 
         self.error_search = OpenSearchNeuralSearch(
-            client=MockErrorClient(), endpoint="test", index="test", model_id="test"
+            client=MockErrorClient(), endpoint="test", index="test", embed=fake_embed
         )
 
     def test_similarity_search(self):
@@ -31,6 +36,41 @@ class TestOpenSearchNeuralSearch(TestCase):
             query="test", subquery={"_source": {"excludes": ["embedding"]}}, size=10
         )
         self.assertEqual(docs, [Document(page_content="test", metadata={"id": "test"})])
+
+    def test_similarity_search_sends_the_embedded_query_as_knn(self):
+        embedded = []
+
+        def embed(text):
+            embedded.append(text)
+            return [0.4, 0.5]
+
+        client = MockClient()
+        search = OpenSearchNeuralSearch(
+            client=client, endpoint="test", index="test", embed=embed
+        )
+        search.similarity_search(query="jazz posters", k=7)
+
+        self.assertEqual(embedded, ["jazz posters"])
+        lexical, semantic = client.body["query"]["hybrid"]["queries"]
+        self.assertEqual(
+            lexical["bool"]["must"][0]["query_string"]["query"], "jazz posters"
+        )
+        self.assertEqual(
+            semantic["bool"]["must"][0],
+            {"knn": {"embedding": {"k": 7, "vector": [0.4, 0.5]}}},
+        )
+
+    def test_similarity_search_does_not_search_when_embedding_fails(self):
+        def embed(text):
+            raise RuntimeError("no embedding")
+
+        client = MockClient()
+        search = OpenSearchNeuralSearch(
+            client=client, endpoint="test", index="test", embed=embed
+        )
+        with self.assertRaises(RuntimeError):
+            search.similarity_search(query="jazz posters")
+        self.assertFalse(hasattr(client, "body"))
 
     def test_similarity_search_connection_error(self):
         with self.assertRaises(ConnectionError):
@@ -45,7 +85,7 @@ class TestOpenSearchNeuralSearch(TestCase):
             client=mock_opensearch.return_value,
             endpoint="test",
             index="test",
-            model_id="test",
+            embed=fake_embed,
         )
         with self.assertRaises(AuthenticationException):
             search.similarity_search(query="test")
@@ -69,7 +109,7 @@ class TestOpenSearchNeuralSearch(TestCase):
             client=mock_opensearch.return_value,
             endpoint="test",
             index="test",
-            model_id="test",
+            embed=fake_embed,
         )
         with self.assertRaises(NotFoundError):
             search.aggregations_search(agg_field="test_field")
@@ -113,7 +153,7 @@ class TestOpenSearchNeuralSearch(TestCase):
             OpenSearchNeuralSearch(
                 endpoint="",  # Empty endpoint should raise ValueError
                 index="test",
-                model_id="test",
+                embed=fake_embed,
                 client=None,
             )
 
@@ -138,7 +178,7 @@ class TestOpenSearchNeuralSearch(TestCase):
                 metadatas=[{"id": "1"}, {"id": "2"}],
                 endpoint="test",
                 index="test",
-                model_id="test",
+                embed=fake_embed,
             )
             # Method should return None
             self.assertIsNone(result)

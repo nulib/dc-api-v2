@@ -1,19 +1,24 @@
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 from opensearchpy import OpenSearch
-from typing import Any, List, Tuple
+from typing import Any, Callable, List, Tuple
+from search.embeddings import embed_query
 from search.hybrid_query import hybrid_query, filter
 
 
 class OpenSearchNeuralSearch(VectorStore):
-    """Read-only OpenSearch vectorstore with neural search."""
+    """Read-only OpenSearch vectorstore with semantic search.
+
+    Documents carry precomputed embeddings, so the query text is embedded
+    here (`embed`) and sent to OpenSearch as a k-NN query.
+    """
 
     def __init__(
         self,
         endpoint: str,
         index: str,
-        model_id: str,
         client: OpenSearch = None,
+        embed: Callable[[str], List[float]] = embed_query,
         vector_field: str = "embedding",
         search_pipeline: str = None,
         text_field: str = "id",
@@ -23,7 +28,7 @@ class OpenSearchNeuralSearch(VectorStore):
             hosts=[{"host": endpoint, "port": "443", "use_ssl": True}], **kwargs
         )
         self.index = index
-        self.model_id = model_id
+        self.embed = embed
         self.vector_field = vector_field
         self.search_pipeline = search_pipeline
         self.text_field = text_field
@@ -44,7 +49,7 @@ class OpenSearchNeuralSearch(VectorStore):
             
         dsl = hybrid_query(
             query=query,
-            model_id=self.model_id,
+            vector=self.embed(query),
             vector_field=self.vector_field,
             k=k,
             **kwargs,

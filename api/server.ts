@@ -28,6 +28,26 @@ import { StreamableHTTPTransport } from "@hono/mcp";
 import app from "./src/app.ts";
 import { createServer } from "../mcp/apps/mcp/server.ts";
 
+// ── Query embeddings ─────────────────────────────────────────────────────────
+// Deployed, the API invokes the embed Lambda. Locally there is no Lambda, so
+// unless EMBEDDING_FUNCTION names a deployed one, the same handler runs in
+// this process. The model is loaded on the first semantic query: from
+// EMBEDDING_MODEL_PATH if set, otherwise downloaded from Hugging Face once.
+//
+// `bun --hot` re-evaluates every module on a change, which resets the
+// embedding client while this process keeps its environment, so "local" has
+// to count as unset here or the next query tries to invoke a Lambda by that
+// name.
+const LOCAL_EMBEDDER = "local";
+if (
+  !process.env["EMBEDDING_FUNCTION"] ||
+  process.env["EMBEDDING_FUNCTION"] === LOCAL_EMBEDDER
+) {
+  process.env["EMBEDDING_FUNCTION"] = LOCAL_EMBEDDER;
+  const { useLocalEmbedder } = await import("./local-embedder.ts");
+  useLocalEmbedder();
+}
+
 // ── Server ───────────────────────────────────────────────────────────────────
 
 const mcpServer = createServer();
