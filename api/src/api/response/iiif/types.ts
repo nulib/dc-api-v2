@@ -80,6 +80,8 @@ export interface WorkSource {
   creator: LabeledEntity[];
   cultural_context?: string[];
   date_created?: string[];
+  /** Earliest ISO calendar date covered by `date_created`; null when unbounded. */
+  date_created_start?: string | null;
   library_unit?: string;
   physical_description_size?: string[];
   genre: LabeledEntity[];
@@ -113,6 +115,8 @@ export interface WorkSummarySource {
   iiif_manifest?: string;
   description?: string;
   canonical_link?: string;
+  /** Earliest ISO calendar date covered by `date_created`; null when unbounded. */
+  date_created_start?: string | null;
   navPlace?: NavPlace[];
   nav_place?: NavPlace[];
 }
