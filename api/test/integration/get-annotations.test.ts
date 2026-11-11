@@ -78,7 +78,7 @@ describe("Annotation routes", () => {
         `${process.env.DC_API_ENDPOINT}/annotations/36a47020-5410-4dda-a7ca-967fe3885bcd?as=iiif`,
       );
       expect(body.items[0].type).toEqual("Annotation");
-      expect(body.items[0].motivation).toEqual("commenting");
+      expect(body.items[0].motivation).toEqual("supplementing");
       expect(body.items[0].body.value).toBeDefined();
       expect(body.items[0].target).toEqual({
         type: "SpecificResource",
