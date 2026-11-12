@@ -1,3 +1,4 @@
+import { dimensions } from "../dimensions.ts";
 import { dcApiEndpoint } from "../../../../environment.ts";
 import type { CanvasInstanceBuilder } from "iiif-builder";
 import type { FileSetAnnotation, FileSetSource } from "../types.ts";
@@ -50,8 +51,7 @@ export function buildAnnotationBody(
     format: isAudioVideo(bodyType)
       ? "application/x-mpegurl"
       : fileSet.mime_type,
-    height: fileSet.height ?? 100,
-    width: fileSet.width ?? 100,
+    ...dimensions(fileSet),
     label: { en: [fileSet.label ?? `Alternate ${workType}`] },
   };
 

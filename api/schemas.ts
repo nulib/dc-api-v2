@@ -245,6 +245,20 @@ export interface components {
             cultural_context: string[];
             /** @description A point or a period of time associatied with an event in the lifecycle of the resource. */
             date_created: string[];
+            /** @description The Date Created values as Extended Date/Time Format (EDTF) strings. */
+            date_created_edtf: string[];
+            /**
+             * Format: date
+             * @description The latest calendar date covered by any Date Created value, with each EDTF value widened to its full span (196X ends 1969-12-31). Null when no value resolves to a bounded date. Used for newest-first sorting.
+             */
+            date_created_end: string | null;
+            /**
+             * Format: date
+             * @description The earliest calendar date covered by any Date Created value, with each EDTF value widened to its full span (196X starts 1960-01-01). Null when no value resolves to a bounded date. Used for oldest-first sorting and as the IIIF navDate.
+             */
+            date_created_start: string | null;
+            /** @description Every year (CE only) covered by any Date Created value, for year range filtering. */
+            date_created_years: number[];
             /** @description An account of the resource. */
             description: string[];
             /** @description Vector representation of the resource's location in the repository's semantic space. */

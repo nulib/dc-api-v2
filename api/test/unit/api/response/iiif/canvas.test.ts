@@ -383,3 +383,29 @@ describe("FileSet as IIIF Canvas response transformer", () => {
     expect(body.error).toEqual("Not Found");
   });
 });
+
+describe("EXIF-oriented standalone Canvas", () => {
+  it("uses oriented dimensions for the canvas, body and placeholder exactly once", async () => {
+    const response = JSON.parse(
+      testFixture("mocks/fileset-image-canvas-1234.json"),
+    );
+    Object.assign(response._source, {
+      width: 224,
+      height: 1351,
+      extracted_metadata: { exif: { value: { orientation: "Rotate 270 CW" } } },
+    });
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(response),
+    });
+    const canvas = await result.json();
+    expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+    const body = canvas.items[0].items[0].body;
+    expect([body.width, body.height]).toEqual([1351, 224]);
+    const placeholder = canvas.placeholderCanvas;
+    expect([placeholder.width, placeholder.height]).toEqual([640, 106]);
+    expect(placeholder.items[0].items[0].body.id).toEndWith(
+      "/full/^!640,106/0/default.jpg",
+    );
+  });
+});

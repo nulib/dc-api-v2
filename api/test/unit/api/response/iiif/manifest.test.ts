@@ -10,6 +10,7 @@ import {
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { transform } from "../../../../../src/api/response/iiif/manifest.ts";
+import { buildNavDate } from "../../../../../src/api/response/iiif/presentation-api/nav-date.ts";
 import { dcApiEndpoint, dcUrl } from "../../../../../src/environment.ts";
 import {
   setupEnv,
@@ -158,6 +159,42 @@ describe("Image Work as IIIF Manifest response transformer", () => {
   it("omits navPlace when source has no navPlace data", async () => {
     const { manifest } = await setup("mocks/work-1234-no-collection.json");
     expect(manifest.navPlace).toEqual(undefined);
+  });
+
+  it("populates Manifest navDate from the earliest date created", async () => {
+    const { manifest } = await setup();
+    expect(manifest.navDate).toEqual("1906-08-01T00:00:00Z");
+  });
+
+  it("omits navDate when source has no bounded date created", async () => {
+    const { manifest } = await setup("mocks/work-1234-no-collection.json");
+    expect(manifest.navDate).toEqual(undefined);
+  });
+
+  describe("buildNavDate", () => {
+    const work = (date_created_start: unknown) => ({
+      date_created_start: date_created_start as string | null | undefined,
+    });
+
+    it("appends the time an xsd:dateTime requires", () => {
+      expect(buildNavDate(work("1960-01-01"))).toEqual("1960-01-01T00:00:00Z");
+    });
+
+    it("accepts BCE and five-digit years", () => {
+      expect(buildNavDate(work("-0500-01-01"))).toEqual(
+        "-0500-01-01T00:00:00Z",
+      );
+      expect(buildNavDate(work("10000-01-01"))).toEqual(
+        "10000-01-01T00:00:00Z",
+      );
+    });
+
+    it("returns null for a missing, null, or malformed date", () => {
+      expect(buildNavDate(work(undefined))).toBeNull();
+      expect(buildNavDate(work(null))).toBeNull();
+      expect(buildNavDate(work("1958"))).toBeNull();
+      expect(buildNavDate(work("1958-12-31T00:00:00Z"))).toBeNull();
+    });
   });
 
   it("populates Manifest partOf", async () => {
@@ -340,6 +377,20 @@ describe("A/V Work as IIIF Manifest response transformer", () => {
     expect(manifest.items[0].duration).toEqual(5.599);
   });
 
+  it("omits duration on auxiliary image canvases of AV works", async () => {
+    const { manifest } = await setup("mocks/work-video-5678.json");
+    const imageCanvases = manifest.items.filter(
+      (canvas: { items: { items: { body: { type: string } }[] }[] }) =>
+        canvas.items[0].items[0].body.type === "Image",
+    );
+
+    expect(imageCanvases.length).toBeGreaterThan(0);
+    for (const canvas of imageCanvases) {
+      expect(canvas).not.toHaveProperty("duration");
+      expect(canvas.items[0].items[0].body).not.toHaveProperty("duration");
+    }
+  });
+
   it("renders annotation for type: Sound and Video", async () => {
     const { source, manifest } = await setup("mocks/work-video-5678.json");
     const annotation = manifest.items[0].items[0].items[0];
@@ -448,4 +499,146 @@ describe("IIIF Multiple Choice of Images in a Single View", () => {
       }
     }
   });
+});
+
+for (const workType of ["Image", "Video"]) {
+  it(`orients ${workType} work image canvases using EXIF from file-set records`, async () => {
+    const response = JSON.parse(testFixture("mocks/work-1234.json"));
+    const fileSet = response._source.file_sets[0];
+    Object.assign(fileSet, {
+      mime_type: "image/jpeg",
+      role: workType === "Image" ? "Access" : "Auxiliary",
+      width: 224,
+      height: 1351,
+    });
+    delete fileSet.extracted_metadata;
+    response._source.work_type = workType;
+    response._source.file_sets = [fileSet];
+    server.use(
+      http.post(osUrl(/\/_search$/), async ({ request }) => {
+        const query = (await request.json()) as {
+          _source: string[];
+          query: { bool: { must: unknown[]; filter: unknown[] } };
+        };
+        expect(query._source).toEqual([
+          "id",
+          "annotations",
+          "extracted_metadata.exif.value.orientation",
+          "extracted_metadata.exif.value.imageWidth",
+          "extracted_metadata.exif.value.imageHeight",
+        ]);
+        expect(query.query.bool.must).not.toContainEqual({
+          term: { role: "Access" },
+        });
+        expect(query.query.bool.filter).toContainEqual({
+          term: { published: true },
+        });
+        return HttpResponse.json({
+          hits: {
+            hits: [
+              {
+                _source: {
+                  id: fileSet.id,
+                  extracted_metadata: {
+                    exif: { value: { orientation: "Rotate 270 CW" } },
+                  },
+                },
+              },
+            ],
+          },
+        });
+      }),
+    );
+    const result = await transform({
+      status: 200,
+      body: JSON.stringify(response),
+    });
+    const manifest = await result.json();
+    const canvas = manifest.items[0];
+    expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+    const body = canvas.items[0].items[0].body;
+    expect([body.width, body.height]).toEqual([1351, 224]);
+    expect([
+      canvas.placeholderCanvas.width,
+      canvas.placeholderCanvas.height,
+    ]).toEqual([640, 106]);
+  });
+}
+
+describe("file-set metadata enrichment", () => {
+  it.each(["Access", "Auxiliary"])(
+    "only advertises transcription search for Access file sets (%s)",
+    async (role) => {
+      const response = JSON.parse(testFixture("mocks/work-1234.json"));
+      const fileSet = response._source.file_sets[0];
+      Object.assign(fileSet, {
+        role,
+        mime_type: "image/jpeg",
+        width: undefined,
+        height: undefined,
+      });
+      delete fileSet.extracted_metadata;
+      response._source.work_type = "Image";
+      response._source.file_sets = [fileSet];
+      server.use(
+        http.post(osUrl(/\/_search$/), () =>
+          HttpResponse.json({
+            hits: {
+              hits: [
+                {
+                  _source: {
+                    id: fileSet.id,
+                    extracted_metadata: {
+                      exif: {
+                        value: {
+                          orientation: "Rotate 270 CW",
+                          imageWidth: 224,
+                          imageHeight: 1351,
+                        },
+                      },
+                    },
+                    annotations: [
+                      {
+                        id: "transcription-1",
+                        type: "transcription",
+                        content: "Example text",
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          }),
+        ),
+      );
+
+      const result = await transform({
+        status: 200,
+        body: JSON.stringify(response),
+      });
+      expect(result.status).toBe(200);
+      const manifest = await result.json();
+      const canvas = manifest.items[0];
+      expect([canvas.width, canvas.height]).toEqual([1351, 224]);
+      const body = canvas.items[0].items[0].body;
+      expect([body.width, body.height]).toEqual([1351, 224]);
+      if (role === "Access") {
+        expect(manifest.service).toEqual([
+          {
+            id: `${dcApiEndpoint()}/works/${response._source.id}/search?as=iiif`,
+            type: "SearchService2",
+          },
+        ]);
+        expect(canvas.annotations).toEqual([
+          {
+            id: `${dcApiEndpoint()}/file-sets/${fileSet.id}/annotations?as=iiif`,
+            type: "AnnotationPage",
+          },
+        ]);
+      } else {
+        expect(manifest).not.toHaveProperty("service");
+        expect(canvas).not.toHaveProperty("annotations");
+      }
+    },
+  );
 });
