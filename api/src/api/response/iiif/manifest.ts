@@ -57,7 +57,9 @@ export async function transform(
         ): void {
           const canvasId = fileSetCanvasId(fileSet);
           manifest.createCanvas(canvasId, (canvas) => {
-            if (isAudioVideo(source.work_type))
+            // Auxiliary file sets are painted as still images, which have no
+            // duration; only time-based canvases get one.
+            if (!isAuxiliary && isAudioVideo(source.work_type))
               canvas.duration = fileSet.duration || 1;
 
             Object.assign(canvas, dimensions(fileSet));

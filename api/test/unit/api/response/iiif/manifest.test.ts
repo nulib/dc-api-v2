@@ -377,6 +377,20 @@ describe("A/V Work as IIIF Manifest response transformer", () => {
     expect(manifest.items[0].duration).toEqual(5.599);
   });
 
+  it("omits duration on auxiliary image canvases of AV works", async () => {
+    const { manifest } = await setup("mocks/work-video-5678.json");
+    const imageCanvases = manifest.items.filter(
+      (canvas: { items: { items: { body: { type: string } }[] }[] }) =>
+        canvas.items[0].items[0].body.type === "Image",
+    );
+
+    expect(imageCanvases.length).toBeGreaterThan(0);
+    for (const canvas of imageCanvases) {
+      expect(canvas).not.toHaveProperty("duration");
+      expect(canvas.items[0].items[0].body).not.toHaveProperty("duration");
+    }
+  });
+
   it("renders annotation for type: Sound and Video", async () => {
     const { source, manifest } = await setup("mocks/work-video-5678.json");
     const annotation = manifest.items[0].items[0].items[0];
