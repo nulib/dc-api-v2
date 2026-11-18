@@ -57,6 +57,10 @@ Parameters:
     Type: String
     Description: Honeybadger Revision
     Default: ""
+  LogRetentionInDays:
+    Type: Number
+    Description: Number of days to retain API statistics logs in CloudWatch
+    Default: 14
   ProviderCapabilities:
     Type: String
     Description: Currently enabled features per auth provider
@@ -188,6 +192,7 @@ Resources:
           READING_ROOM_IPS: !Ref ReadingRoomIPs
           REPOSITORY_EMAIL: !Ref RepositoryEmail
           SECRETS_PATH: !Ref SecretsPath
+          STATS_LOG_GROUP: !Ref dcApiLogs
           WEBSOCKET_URI: !Ref ChatWebSocketURI
       Policies:
         - !Ref SecretsPolicy
@@ -219,6 +224,12 @@ Resources:
                   - "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${EmailDomain}"
                   - EmailDomain: !Select [1, !Split ["@", !Ref RepositoryEmail]]
                 - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:template/${AWS::StackName}-magic-link-template"
+            - Sid: StatsLogGroupAccess
+              Effect: Allow
+              Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: !GetAtt dcApiLogs.Arn
       Events:
         ApiEvent:
           Type: HttpApi
@@ -235,6 +246,11 @@ Resources:
     Properties:
       DisplayName: DC Chat Feedback
       TopicName: !Sub "${AWS::StackName}-chat-feedback"
+  dcApiLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/nul/dcapi/stats/${CustomDomainHost}"
+      RetentionInDays: !Ref LogRetentionInDays
   dcApi:
     Type: AWS::Serverless::HttpApi
     Properties:
