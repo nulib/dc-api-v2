@@ -25,6 +25,7 @@ export async function negotiate(
     supported,
     preferred,
   );
+  c.set("format", format as string);
 
   const handler = format ? handlers[format] : undefined;
   const response = handler ? await handler() : transformError({ status: 406 });
