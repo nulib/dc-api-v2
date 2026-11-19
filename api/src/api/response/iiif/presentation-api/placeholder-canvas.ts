@@ -1,3 +1,4 @@
+import { dimensions } from "../dimensions.ts";
 import type { FileSetSource } from "../types.ts";
 
 export function buildPlaceholderCanvas(
@@ -51,8 +52,7 @@ export function getPlaceholderSizes(
   fileset: FileSetSource,
   size: number,
 ): { placeholderWidth: number; placeholderHeight: number } {
-  const width = fileset.width ?? 100;
-  const height = fileset.height ?? 100;
+  const { width, height } = dimensions(fileset);
   const placeholderWidth = width > size ? size : width;
   const placeholderHeight = Math.floor((placeholderWidth / width) * height);
   return { placeholderWidth, placeholderHeight };

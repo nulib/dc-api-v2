@@ -1,4 +1,10 @@
 import {
+  CloudWatchLogsClient,
+  CreateLogStreamCommand,
+  PutLogEventsCommand,
+  ResourceAlreadyExistsException,
+} from "@aws-sdk/client-cloudwatch-logs";
+import {
   BatchGetSecretValueCommand,
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
@@ -108,7 +114,66 @@ const encoding = createMiddleware(async (c, next) => {
   }
 });
 
+const logging = createMiddleware(async (c, next) => {
+  const start = Date.now();
+  await next();
+  const duration = Date.now() - start;
+
+  const payload = {
+    clientIp:
+      c.req.header("X-Real-Ip") ?? c.req.header("X-Forwarded-For") ?? "",
+    userAgent: c.req.header("User-Agent") ?? "",
+    loggedIn: c.get("userToken")?.isLoggedIn(),
+    readingRoom: c.get("userToken")?.isReadingRoom(),
+    netId: c.get("userToken")?.isInstitution(),
+    method: c.req.method,
+    path: c.req.path,
+    status: c.res.status,
+    responseFormat: c.get("format"),
+    responseLength:
+      c.res.headers.get("content-length") ??
+      (await c.res.clone().arrayBuffer()).byteLength,
+    responseDuration: duration,
+  };
+
+  const logGroup = process.env["STATS_LOG_GROUP"];
+  if (logGroup) {
+    const client = new CloudWatchLogsClient({});
+    const streamName = process.env["AWS_LAMBDA_LOG_STREAM_NAME"];
+    if (!streamName) return;
+
+    try {
+      await client.send(
+        new CreateLogStreamCommand({
+          logGroupName: logGroup,
+          logStreamName: streamName,
+        }),
+      );
+    } catch (err) {
+      if (!(err instanceof ResourceAlreadyExistsException)) {
+        throw err;
+      }
+    }
+
+    await client.send(
+      new PutLogEventsCommand({
+        logGroupName: logGroup,
+        logStreamName: streamName,
+        logEvents: [
+          {
+            message: JSON.stringify(payload),
+            timestamp: Date.now(),
+          },
+        ],
+      }),
+    );
+  } else {
+    console.debug(JSON.stringify(payload));
+  }
+});
+
 export default every(
+  logging,
   environment,
   normalize,
   authentication,

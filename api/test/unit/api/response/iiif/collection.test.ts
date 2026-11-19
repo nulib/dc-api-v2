@@ -131,6 +131,67 @@ describe("IIIF Collection response for top level collections", () => {
   });
 });
 
+describe("IIIF Collection item navDate", () => {
+  beforeEach(() => setupEnv());
+  afterEach(() => teardownEnv());
+
+  const pager = () =>
+    new Paginator(
+      "http://dcapi.library.northwestern.edu/api/v2/",
+      "search",
+      ["works"],
+      { query: { query_string: { query: "test" } } },
+      "iiif",
+      {
+        includeToken: false,
+        queryStringParameters: {
+          collectionLabel: "Test Collection with dates",
+          query: "test",
+        },
+      },
+    );
+
+  it("gives each Manifest reference its work's navDate (Cookbook 0230)", async () => {
+    const response = {
+      status: 200,
+      body: JSON.stringify({
+        hits: {
+          total: { value: 2 },
+          hits: [
+            {
+              _source: {
+                id: "work-1",
+                title: "Dated work",
+                work_type: "Image",
+                iiif_manifest: "https://example.org/works/work-1?as=iiif",
+                date_created_start: "1906-08-01",
+              },
+            },
+            {
+              _source: {
+                id: "work-2",
+                title: "Undated work",
+                work_type: "Image",
+                iiif_manifest: "https://example.org/works/work-2?as=iiif",
+                date_created_start: null,
+              },
+            },
+          ],
+        },
+      }),
+    };
+
+    const result = await transform(response, pager());
+    expect(result.status).toEqual(200);
+
+    const body = await result.json();
+    expect(body.items[0].type).toEqual("Manifest");
+    expect(body.items[0].navDate).toEqual("1906-08-01T00:00:00Z");
+    expect(body.items[1].navDate).toEqual(undefined);
+    expect(body.navDate).toEqual(undefined);
+  });
+});
+
 describe("IIIF Collection with navPlace aggregation", () => {
   beforeEach(() => setupEnv());
   afterEach(() => teardownEnv());

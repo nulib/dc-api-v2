@@ -10,6 +10,10 @@ Parameters:
     Type: String
     Description: Secret Name for API Configuration (if not provided, will use SecretsPath)
     Default: ""
+  ApiLogRetentionInDays:
+    Type: Number
+    Description: Number of days to retain API logs in CloudWatch
+    Default: 14
   ApiTokenName:
     Type: String
     Description: Name of the jwt that DC API issues
@@ -149,6 +153,7 @@ Resources:
         HoneybadgerApiKey: !Ref HoneybadgerApiKey
         HoneybadgerEnv: !Ref HoneybadgerEnv
         HoneybadgerRevision: !Ref HoneybadgerRevision
+        LogRetentionInDays: !Ref ApiLogRetentionInDays
         ProviderCapabilities: !Ref ProviderCapabilities
         PyramidBucket: !Ref PyramidBucket
         ReadingRoomIPs: !Ref ReadingRoomIPs

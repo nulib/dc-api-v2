@@ -4,6 +4,7 @@ import { provider, nulLogo } from "./presentation-api/provider.ts";
 import { ContentTypes } from "../content-types.ts";
 import type { Paginator } from "../../pagination.ts";
 import type { WorkSummarySource, NavPlace } from "./types.ts";
+import { buildNavDate } from "./presentation-api/nav-date.ts";
 
 export async function transform(
   response: { status: number; body: string },
@@ -192,9 +193,11 @@ function loadItem(
   size?: string,
 ): Record<string, unknown> {
   if (itemType === "Manifest") {
+    const navDate = buildNavDate(item);
     return {
       id: item.iiif_manifest,
       type: "Manifest",
+      ...(navDate ? { navDate } : {}),
       homepage: [
         {
           id: new URL(`/items/${item.id}`, dcUrl()),

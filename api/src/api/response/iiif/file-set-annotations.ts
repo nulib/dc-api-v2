@@ -24,7 +24,7 @@ export async function transform(response: {
       return {
         id: annotationId,
         type: "Annotation",
-        motivation: "commenting",
+        motivation: "supplementing",
         body: buildSearchAnnotationBody(annotation),
         target: buildAnnotationTarget(canvasId, fileSet.work_id),
       };

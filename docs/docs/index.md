@@ -367,6 +367,14 @@ IIIF manifests may include the `navPlace` extension for geographic context. Prov
 }
 ```
 
+Work manifests also carry a [`navDate`](https://iiif.io/api/presentation/3.0/#navdate) for chronological navigation when the work's Date Created resolves to a calendar date. It is the earliest date the work's `date_created_start` field covers, with EDTF values widened to their full span (a work dated `196X` gets `1960-01-01T00:00:00Z`). Works whose dates are unknown or open-ended have no `navDate`. The `Manifest` references in a IIIF Collection carry the same `navDate` for each work, so a viewer can order or label a collection's items by date.
+
+```json title="navDate example"
+{
+  "navDate": "1906-08-01T00:00:00Z"
+}
+```
+
 ### Example
 
 === "cURL"

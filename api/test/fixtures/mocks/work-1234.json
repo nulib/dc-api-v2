@@ -97,6 +97,10 @@
     ],
     "cultural_context": ["Test Context"],
     "date_created": ["August 1906 to December 1910", "1958"],
+    "date_created_edtf": ["1906-08/1910-12", "1958"],
+    "date_created_start": "1906-08-01",
+    "date_created_end": "1958-12-31",
+    "date_created_years": [1906, 1907, 1908, 1909, 1910, 1958],
     "description": [
       "This is a private record for RepoDev testing on production"
     ],

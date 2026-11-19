@@ -558,6 +558,26 @@ components:
           description: A point or a period of time associatied with an event in the lifecycle of the resource.
           items:
             type: string
+        date_created_edtf:
+          type: array
+          description: The Date Created values as Extended Date/Time Format (EDTF) strings.
+          items:
+            type: string
+        date_created_end:
+          type: string
+          format: date
+          nullable: true
+          description: The latest calendar date covered by any Date Created value, with each EDTF value widened to its full span (196X ends 1969-12-31). Null when no value resolves to a bounded date. Used for newest-first sorting.
+        date_created_start:
+          type: string
+          format: date
+          nullable: true
+          description: The earliest calendar date covered by any Date Created value, with each EDTF value widened to its full span (196X starts 1960-01-01). Null when no value resolves to a bounded date. Used for oldest-first sorting and as the IIIF navDate.
+        date_created_years:
+          type: array
+          description: Every year (CE only) covered by any Date Created value, for year range filtering.
+          items:
+            type: integer
         description:
           type: array
           description: An account of the resource.
@@ -840,6 +860,10 @@ components:
         - csv_metadata_update_jobs
         - cultural_context
         - date_created
+        - date_created_edtf
+        - date_created_end
+        - date_created_start
+        - date_created_years
         - description
         - embedding
         - embedding_model
